@@ -1,0 +1,331 @@
+"use client"
+
+import { useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
+
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+export default function RegisterPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [selectedState, setSelectedState] = useState("")
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setLoading(true)
+
+    const form = new FormData(e.currentTarget)
+    const email = form.get("email") as string
+    const password = form.get("password") as string
+    const confirmPassword = form.get("confirm-password") as string
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match")
+      setLoading(false)
+      return
+    }
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters")
+      setLoading(false)
+      return
+    }
+
+    const supabase = createClient()
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { role: "customer" },
+      },
+    })
+
+    if (error) {
+      console.error("Signup error:", {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        name: error.name,
+      })
+      toast.error(error.message, {
+        description: `Code: ${error.code || "unknown"} | Status: ${error.status || "unknown"}`,
+        duration: 10000,
+      })
+      setLoading(false)
+      return
+    }
+
+    // Update profile with company details directly via Supabase client
+    // (the API route won't have the session cookie yet)
+    if (data.user) {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          company_name: (form.get("company") as string) || null,
+          abn: (form.get("abn") as string) || null,
+          contact_name: (form.get("name") as string) || null,
+          phone: (form.get("phone") as string) || null,
+          address_street: (form.get("address") as string) || null,
+          address_city: (form.get("city") as string) || null,
+          address_state: selectedState || null,
+          address_postcode: (form.get("postcode") as string) || null,
+          delivery_address: (form.get("delivery-address") as string) || null,
+        })
+        .eq("id", data.user.id)
+
+      if (profileError) {
+        console.error("Profile update error:", profileError)
+        // Non-blocking - user can update in settings later
+      }
+    }
+
+    toast.success("Account created! Welcome to Chem Connect.")
+    router.push("/dashboard")
+    router.refresh()
+  }
+
+  return (
+    <Card className="border-0 shadow-none ring-0 bg-transparent">
+      <CardHeader className="space-y-1 px-0">
+        <div className="mb-2 flex items-center gap-3">
+          <Image
+            src="/images/cqvs-logo.png"
+            alt="Chem Connect"
+            width={48}
+            height={48}
+            className="rounded-lg"
+          />
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            Create your account
+          </CardTitle>
+        </div>
+      </CardHeader>
+
+      <CardContent className="px-0">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="company">Company Name</Label>
+            <Input
+              id="company"
+              name="company"
+              type="text"
+              placeholder="Acme Chemicals Pty Ltd"
+              autoComplete="organization"
+              className="h-10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="abn">ABN</Label>
+            <Input
+              id="abn"
+              name="abn"
+              type="text"
+              placeholder="51 824 753 556"
+              className="h-10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="name">Contact Name</Label>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              placeholder="John Smith"
+              autoComplete="name"
+              required
+              className="h-10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="name@company.com"
+              autoComplete="email"
+              required
+              className="h-10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="04XX XXX XXX"
+              autoComplete="tel"
+              className="h-10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Business Address</Label>
+            <Input
+              id="address"
+              name="address"
+              type="text"
+              placeholder="123 Industrial Ave"
+              autoComplete="street-address"
+              className="h-10"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                name="city"
+                type="text"
+                placeholder="Sydney"
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="state">State</Label>
+              <Select value={selectedState} onValueChange={setSelectedState}>
+                <SelectTrigger id="state" className="h-10">
+                  <SelectValue placeholder="State" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"].map(
+                    (s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="postcode">Postcode</Label>
+              <Input
+                id="postcode"
+                name="postcode"
+                type="text"
+                placeholder="2000"
+                className="h-10"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="delivery-address">
+              Delivery Location{" "}
+              <span className="text-xs text-muted-foreground">
+                (if different from business address)
+              </span>
+            </Label>
+            <Input
+              id="delivery-address"
+              name="delivery-address"
+              type="text"
+              placeholder="456 Quarry Rd, Penrith NSW 2750"
+              className="h-10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Create a strong password"
+              autoComplete="new-password"
+              required
+              className="h-10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirm-password">Confirm Password</Label>
+            <Input
+              id="confirm-password"
+              name="confirm-password"
+              type="password"
+              placeholder="Confirm your password"
+              autoComplete="new-password"
+              required
+              className="h-10"
+            />
+          </div>
+
+          <div className="flex items-start gap-2.5">
+            <input
+              id="terms"
+              type="checkbox"
+              required
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border border-input accent-primary"
+            />
+            <Label
+              htmlFor="terms"
+              className="text-sm font-normal leading-snug text-muted-foreground"
+            >
+              I agree to the{" "}
+              <Link
+                href="/terms"
+                className="font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy"
+                className="font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            </Label>
+          </div>
+
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full h-10 text-sm glow-primary"
+            disabled={loading}
+          >
+            {loading ? "Creating account..." : "Create Account"}
+          </Button>
+        </form>
+
+        <p className="mt-8 text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="font-medium text-primary hover:text-primary/80 transition-colors"
+          >
+            Sign in
+          </Link>
+        </p>
+      </CardContent>
+    </Card>
+  )
+}

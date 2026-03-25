@@ -1,0 +1,286 @@
+export interface Product {
+  id: string
+  name: string
+  slug: string
+  price: number
+  unit: string
+  description: string
+  manufacturer: string
+  category: string
+  classification: string
+  casNumber: string
+  packagingSizes: string[]
+  safetyInfo: string
+  deliveryInfo: string
+  inStock: boolean
+  stockQty: number
+  region: string
+  image: string
+  badge?: string
+}
+
+export const products: Product[] = [
+  {
+    id: "1",
+    name: "Green Acid Replacement",
+    slug: "green-acid-replacement",
+    price: 2.45,
+    unit: "L",
+    description:
+      "High-performance acid replacement for concrete plants. Contains Urea Hydrochloride (CAS 506-89-8) as primary active ingredient. Safer alternative to traditional hydrochloric acid for cleaning and etching concrete equipment.",
+    manufacturer: "CQVS Chemical",
+    category: "Acid Replacement",
+    classification: "Non-DG",
+    casNumber: "506-89-8",
+    packagingSizes: ["20L Drum", "200L Drum", "1000L IBC"],
+    safetyInfo: "Non-hazardous. PPE recommended: gloves, eye protection.",
+    deliveryInfo: "Ships from your state. 2-5 business day delivery.",
+    inStock: true,
+    stockQty: 450,
+    region: "NSW",
+    image: "/images/cqvs-logo.png",
+    badge: "Best Seller",
+  },
+  {
+    id: "2",
+    name: "AdBlue (DEF)",
+    slug: "adblue-def",
+    price: 1.15,
+    unit: "L",
+    description:
+      "Automotive-grade Diesel Exhaust Fluid (AdBlue/DEF). 32.5% high-purity urea solution for SCR systems. ISO 22241 compliant. Reduces NOx emissions by up to 90%.",
+    manufacturer: "CQVS Chemical",
+    category: "Automotive",
+    classification: "Non-DG",
+    casNumber: "57-13-6",
+    packagingSizes: ["10L Jerry Can", "200L Drum", "1000L IBC"],
+    safetyInfo: "Non-hazardous. Store below 30C.",
+    deliveryInfo: "Ships from your state. 2-5 business day delivery.",
+    inStock: true,
+    stockQty: 1200,
+    region: "VIC",
+    image: "/images/cqvs-logo.png",
+  },
+  {
+    id: "3",
+    name: "Eco Wash",
+    slug: "eco-wash",
+    price: 1.8,
+    unit: "L",
+    description:
+      "Biodegradable industrial wash concentrate for heavy equipment cleaning. Effective degreaser for concrete trucks, mixers, and plant equipment. pH neutral formula safe for most surfaces.",
+    manufacturer: "CQVS Chemical",
+    category: "Cleaning",
+    classification: "Non-DG",
+    casNumber: "N/A",
+    packagingSizes: ["20L Drum", "200L Drum", "1000L IBC"],
+    safetyInfo: "Low hazard. Biodegradable. Gloves recommended.",
+    deliveryInfo: "Ships from your state. 2-5 business day delivery.",
+    inStock: true,
+    stockQty: 320,
+    region: "QLD",
+    image: "/images/cqvs-logo.png",
+  },
+  {
+    id: "4",
+    name: "Agi Acid",
+    slug: "agi-acid",
+    price: 2.06,
+    unit: "L",
+    description:
+      "Industrial-strength acid for agitator and drum cleaning in concrete plants. Highly effective at dissolving hardened concrete buildup. DG Class 8 - Corrosive substance.",
+    manufacturer: "CQVS Chemical",
+    category: "Acid",
+    classification: "DG Class 8",
+    casNumber: "7647-01-0",
+    packagingSizes: ["20L Drum", "200L Drum"],
+    safetyInfo: "DG Class 8 Corrosive. Full PPE required. SDS available.",
+    deliveryInfo: "DG-rated transport. 3-7 business day delivery.",
+    inStock: true,
+    stockQty: 180,
+    region: "NSW",
+    image: "/images/cqvs-logo.png",
+    badge: "DG Class 8",
+  },
+  {
+    id: "5",
+    name: "Agi Gel",
+    slug: "agi-gel",
+    price: 2.21,
+    unit: "L",
+    description:
+      "Gel-based acid cleaner that clings to vertical surfaces for extended contact time. Ideal for agitator barrels and truck chutes. DG Class 8 - Corrosive substance.",
+    manufacturer: "CQVS Chemical",
+    category: "Acid",
+    classification: "DG Class 8",
+    casNumber: "7647-01-0",
+    packagingSizes: ["20L Drum", "200L Drum"],
+    safetyInfo: "DG Class 8 Corrosive. Full PPE required. SDS available.",
+    deliveryInfo: "DG-rated transport. 3-7 business day delivery.",
+    inStock: true,
+    stockQty: 95,
+    region: "VIC",
+    image: "/images/cqvs-logo.png",
+    badge: "DG Class 8",
+  },
+  {
+    id: "6",
+    name: "Truck Wash Premium",
+    slug: "truck-wash-premium",
+    price: 1.95,
+    unit: "L",
+    description:
+      "Premium-grade truck wash with advanced surfactant blend. Cuts through road grime, concrete dust, and diesel soot. Safe on painted surfaces and aluminium.",
+    manufacturer: "CQVS Chemical",
+    category: "Cleaning",
+    classification: "Non-DG",
+    casNumber: "N/A",
+    packagingSizes: ["20L Drum", "200L Drum", "1000L IBC"],
+    safetyInfo: "Low hazard. Gloves and eye protection recommended.",
+    deliveryInfo: "Ships from your state. 2-5 business day delivery.",
+    inStock: true,
+    stockQty: 500,
+    region: "QLD",
+    image: "/images/cqvs-logo.png",
+  },
+  {
+    id: "7",
+    name: "Truck Wash Standard",
+    slug: "truck-wash-standard",
+    price: 1.5,
+    unit: "L",
+    description:
+      "Cost-effective truck wash solution for daily fleet maintenance. Effective general-purpose cleaner for concrete and quarry vehicles.",
+    manufacturer: "CQVS Chemical",
+    category: "Cleaning",
+    classification: "Non-DG",
+    casNumber: "N/A",
+    packagingSizes: ["20L Drum", "200L Drum", "1000L IBC"],
+    safetyInfo: "Low hazard. Gloves recommended.",
+    deliveryInfo: "Ships from your state. 2-5 business day delivery.",
+    inStock: true,
+    stockQty: 800,
+    region: "NSW",
+    image: "/images/cqvs-logo.png",
+  },
+  {
+    id: "8",
+    name: "Heavy Duty Hand Cleaner",
+    slug: "heavy-duty-hand-cleaner",
+    price: 4.1,
+    unit: "L",
+    description:
+      "Industrial hand cleaner with natural grit for removing grease, oil, concrete, and adhesives. Enriched with skin conditioners to prevent drying.",
+    manufacturer: "CQVS Chemical",
+    category: "Personal Care",
+    classification: "Non-DG",
+    casNumber: "N/A",
+    packagingSizes: ["5L Pump", "20L Drum"],
+    safetyInfo: "Non-hazardous. Dermatologically tested.",
+    deliveryInfo: "Ships from your state. 2-5 business day delivery.",
+    inStock: false,
+    stockQty: 0,
+    region: "NSW",
+    image: "/images/cqvs-logo.png",
+    badge: "Coming Soon",
+  },
+  {
+    id: "9",
+    name: "AluBright",
+    slug: "alubright",
+    price: 3.4,
+    unit: "L",
+    description:
+      "Specialist aluminium brightener and cleaner. Restores shine to oxidized aluminium surfaces on tankers, trailers, and equipment.",
+    manufacturer: "CQVS Chemical",
+    category: "Cleaning",
+    classification: "Non-DG",
+    casNumber: "N/A",
+    packagingSizes: ["20L Drum", "200L Drum"],
+    safetyInfo: "Mild acid. Gloves and eye protection required.",
+    deliveryInfo: "Ships from your state. 2-5 business day delivery.",
+    inStock: false,
+    stockQty: 0,
+    region: "VIC",
+    image: "/images/cqvs-logo.png",
+    badge: "Coming Soon",
+  },
+  {
+    id: "10",
+    name: "Sodium Hydroxide (NaOH) - 50kg",
+    slug: "sodium-hydroxide-50kg",
+    price: 85.0,
+    unit: "bag",
+    description:
+      "Industrial-grade caustic soda flakes. 98% purity. Used in water treatment, cleaning, and pH adjustment applications.",
+    manufacturer: "Brenntag Australia",
+    category: "Alkali",
+    classification: "DG Class 8",
+    casNumber: "1310-73-2",
+    packagingSizes: ["25kg Bag", "50kg Bag", "1000kg Bulk Bag"],
+    safetyInfo: "DG Class 8 Corrosive. Full PPE required. Causes severe burns.",
+    deliveryInfo: "DG-rated transport. 5-10 business day delivery.",
+    inStock: true,
+    stockQty: 60,
+    region: "NSW",
+    image: "/images/cqvs-logo.png",
+  },
+  {
+    id: "11",
+    name: "BrakePrep",
+    slug: "brakeprep",
+    price: 4.95,
+    unit: "L",
+    description:
+      "Fast-evaporating brake and parts cleaner. Removes brake dust, oil, and contaminants from brake components and metal parts.",
+    manufacturer: "CQVS Chemical",
+    category: "Automotive",
+    classification: "DG Class 3",
+    casNumber: "67-64-1",
+    packagingSizes: ["5L Can", "20L Drum"],
+    safetyInfo: "DG Class 3 Flammable. Use in ventilated areas. No naked flames.",
+    deliveryInfo: "DG-rated transport. 3-7 business day delivery.",
+    inStock: false,
+    stockQty: 0,
+    region: "QLD",
+    image: "/images/cqvs-logo.png",
+    badge: "Coming Soon",
+  },
+  {
+    id: "12",
+    name: "Vision Glass Cleaner",
+    slug: "vision-glass-cleaner",
+    price: 2.0,
+    unit: "L",
+    description:
+      "Streak-free glass cleaner for industrial and automotive use. Anti-static formula repels dust. Safe on tinted windows.",
+    manufacturer: "CQVS Chemical",
+    category: "Cleaning",
+    classification: "Non-DG",
+    casNumber: "N/A",
+    packagingSizes: ["5L Jerry Can", "20L Drum"],
+    safetyInfo: "Non-hazardous. Eye protection recommended.",
+    deliveryInfo: "Ships from your state. 2-5 business day delivery.",
+    inStock: false,
+    stockQty: 0,
+    region: "VIC",
+    image: "/images/cqvs-logo.png",
+    badge: "Coming Soon",
+  },
+]
+
+export const categories = [
+  "All",
+  "Acid Replacement",
+  "Acid",
+  "Alkali",
+  "Automotive",
+  "Cleaning",
+  "Personal Care",
+]
+
+export const regions = ["All", "NSW", "VIC", "QLD", "SA", "WA"]
+
+export function getProductBySlug(slug: string): Product | undefined {
+  return products.find((p) => p.slug === slug)
+}
