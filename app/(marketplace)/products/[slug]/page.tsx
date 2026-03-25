@@ -22,9 +22,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { PageTransition } from "@/components/shared/page-transition"
+import {
+  FadeIn,
+  ScaleIn,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/shared/motion"
 
-// Try to fetch from Supabase via direct REST, fall back to static data
 async function getProduct(slug: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -113,8 +117,9 @@ export default async function ProductDetailPage({
   }
 
   return (
-    <PageTransition>
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      {/* Breadcrumb */}
+      <FadeIn delay={0}>
         <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link
             href="/products"
@@ -133,22 +138,29 @@ export default async function ProductDetailPage({
           <ArrowLeft className="size-3.5" />
           Back to Products
         </Link>
+      </FadeIn>
 
-        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
-          <div className="space-y-6">
-            <Card>
-              <CardContent className="flex items-center justify-center py-12">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  width={280}
-                  height={280}
-                  className="object-contain"
-                  priority
-                />
+      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        {/* Left column */}
+        <div className="space-y-6">
+          <ScaleIn>
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="relative h-72 sm:h-80 lg:h-96">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
               </CardContent>
             </Card>
+          </ScaleIn>
 
+          <FadeIn delay={0.15}>
             <Card>
               <CardHeader>
                 <CardTitle>Description</CardTitle>
@@ -159,7 +171,9 @@ export default async function ProductDetailPage({
                 </p>
               </CardContent>
             </Card>
+          </FadeIn>
 
+          <FadeIn delay={0.25}>
             <Card className="border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/10">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
@@ -173,33 +187,38 @@ export default async function ProductDetailPage({
                 </p>
               </CardContent>
             </Card>
-          </div>
+          </FadeIn>
+        </div>
 
-          <div className="space-y-6">
+        {/* Right column */}
+        <StaggerContainer className="space-y-6" staggerDelay={0.08}>
+          <StaggerItem>
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 {product.badge && (
-                  <Badge
-                    variant={
-                      product.badge.startsWith("DG")
-                        ? "destructive"
-                        : product.badge === "Best Seller"
-                          ? "default"
-                          : "secondary"
-                    }
+                  <span
+                    className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
+                      product.badge === "Best Seller"
+                        ? "bg-emerald-500 text-emerald-950"
+                        : product.badge === "Coming Soon"
+                          ? "bg-amber-400 text-amber-950"
+                          : product.badge.startsWith("DG")
+                            ? "bg-rose-500 text-rose-950"
+                            : "bg-sky-500 text-sky-950"
+                    }`}
                   >
                     {product.badge}
-                  </Badge>
+                  </span>
                 )}
-                <Badge
-                  variant={
+                <span
+                  className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
                     product.classification === "Non-DG"
-                      ? "secondary"
-                      : "destructive"
-                  }
+                      ? "bg-sky-500/15 text-sky-400"
+                      : "bg-rose-500/15 text-rose-400"
+                  }`}
                 >
                   {product.classification}
-                </Badge>
+                </span>
               </div>
 
               <h1 className="mt-3 text-3xl font-bold tracking-tight">
@@ -213,33 +232,38 @@ export default async function ProductDetailPage({
                 </span>
               </p>
             </div>
+          </StaggerItem>
 
+          <StaggerItem>
             <Card>
               <CardHeader>
                 <CardTitle>Product Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Manufacturer</span>
-                  <span className="font-medium">{product.manufacturer}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">CAS Number</span>
-                  <span className="font-mono font-medium">
-                    {product.casNumber}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Classification</span>
-                  <span className="font-medium">{product.classification}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Category</span>
-                  <span className="font-medium">{product.category}</span>
-                </div>
+                {[
+                  { label: "Manufacturer", value: product.manufacturer },
+                  {
+                    label: "CAS Number",
+                    value: product.casNumber,
+                    mono: true,
+                  },
+                  { label: "Classification", value: product.classification },
+                  { label: "Category", value: product.category },
+                ].map((row) => (
+                  <div key={row.label} className="flex justify-between">
+                    <span className="text-muted-foreground">{row.label}</span>
+                    <span
+                      className={`font-medium ${row.mono ? "font-mono" : ""}`}
+                    >
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
               </CardContent>
             </Card>
+          </StaggerItem>
 
+          <StaggerItem>
             <Card>
               <CardContent className="flex items-center justify-between pt-4">
                 <div className="flex items-center gap-2">
@@ -257,7 +281,9 @@ export default async function ProductDetailPage({
                 )}
               </CardContent>
             </Card>
+          </StaggerItem>
 
+          <StaggerItem>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -270,9 +296,9 @@ export default async function ProductDetailPage({
                   {product.packagingSizes.map((size, index) => (
                     <button
                       key={size}
-                      className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                      className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 ${
                         index === 0
-                          ? "border-primary bg-primary/10 text-primary"
+                          ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
                           : "border-border hover:border-primary/50 hover:bg-muted"
                       }`}
                     >
@@ -282,7 +308,9 @@ export default async function ProductDetailPage({
                 </div>
               </CardContent>
             </Card>
+          </StaggerItem>
 
+          <StaggerItem>
             <Card>
               <CardContent className="flex items-start gap-3 pt-4">
                 <Truck className="mt-0.5 size-5 text-muted-foreground" />
@@ -294,7 +322,9 @@ export default async function ProductDetailPage({
                 </div>
               </CardContent>
             </Card>
+          </StaggerItem>
 
+          <StaggerItem>
             <Card>
               <CardContent className="flex items-start gap-3 pt-4">
                 <MapPin className="mt-0.5 size-5 text-muted-foreground" />
@@ -306,7 +336,9 @@ export default async function ProductDetailPage({
                 </div>
               </CardContent>
             </Card>
+          </StaggerItem>
 
+          <StaggerItem>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button size="lg" className="flex-1 gap-2 glow-primary">
                 <ShoppingCart className="size-4" />
@@ -317,9 +349,9 @@ export default async function ProductDetailPage({
                 Request Quote
               </Button>
             </div>
-          </div>
-        </div>
+          </StaggerItem>
+        </StaggerContainer>
       </div>
-    </PageTransition>
+    </div>
   )
 }

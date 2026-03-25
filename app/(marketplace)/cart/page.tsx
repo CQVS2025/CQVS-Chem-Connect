@@ -4,6 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Minus, Plus, ShoppingCart, X } from "lucide-react"
+import { domAnimation, LazyMotion, m, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -134,8 +135,15 @@ export default function CartPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Cart Items */}
           <div className="space-y-4 lg:col-span-2">
-            {cartItems.map((item) => (
-              <Card key={item.id}>
+            {cartItems.map((item, index) => (
+              <m.div
+                key={item.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.08 }}
+                layout
+              >
+              <Card>
                 <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   {/* Product Info */}
                   <div className="flex items-center gap-4 flex-1">
@@ -199,6 +207,7 @@ export default function CartPage() {
                   </div>
                 </CardContent>
               </Card>
+              </m.div>
             ))}
           </div>
 

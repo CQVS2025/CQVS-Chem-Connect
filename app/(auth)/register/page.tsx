@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 
+import { domAnimation, LazyMotion, m } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -105,6 +106,12 @@ export default function RegisterPage() {
   }
 
   return (
+    <LazyMotion features={domAnimation} strict>
+    <m.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
     <Card className="border-0 shadow-none ring-0 bg-transparent">
       <CardHeader className="space-y-1 px-0">
         <div className="mb-2 flex items-center gap-3">
@@ -327,5 +334,7 @@ export default function RegisterPage() {
         </p>
       </CardContent>
     </Card>
+    </m.div>
+    </LazyMotion>
   )
 }

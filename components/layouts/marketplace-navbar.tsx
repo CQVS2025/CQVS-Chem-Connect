@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -62,6 +62,8 @@ function NavLink({
 
 export function MarketplaceNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const { user, loading: authLoading } = useUser()
   const { data: profile } = useProfile()
@@ -78,6 +80,15 @@ export function MarketplaceNavbar() {
         .slice(0, 2)
     : "U"
 
+  useEffect(() => {
+    setMounted(true)
+    function onScroll() {
+      setScrolled(window.scrollY > 20)
+    }
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -86,14 +97,16 @@ export function MarketplaceNavbar() {
   }
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 w-full",
-        "border-b border-border bg-background/80 backdrop-blur-xl",
-        "supports-[backdrop-filter]:bg-background/60",
-      )}
-    >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-4">
+      <nav
+        className={cn(
+          "flex w-full max-w-5xl items-center justify-between rounded-2xl px-4 py-2.5 transition-all duration-300",
+          "border border-white/8 bg-background/60 backdrop-blur-xl backdrop-saturate-150",
+          "shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_2px_20px_rgba(0,0,0,0.15)]",
+          scrolled && "bg-background/75 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_4px_30px_rgba(0,0,0,0.25)]",
+        )}
+      >
+        {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
           <Image
             src="/images/cqvs-logo.png"
@@ -103,7 +116,7 @@ export function MarketplaceNavbar() {
             className="rounded-lg"
           />
           <div className="flex flex-col leading-none">
-            <span className="text-lg font-bold tracking-tight">
+            <span className="text-base font-bold tracking-tight">
               Chem Connect
             </span>
             <span className="text-[10px] font-medium text-muted-foreground">
@@ -112,16 +125,18 @@ export function MarketplaceNavbar() {
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        {/* Center Nav - Desktop */}
+        <div className="hidden items-center gap-1 md:flex">
           {navLinks.map((link) => (
             <NavLink key={link.label} href={link.href}>
               {link.label}
             </NavLink>
           ))}
-        </nav>
+        </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative" asChild>
+        {/* Right actions */}
+        <div className="flex items-center gap-1.5">
+          <Button variant="ghost" size="icon" className="relative h-9 w-9" asChild>
             <Link href="/cart">
               <ShoppingCart className="size-4" />
               <Badge
@@ -138,16 +153,16 @@ export function MarketplaceNavbar() {
           <ThemeToggle />
 
           {!authLoading && (
-            <div className="hidden items-center gap-2 md:flex">
+            <div className="hidden items-center gap-1.5 md:flex">
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-full"
+                      className="rounded-full h-9 w-9"
                     >
-                      <div className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                      <div className="flex size-7 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
                         {initials}
                       </div>
                     </Button>
@@ -183,17 +198,13 @@ export function MarketplaceNavbar() {
                 </DropdownMenu>
               ) : (
                 <>
-                  <Button variant="ghost" size="sm" asChild>
+                  <Button variant="ghost" size="sm" className="h-8 text-xs" asChild>
                     <Link href="/login">Sign In</Link>
                   </Button>
                   <Button
                     size="sm"
+                    className="h-8 rounded-xl text-xs shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/40 transition-shadow duration-200"
                     asChild
-                    className={cn(
-                      "shadow-md shadow-primary/25",
-                      "hover:shadow-lg hover:shadow-primary/40",
-                      "transition-shadow duration-200",
-                    )}
                   >
                     <Link href="/register">Get Started</Link>
                   </Button>
@@ -202,9 +213,15 @@ export function MarketplaceNavbar() {
             </div>
           )}
 
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          {/* Mobile menu - render only after mount to avoid Radix ID hydration mismatch */}
+          {!mounted && (
+            <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden">
+              <Menu className="size-5" />
+            </Button>
+          )}
+          {mounted && <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden">
                 <Menu className="size-5" />
                 <span className="sr-only">Open menu</span>
               </Button>
@@ -291,9 +308,9 @@ export function MarketplaceNavbar() {
                 )}
               </div>
             </SheetContent>
-          </Sheet>
+          </Sheet>}
         </div>
-      </div>
+      </nav>
     </header>
   )
 }

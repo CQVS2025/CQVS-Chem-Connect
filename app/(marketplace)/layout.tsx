@@ -12,7 +12,7 @@ export default function MarketplaceLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <MarketplaceNavbar />
-      <main className="flex-1">
+      <main className="flex-1 pt-20">
         <PageTransition>{children}</PageTransition>
       </main>
       <MarketplaceFooter />

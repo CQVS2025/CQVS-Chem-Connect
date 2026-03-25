@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 
+import { domAnimation, LazyMotion, m } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -100,9 +101,20 @@ function LoginForm() {
   }
 
   return (
+    <LazyMotion features={domAnimation} strict>
+    <m.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
     <Card className="border-0 shadow-none ring-0 bg-transparent">
       <CardHeader className="space-y-1 px-0">
-        <div className="mb-2 flex items-center gap-3">
+        <m.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.35, delay: 0.1 }}
+          className="mb-2 flex items-center gap-3"
+        >
           <Image
             src="/images/cqvs-logo.png"
             alt="Chem Connect"
@@ -116,7 +128,7 @@ function LoginForm() {
             </CardTitle>
             <p className="text-xs text-muted-foreground">by CQVS</p>
           </div>
-        </div>
+        </m.div>
         <CardDescription className="text-muted-foreground">
           Sign in to your account to continue
         </CardDescription>
@@ -199,5 +211,7 @@ function LoginForm() {
         </p>
       </CardContent>
     </Card>
+    </m.div>
+    </LazyMotion>
   )
 }
