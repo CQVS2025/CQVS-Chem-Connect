@@ -10,6 +10,7 @@ import { LayoutDashboard, LogOut, Menu, ShoppingCart, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useUser } from "@/lib/hooks/use-auth"
 import { useProfile } from "@/lib/hooks/use-profile"
+import { useCart } from "@/lib/hooks/use-cart"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -67,6 +68,8 @@ export function MarketplaceNavbar() {
   const router = useRouter()
   const { user, loading: authLoading } = useUser()
   const { data: profile } = useProfile()
+  const { data: cartItems } = useCart()
+  const cartCount = cartItems?.reduce((sum, item) => sum + item.quantity, 0) ?? 0
 
   const isAdmin = profile?.role === "admin"
   const dashboardHref = isAdmin ? "/admin" : "/dashboard"
@@ -136,19 +139,23 @@ export function MarketplaceNavbar() {
 
         {/* Right actions */}
         <div className="flex items-center gap-1.5">
+          {!isAdmin && (
           <Button variant="ghost" size="icon" className="relative h-9 w-9" asChild>
             <Link href="/cart">
               <ShoppingCart className="size-4" />
-              <Badge
-                className={cn(
-                  "absolute -right-1 -top-1 flex size-4 items-center justify-center p-0 text-[10px]",
-                )}
-              >
-                0
-              </Badge>
+              {cartCount > 0 && (
+                <Badge
+                  className={cn(
+                    "absolute -right-1 -top-1 flex size-4 items-center justify-center p-0 text-[10px]",
+                  )}
+                >
+                  {cartCount > 99 ? "99+" : cartCount}
+                </Badge>
+              )}
               <span className="sr-only">Cart</span>
             </Link>
           </Button>
+          )}
 
           <ThemeToggle />
 
@@ -162,9 +169,13 @@ export function MarketplaceNavbar() {
                       size="icon"
                       className="rounded-full h-9 w-9"
                     >
-                      <div className="flex size-7 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
-                        {initials}
-                      </div>
+                      {profile?.company_logo_url ? (
+                        <img src={profile.company_logo_url} alt="" className="size-7 rounded-full object-cover" />
+                      ) : (
+                        <div className="flex size-7 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+                          {initials}
+                        </div>
+                      )}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -260,9 +271,13 @@ export function MarketplaceNavbar() {
                 {user ? (
                   <>
                     <div className="mb-2 flex items-center gap-3 px-1">
-                      <div className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                        {initials}
-                      </div>
+                      {profile?.company_logo_url ? (
+                        <img src={profile.company_logo_url} alt="" className="size-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                          {initials}
+                        </div>
+                      )}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">
                           {profile?.contact_name || "User"}

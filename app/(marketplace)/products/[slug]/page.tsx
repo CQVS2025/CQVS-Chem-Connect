@@ -8,14 +8,11 @@ import {
   ChevronRight,
   MapPin,
   Package,
-  ShoppingCart,
-  FileText,
   Truck,
 } from "lucide-react"
 
 import { getProductBySlug, products as staticProducts } from "@/lib/data/products"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -28,6 +25,8 @@ import {
   StaggerContainer,
   StaggerItem,
 } from "@/components/shared/motion"
+import { AddToCartButton } from "@/components/features/add-to-cart-button"
+import { RelatedProducts } from "@/components/features/related-products"
 
 async function getProduct(slug: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -80,6 +79,61 @@ async function getProduct(slug: string) {
   return getProductBySlug(slug) || null
 }
 
+async function getRelatedProducts(category: string, excludeSlug: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/products?category=eq.${encodeURIComponent(category)}&slug=neq.${encodeURIComponent(excludeSlug)}&select=id,name,slug,price,unit,manufacturer,category,image_url,badge&limit=8`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+          next: { revalidate: 60 },
+        },
+      )
+
+      if (res.ok) {
+        const rows = await res.json()
+        if (rows.length > 0) {
+          return rows.map((p: Record<string, unknown>) => ({
+            id: p.id as string,
+            name: p.name as string,
+            slug: p.slug as string,
+            price: p.price as number,
+            unit: p.unit as string,
+            manufacturer: p.manufacturer as string,
+            category: p.category as string,
+            image: (p.image_url as string) || "/images/cqvs-logo.png",
+            badge: (p.badge as string) || null,
+          }))
+        }
+      }
+    } catch {
+      // Fall through to static
+    }
+  }
+
+  // Static fallback
+  return staticProducts
+    .filter((p) => p.category === category && p.slug !== excludeSlug)
+    .slice(0, 8)
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      unit: p.unit,
+      manufacturer: p.manufacturer,
+      category: p.category,
+      image: p.image || "/images/cqvs-logo.png",
+      badge: p.badge ?? null,
+    }))
+}
+
 export function generateStaticParams() {
   return staticProducts.map((product) => ({
     slug: product.slug,
@@ -115,6 +169,8 @@ export default async function ProductDetailPage({
   if (!product) {
     notFound()
   }
+
+  const relatedProducts = await getRelatedProducts(product.category, product.slug)
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -288,24 +344,15 @@ export default async function ProductDetailPage({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="size-4" />
-                  Packaging Options
+                  Order Options
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {product.packagingSizes.map((size, index) => (
-                    <button
-                      key={size}
-                      className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                        index === 0
-                          ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
-                          : "border-border hover:border-primary/50 hover:bg-muted"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
+                <AddToCartButton
+                  productId={product.id}
+                  productName={product.name}
+                  packagingSizes={product.packagingSizes}
+                />
               </CardContent>
             </Card>
           </StaggerItem>
@@ -338,20 +385,15 @@ export default async function ProductDetailPage({
             </Card>
           </StaggerItem>
 
-          <StaggerItem>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button size="lg" className="flex-1 gap-2 glow-primary">
-                <ShoppingCart className="size-4" />
-                Add to Cart
-              </Button>
-              <Button variant="outline" size="lg" className="flex-1 gap-2">
-                <FileText className="size-4" />
-                Request Quote
-              </Button>
-            </div>
-          </StaggerItem>
         </StaggerContainer>
       </div>
+
+      {/* Related Products */}
+      {relatedProducts.length > 0 && (
+        <div className="mt-12 border-t border-border/50 pt-8">
+          <RelatedProducts products={relatedProducts} />
+        </div>
+      )}
     </div>
   )
 }

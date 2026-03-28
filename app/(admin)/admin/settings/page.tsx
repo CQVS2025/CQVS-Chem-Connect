@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
-import { Save } from "lucide-react"
+import { Save, Loader2 } from "lucide-react"
 
+import { useAdminSettings, useUpdateSettings } from "@/lib/hooks/use-settings"
 import { PageTransition } from "@/components/shared/page-transition"
 import {
   Card,
@@ -15,28 +16,62 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
-/* ------------------------------------------------------------------ */
-/*  Page                                                              */
-/* ------------------------------------------------------------------ */
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminSettingsPage() {
-  // Platform settings
-  const [siteName, setSiteName] = useState("Chem Connect")
-  const [supportEmail, setSupportEmail] = useState("support@chemconnect.com.au")
-  const [supportPhone, setSupportPhone] = useState("+61 2 9876 5432")
+  const { data: settings, isLoading } = useAdminSettings()
+  const updateSettings = useUpdateSettings()
 
-  // Business settings
-  const [currency, setCurrency] = useState("AUD")
-  const [taxRate, setTaxRate] = useState("10")
-  const [minOrderValue, setMinOrderValue] = useState("100")
-
-  // Notification settings
+  const [siteName, setSiteName] = useState("")
+  const [supportEmail, setSupportEmail] = useState("")
+  const [supportPhone, setSupportPhone] = useState("")
+  const [currency, setCurrency] = useState("")
+  const [taxRate, setTaxRate] = useState("")
+  const [minOrderValue, setMinOrderValue] = useState("")
   const [emailNotifications, setEmailNotifications] = useState(true)
-  const [lowStockAlerts, setLowStockAlerts] = useState(true)
+
+  // Populate from API data
+  useEffect(() => {
+    if (settings) {
+      setSiteName(settings.site_name || "Chem Connect")
+      setSupportEmail(settings.support_email || "")
+      setSupportPhone(settings.support_phone || "")
+      setCurrency(settings.currency || "AUD")
+      setTaxRate(settings.tax_rate || "10")
+      setMinOrderValue(settings.min_order_value || "100")
+      setEmailNotifications(settings.email_notifications_enabled !== "false")
+    }
+  }, [settings])
 
   function handleSave() {
-    toast.success("Settings saved successfully.")
+    updateSettings.mutate(
+      {
+        site_name: siteName,
+        support_email: supportEmail,
+        support_phone: supportPhone,
+        currency,
+        tax_rate: taxRate,
+        min_order_value: minOrderValue,
+        email_notifications_enabled: emailNotifications ? "true" : "false",
+      },
+      {
+        onSuccess: () => toast.success("Settings saved successfully."),
+        onError: () => toast.error("Unable to save settings. Please try again."),
+      },
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <PageTransition>
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+      </PageTransition>
+    )
   }
 
   return (
@@ -50,8 +85,12 @@ export default function AdminSettingsPage() {
               Configure platform, business, and notification settings.
             </p>
           </div>
-          <Button onClick={handleSave}>
-            <Save className="mr-2 h-4 w-4" />
+          <Button onClick={handleSave} disabled={updateSettings.isPending}>
+            {updateSettings.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
             Save Settings
           </Button>
         </div>
@@ -82,6 +121,9 @@ export default function AdminSettingsPage() {
                   value={supportEmail}
                   onChange={(e) => setSupportEmail(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  All admin notifications will be sent to this email.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="support-phone">Support Phone</Label>
@@ -145,68 +187,43 @@ export default function AdminSettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {/* Email notifications */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-sm font-medium">
-                    Email Notifications
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Receive order updates and alerts via email.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={emailNotifications}
-                  onClick={() => setEmailNotifications(!emailNotifications)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                    emailNotifications ? "bg-primary" : "bg-muted"
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-lg ring-0 transition-transform ${
-                      emailNotifications ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">
+                  Email Notifications
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Receive order updates, quote requests, and alerts via email
+                  to your support email address.
+                </p>
               </div>
-
-              {/* Low stock alerts (email) */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-sm font-medium">
-                    Low Stock Alerts
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Receive alerts when product stock drops below threshold.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={lowStockAlerts}
-                  onClick={() => setLowStockAlerts(!lowStockAlerts)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                    lowStockAlerts ? "bg-primary" : "bg-muted"
+              <button
+                type="button"
+                role="switch"
+                aria-checked={emailNotifications}
+                onClick={() => setEmailNotifications(!emailNotifications)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                  emailNotifications ? "bg-primary" : "bg-muted"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-lg ring-0 transition-transform ${
+                    emailNotifications ? "translate-x-5" : "translate-x-0"
                   }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-lg ring-0 transition-transform ${
-                      lowStockAlerts ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
+                />
+              </button>
             </div>
           </CardContent>
         </Card>
 
         {/* Bottom save button for mobile */}
         <div className="flex justify-end pb-4">
-          <Button onClick={handleSave}>
-            <Save className="mr-2 h-4 w-4" />
+          <Button onClick={handleSave} disabled={updateSettings.isPending}>
+            {updateSettings.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
             Save Settings
           </Button>
         </div>

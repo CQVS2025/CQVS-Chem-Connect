@@ -5,6 +5,7 @@ import { Building2, MapPin, Save } from "lucide-react"
 import { toast } from "sonner"
 
 import { useProfile, useUpdateProfile } from "@/lib/hooks/use-profile"
+import { LogoUpload } from "@/components/shared/logo-upload"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Card,
@@ -86,10 +87,8 @@ export default function SettingsPage() {
               "Your company profile and delivery address have been updated.",
           })
         },
-        onError: (err) => {
-          toast.error("Failed to save settings", {
-            description: err.message,
-          })
+        onError: () => {
+          toast.error("Unable to save your settings. Please try again.")
         },
       },
     )
@@ -136,6 +135,21 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Company Logo */}
+              <div className="space-y-2">
+                <Label>Company Logo</Label>
+                <LogoUpload
+                  currentLogoUrl={profile?.company_logo_url}
+                  onUploaded={() => {
+                    // Profile will auto-refresh via React Query
+                  }}
+                  onRemoved={() => {
+                    updateProfile.mutate({ company_logo_url: null })
+                  }}
+                  size="lg"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="company-name">Company Name</Label>
                 <Input

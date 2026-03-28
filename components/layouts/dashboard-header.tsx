@@ -2,14 +2,14 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, User } from "lucide-react"
+import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, User } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useProfile } from "@/lib/hooks/use-profile"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Input } from "@/components/ui/input"
+import { CommandPalette } from "@/components/shared/command-palette"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,23 +81,7 @@ export function DashboardHeader({ collapsed, onCollapseToggle, onMobileMenuToggl
       <div className="hidden flex-1 md:block" />
 
       <div className="ml-auto flex items-center gap-2">
-        <div className="relative hidden sm:block">
-          <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="h-9 w-50 rounded-xl pl-8 lg:w-65"
-          />
-        </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="sm:hidden"
-          aria-label="Search"
-        >
-          <Search className="size-4" />
-        </Button>
+        <CommandPalette />
 
         <ThemeToggle />
 
@@ -112,9 +96,13 @@ export function DashboardHeader({ collapsed, onCollapseToggle, onMobileMenuToggl
               className="rounded-full"
               aria-label="User menu"
             >
-              <div className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                {initials}
-              </div>
+              {profile?.company_logo_url ? (
+                <img src={profile.company_logo_url} alt="" className="size-7 rounded-full object-cover" />
+              ) : (
+                <div className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                  {initials}
+                </div>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

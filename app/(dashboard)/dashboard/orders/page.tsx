@@ -1,18 +1,27 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { domAnimation, LazyMotion, m } from "framer-motion"
+import {
+  Search,
+  Package,
+  Truck,
+  MapPin,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  CreditCard,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  AlertCircle,
+} from "lucide-react"
+
 import {
   TablePagination,
   paginateArray,
 } from "@/components/shared/table-pagination"
-import {
-  Search,
-  ArrowUpDown,
-  Package,
-  Truck,
-  MapPin,
-} from "lucide-react"
-
 import {
   Card,
   CardContent,
@@ -22,27 +31,103 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { orders, statusColors, type Order } from "@/lib/data/orders"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useOrders } from "@/lib/hooks/use-orders"
+import type { Order, OrderStatus } from "@/lib/types/order"
 
-const statuses: Array<Order["status"] | "all"> = [
+const statuses: Array<OrderStatus | "all"> = [
   "all",
-  "pending",
+  "received",
   "processing",
-  "shipped",
+  "in_transit",
   "delivered",
   "cancelled",
 ]
 
-export default function OrdersPage() {
-  const [activeStatus, setActiveStatus] = useState<Order["status"] | "all">(
-    "all"
+const statusLabels: Record<OrderStatus, string> = {
+  received: "Received",
+  processing: "Processing",
+  in_transit: "In Transit",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+}
+
+const statusBadgeColors: Record<OrderStatus, string> = {
+  received: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
+  processing: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
+  in_transit: "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400",
+  delivered: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
+  cancelled: "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400",
+}
+
+const statusTimelineIcons: Record<string, typeof CheckCircle2> = {
+  received: Package,
+  processing: Loader2,
+  in_transit: Truck,
+  delivered: CheckCircle2,
+  cancelled: XCircle,
+}
+
+const paymentMethodLabels: Record<string, string> = {
+  stripe: "Credit Card",
+  purchase_order: "Purchase Order",
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
+
+function formatDateTime(dateStr: string) {
+  return new Date(dateStr).toLocaleString("en-AU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function OrderCardSkeleton() {
+  return (
+    <Card>
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-lg" />
+          <div>
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="mt-1 h-4 w-24" />
+          </div>
+        </div>
+        <Skeleton className="h-6 w-20" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <div className="flex justify-between">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-6 w-20" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
+}
+
+export default function OrdersPage() {
+  const { data: orders, isLoading, error } = useOrders()
+  const [activeStatus, setActiveStatus] = useState<OrderStatus | "all">("all")
   const [search, setSearch] = useState("")
-  const [sortAsc, setSortAsc] = useState(false)
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
   const filtered = useMemo(() => {
+    if (!orders) return []
+
     let result = [...orders]
 
     if (activeStatus !== "all") {
@@ -52,18 +137,21 @@ export default function OrdersPage() {
     if (search.trim()) {
       const q = search.trim().toLowerCase()
       result = result.filter((o) =>
-        o.orderNumber.toLowerCase().includes(q)
+        o.order_number.toLowerCase().includes(q)
       )
     }
 
-    result.sort((a, b) => {
-      const diff =
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      return sortAsc ? -diff : diff
-    })
+    result.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
 
     return result
-  }, [activeStatus, search, sortAsc])
+  }, [orders, activeStatus, search])
+
+  const toggleExpand = (orderId: string) => {
+    setExpandedOrder(expandedOrder === orderId ? null : orderId)
+  }
 
   return (
     <div className="space-y-6">
@@ -77,45 +165,63 @@ export default function OrdersPage() {
 
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* Status filter pills */}
         <div className="flex flex-wrap gap-2">
           {statuses.map((s) => (
             <Button
               key={s}
               variant={activeStatus === s ? "default" : "outline"}
               size="sm"
-              onClick={() => setActiveStatus(s)}
+              onClick={() => {
+                setActiveStatus(s)
+                setPage(1)
+              }}
               className="capitalize"
             >
-              {s === "all" ? "All" : s}
+              {s === "all" ? "All" : statusLabels[s]}
             </Button>
           ))}
         </div>
 
-        {/* Search and sort */}
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search order number..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 w-56"
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setSortAsc(!sortAsc)}
-            title={sortAsc ? "Sort newest first" : "Sort oldest first"}
-          >
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search order number..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
+            className="pl-9 w-56"
+          />
         </div>
       </div>
 
-      {/* Orders list */}
-      {filtered.length === 0 ? (
+      {/* Loading state */}
+      {isLoading && (
+        <div className="grid gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <OrderCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <AlertCircle className="h-12 w-12 text-red-400" />
+            <p className="mt-4 text-lg font-medium text-muted-foreground">
+              Failed to load orders
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Please try refreshing the page.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty state */}
+      {!isLoading && !error && filtered.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Package className="h-12 w-12 text-muted-foreground/40" />
@@ -123,103 +229,314 @@ export default function OrdersPage() {
               No orders found
             </p>
             <p className="text-sm text-muted-foreground">
-              Try adjusting your filters or search query.
+              {orders && orders.length > 0
+                ? "Try adjusting your filters or search query."
+                : "You haven't placed any orders yet."}
             </p>
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid gap-4">
-          {paginateArray(filtered, page, pageSize).map((order) => (
-            <Card key={order.id}>
-              <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <Package className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">
-                      {order.orderNumber}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(order.date).toLocaleDateString("en-AU", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant="outline"
-                  className={statusColors[order.status]}
+      )}
+
+      {/* Orders list */}
+      {!isLoading && !error && filtered.length > 0 && (
+        <LazyMotion features={domAnimation} strict>
+          <div className="grid gap-4">
+            {paginateArray(filtered, page, pageSize).map(
+              (order: Order, index: number) => (
+                <m.div
+                  key={order.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: index * 0.05,
+                    ease: "easeOut",
+                  }}
                 >
-                  {order.status.charAt(0).toUpperCase() +
-                    order.status.slice(1)}
-                </Badge>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Items list */}
-                  <div className="rounded-lg border bg-muted/30 p-3">
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Items
-                    </p>
-                    <div className="space-y-1.5">
-                      {order.items.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between text-sm"
-                        >
-                          <span>
-                            {item.name}{" "}
-                            <span className="text-muted-foreground">
-                              x{item.qty} ({item.unit})
-                            </span>
-                          </span>
-                          <span className="font-medium">
-                            ${(item.price * item.qty).toLocaleString()}
-                          </span>
+                  <Card>
+                    <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                          <Package className="h-5 w-5 text-primary" />
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                        <div>
+                          <CardTitle className="text-base">
+                            {order.order_number}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            {formatDate(order.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className={statusBadgeColors[order.status]}
+                        >
+                          {statusLabels[order.status]}
+                        </Badge>
+                        <Badge variant="outline" className="gap-1">
+                          <CreditCard className="h-3 w-3" />
+                          {paymentMethodLabels[order.payment_method] ||
+                            order.payment_method}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {/* Summary row */}
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1.5">
+                              <Package className="h-4 w-4" />
+                              {order.items.length}{" "}
+                              {order.items.length === 1 ? "item" : "items"}
+                            </span>
+                            {order.tracking_number && (
+                              <span className="flex items-center gap-1.5">
+                                <Truck className="h-4 w-4" />
+                                {order.tracking_number}
+                              </span>
+                            )}
+                            {!order.tracking_number &&
+                              order.status !== "cancelled" &&
+                              order.status !== "delivered" && (
+                                <span className="flex items-center gap-1.5">
+                                  <MapPin className="h-4 w-4" />
+                                  Tracking not yet available
+                                </span>
+                              )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <p className="text-lg font-semibold">
+                              ${order.total.toLocaleString("en-AU", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleExpand(order.id)}
+                              className="gap-1"
+                            >
+                              {expandedOrder === order.id ? (
+                                <>
+                                  Hide Details
+                                  <ChevronUp className="h-4 w-4" />
+                                </>
+                              ) : (
+                                <>
+                                  View Details
+                                  <ChevronDown className="h-4 w-4" />
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
 
-                  {/* Footer row */}
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      {order.trackingNumber && (
-                        <span className="flex items-center gap-1.5">
-                          <Truck className="h-4 w-4" />
-                          {order.trackingNumber}
-                        </span>
-                      )}
-                      {!order.trackingNumber &&
-                        order.status !== "cancelled" && (
-                          <span className="flex items-center gap-1.5">
-                            <MapPin className="h-4 w-4" />
-                            Tracking not yet available
-                          </span>
+                        {/* Expanded details */}
+                        {expandedOrder === order.id && (
+                          <m.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            transition={{ duration: 0.25 }}
+                            className="space-y-4 overflow-hidden"
+                          >
+                            {/* Items list */}
+                            <div className="rounded-lg border bg-muted/30 p-3">
+                              <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                Items
+                              </p>
+                              <div className="space-y-1.5">
+                                {order.items.map((item) => (
+                                  <div
+                                    key={item.id}
+                                    className="flex items-center justify-between text-sm"
+                                  >
+                                    <span>
+                                      {item.product_name}{" "}
+                                      <span className="text-muted-foreground">
+                                        x{item.quantity} ({item.packaging_size})
+                                      </span>
+                                    </span>
+                                    <span className="font-medium">
+                                      $
+                                      {item.total_price.toLocaleString(
+                                        "en-AU",
+                                        {
+                                          minimumFractionDigits: 2,
+                                          maximumFractionDigits: 2,
+                                        }
+                                      )}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="mt-3 border-t pt-2 space-y-1 text-sm">
+                                <div className="flex justify-between text-muted-foreground">
+                                  <span>Subtotal</span>
+                                  <span>
+                                    $
+                                    {order.subtotal.toLocaleString("en-AU", {
+                                      minimumFractionDigits: 2,
+                                    })}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-muted-foreground">
+                                  <span>Shipping</span>
+                                  <span>
+                                    $
+                                    {order.shipping.toLocaleString("en-AU", {
+                                      minimumFractionDigits: 2,
+                                    })}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-muted-foreground">
+                                  <span>GST</span>
+                                  <span>
+                                    $
+                                    {order.gst.toLocaleString("en-AU", {
+                                      minimumFractionDigits: 2,
+                                    })}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between font-semibold">
+                                  <span>Total</span>
+                                  <span>
+                                    $
+                                    {order.total.toLocaleString("en-AU", {
+                                      minimumFractionDigits: 2,
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Delivery address */}
+                            {order.delivery_address_street && (
+                              <div className="rounded-lg border bg-muted/30 p-3">
+                                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                  Delivery Address
+                                </p>
+                                <div className="flex items-start gap-2 text-sm">
+                                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                                  <p>
+                                    {order.delivery_address_street}
+                                    <br />
+                                    {order.delivery_address_city},{" "}
+                                    {order.delivery_address_state}{" "}
+                                    {order.delivery_address_postcode}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Tracking info */}
+                            {order.tracking_number && (
+                              <div className="rounded-lg border bg-muted/30 p-3">
+                                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                  Tracking
+                                </p>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Truck className="h-4 w-4 text-muted-foreground" />
+                                  <span className="font-mono">
+                                    {order.tracking_number}
+                                  </span>
+                                </div>
+                                {order.estimated_delivery && (
+                                  <p className="mt-1 text-xs text-muted-foreground">
+                                    Estimated delivery:{" "}
+                                    {formatDate(order.estimated_delivery)}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Status timeline */}
+                            {order.status_history &&
+                              order.status_history.length > 0 && (
+                                <div className="rounded-lg border bg-muted/30 p-3">
+                                  <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                    Status Timeline
+                                  </p>
+                                  <div className="relative space-y-0">
+                                    {order.status_history.map(
+                                      (history, idx) => {
+                                        const Icon =
+                                          statusTimelineIcons[
+                                            history.status
+                                          ] || Clock
+                                        const isLast =
+                                          idx ===
+                                          order.status_history!.length - 1
+                                        return (
+                                          <div
+                                            key={history.id}
+                                            className="relative flex gap-3 pb-4 last:pb-0"
+                                          >
+                                            {/* Line */}
+                                            {!isLast && (
+                                              <div className="absolute left-[11px] top-6 h-[calc(100%-12px)] w-px bg-border" />
+                                            )}
+                                            {/* Icon */}
+                                            <div className="relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-background ring-2 ring-border">
+                                              <Icon className="h-3 w-3 text-muted-foreground" />
+                                            </div>
+                                            {/* Content */}
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-sm font-medium capitalize">
+                                                {history.status.replace(
+                                                  "_",
+                                                  " "
+                                                )}
+                                              </p>
+                                              <p className="text-xs text-muted-foreground">
+                                                {formatDateTime(
+                                                  history.created_at
+                                                )}
+                                              </p>
+                                              {history.note && (
+                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                  {history.note}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )
+                                      }
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                            {/* PO number */}
+                            {order.po_number && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <FileText className="h-4 w-4" />
+                                <span>PO Number: {order.po_number}</span>
+                              </div>
+                            )}
+                          </m.div>
                         )}
-                    </div>
-                    <p className="text-lg font-semibold">
-                      ${order.total.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </m.div>
+              )
+            )}
 
-          {filtered.length > 0 && (
-            <TablePagination
-              page={page}
-              pageSize={pageSize}
-              totalItems={filtered.length}
-              onPageChange={setPage}
-              onPageSizeChange={setPageSize}
-            />
-          )}
-        </div>
+            {filtered.length > 0 && (
+              <TablePagination
+                page={page}
+                pageSize={pageSize}
+                totalItems={filtered.length}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+              />
+            )}
+          </div>
+        </LazyMotion>
       )}
     </div>
   )

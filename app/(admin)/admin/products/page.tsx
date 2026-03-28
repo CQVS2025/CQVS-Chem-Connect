@@ -195,7 +195,7 @@ export default function AdminProductsPage() {
         imageUrl = result.url
       } catch (err) {
         toast.error("Failed to upload image", {
-          description: err instanceof Error ? err.message : "Unknown error",
+          description: "Please check the file size and format, then try again.",
         })
         return
       }
@@ -230,7 +230,7 @@ export default function AdminProductsPage() {
             toast.success("Product updated")
             setDialogOpen(false)
           },
-          onError: (err) => toast.error(err.message),
+          onError: () => toast.error("Unable to update product. Please try again."),
         },
       )
     } else {
@@ -239,7 +239,7 @@ export default function AdminProductsPage() {
           toast.success("Product created")
           setDialogOpen(false)
         },
-        onError: (err) => toast.error(err.message),
+        onError: () => toast.error("Unable to create product. Please check the details and try again."),
       })
     }
   }
@@ -250,7 +250,7 @@ export default function AdminProductsPage() {
         toast.success("Product deleted")
         setDeleteConfirm(null)
       },
-      onError: (err) => toast.error(err.message),
+      onError: () => toast.error("Unable to delete product. It may be linked to existing orders."),
     })
   }
 

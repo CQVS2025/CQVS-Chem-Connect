@@ -1,6 +1,7 @@
 "use client"
 
 import { Suspense, useState } from "react"
+import { Eye, EyeOff } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -33,6 +34,7 @@ function LoginForm() {
   const redirectTo = searchParams.get("redirect") || "/dashboard"
   const isSuspended = searchParams.get("suspended") === "true"
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -44,15 +46,28 @@ function LoginForm() {
       const password = formData.get("password") as string
 
       const supabase = createClient()
+
+      // Check if account exists
+      const { count } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("email", email)
+
+      if (count === 0) {
+        toast.error("No account found with this email.", {
+          description: "Please check the email address or create a new account.",
+        })
+        return
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) {
-        const isBanned =
-          error.message.toLowerCase().includes("banned") ||
-          error.message.toLowerCase().includes("suspended")
+        const msg = error.message.toLowerCase()
+        const isBanned = msg.includes("banned") || msg.includes("suspended")
 
         if (isBanned) {
           toast.error("Account suspended", {
@@ -61,9 +76,8 @@ function LoginForm() {
             duration: 15000,
           })
         } else {
-          toast.error(error.message, {
-            description: `Code: ${error.code || "unknown"} | Status: ${error.status || "unknown"}`,
-            duration: 10000,
+          toast.error("Incorrect password. Please try again.", {
+            description: "Use the 'Forgot password?' link if you need to reset it.",
           })
         }
         return
@@ -159,21 +173,35 @@ function LoginForm() {
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
               <Link
-                href="/login"
+                href="/forgot-password"
                 className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 Forgot password?
               </Link>
             </div>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Enter your password"
-              autoComplete="current-password"
-              required
-              className="h-10"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                required
+                className="h-10 pr-10"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-2.5">

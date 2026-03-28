@@ -1,12 +1,12 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { Menu, PanelLeftClose, PanelLeftOpen, Search, ChevronRight } from "lucide-react"
+import { Menu, PanelLeftClose, PanelLeftOpen, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useProfile } from "@/lib/hooks/use-profile"
 import { ThemeToggle } from "@/components/shared/theme-toggle"
-import { Input } from "@/components/ui/input"
+import { CommandPalette } from "@/components/shared/command-palette"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -15,6 +15,7 @@ const breadcrumbMap: Record<string, string> = {
   "/admin/users": "Users",
   "/admin/products": "Products",
   "/admin/orders": "Orders",
+  "/admin/quotes": "Quotes",
   "/admin/analytics": "Analytics",
   "/admin/settings": "Settings",
 }
@@ -113,18 +114,7 @@ export function AdminHeader({ collapsed, onCollapseToggle, onMobileMenuToggle }:
 
       {/* Right section */}
       <div className="ml-auto flex items-center gap-2">
-        <div className="relative hidden md:block">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="h-9 w-56 rounded-lg bg-muted/50 pl-8 text-sm lg:w-64"
-          />
-        </div>
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <Search className="h-5 w-5" />
-          <span className="sr-only">Search</span>
-        </Button>
+        <CommandPalette />
 
         <ThemeToggle />
 

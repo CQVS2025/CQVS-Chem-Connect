@@ -7,6 +7,7 @@ import {
   BarChart3,
   ChevronsLeft,
   ChevronsRight,
+  FileText,
   Users,
   Package,
   ShoppingCart,
@@ -40,6 +41,7 @@ const navItems = [
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { label: "Quotes", href: "/admin/quotes", icon: FileText },
   { label: "Analytics", href: "/admin/analytics", icon: TrendingUp },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ]

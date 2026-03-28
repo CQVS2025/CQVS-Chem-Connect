@@ -24,6 +24,7 @@ export interface Database {
           address_state: string | null
           address_postcode: string | null
           delivery_address: string | null
+          company_logo_url: string | null
           created_at: string
           updated_at: string
         }
@@ -41,6 +42,7 @@ export interface Database {
           address_state?: string | null
           address_postcode?: string | null
           delivery_address?: string | null
+          company_logo_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -58,6 +60,7 @@ export interface Database {
           address_state?: string | null
           address_postcode?: string | null
           delivery_address?: string | null
+          company_logo_url?: string | null
           updated_at?: string
         }
       }

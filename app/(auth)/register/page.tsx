@@ -4,6 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { Building2, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 
@@ -29,6 +30,10 @@ export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [selectedState, setSelectedState] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -68,10 +73,14 @@ export default function RegisterPage() {
         code: error.code,
         name: error.name,
       })
-      toast.error(error.message, {
-        description: `Code: ${error.code || "unknown"} | Status: ${error.status || "unknown"}`,
-        duration: 10000,
-      })
+      const msg = error.message?.toLowerCase() || ""
+      if (msg.includes("already registered") || msg.includes("already exists") || msg.includes("duplicate")) {
+        toast.error("An account with this email already exists. Please sign in instead.")
+      } else if (msg.includes("password")) {
+        toast.error("Password does not meet requirements. Please use at least 6 characters.")
+      } else {
+        toast.error("Unable to create your account. Please try again or contact support.")
+      }
       setLoading(false)
       return
     }
@@ -96,7 +105,34 @@ export default function RegisterPage() {
 
       if (profileError) {
         console.error("Profile update error:", profileError)
-        // Non-blocking - user can update in settings later
+      }
+
+      // Upload logo if selected (now user is authenticated)
+      if (logoFile) {
+        try {
+          const ext = logoFile.name.split(".").pop()
+          const filePath = `logos/${data.user.id}.${ext}`
+
+          await supabase.storage
+            .from("company-logos")
+            .upload(filePath, logoFile, {
+              contentType: logoFile.type,
+              upsert: true,
+            })
+
+          const { data: urlData } = supabase.storage
+            .from("company-logos")
+            .getPublicUrl(filePath)
+
+          if (urlData?.publicUrl) {
+            await supabase
+              .from("profiles")
+              .update({ company_logo_url: urlData.publicUrl })
+              .eq("id", data.user.id)
+          }
+        } catch {
+          // Non-blocking - user can upload in settings later
+        }
       }
     }
 
@@ -151,6 +187,46 @@ export default function RegisterPage() {
               placeholder="51 824 753 556"
               className="h-10"
             />
+          </div>
+
+          {/* Company Logo */}
+          <div className="space-y-2">
+            <Label>Company Logo <span className="text-xs text-muted-foreground">(optional)</span></Label>
+            <div className="flex items-center gap-3">
+              <label className="flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted/50 transition-colors hover:border-primary/50 hover:bg-muted">
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Preview" className="h-full w-full object-contain p-1" />
+                ) : (
+                  <Building2 className="h-6 w-6 text-muted-foreground/50" />
+                )}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setLogoFile(file)
+                      setLogoPreview(URL.createObjectURL(file))
+                    }
+                  }}
+                />
+              </label>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {logoFile ? logoFile.name : "Click to upload. JPG, PNG, WebP, SVG. Max 2MB."}
+                </p>
+                {logoFile && (
+                  <button
+                    type="button"
+                    className="mt-1 text-xs text-destructive hover:underline"
+                    onClick={() => { setLogoFile(null); setLogoPreview(null) }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -261,28 +337,48 @@ export default function RegisterPage() {
 
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Create a strong password"
-              autoComplete="new-password"
-              required
-              className="h-10"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Create a strong password"
+                autoComplete="new-password"
+                required
+                className="h-10 pr-10"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="confirm-password">Confirm Password</Label>
-            <Input
-              id="confirm-password"
-              name="confirm-password"
-              type="password"
-              placeholder="Confirm your password"
-              autoComplete="new-password"
-              required
-              className="h-10"
-            />
+            <div className="relative">
+              <Input
+                id="confirm-password"
+                name="confirm-password"
+                type={showConfirm ? "text" : "password"}
+                placeholder="Confirm your password"
+                autoComplete="new-password"
+                required
+                className="h-10 pr-10"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-start gap-2.5">

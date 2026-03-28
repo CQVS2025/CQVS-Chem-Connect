@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   ChevronsLeft,
   ChevronsRight,
+  FileText,
   FlaskConical,
   Gift,
   LayoutDashboard,
@@ -34,6 +35,7 @@ import {
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Orders", href: "/dashboard/orders", icon: Package },
+  { label: "My Quotes", href: "/dashboard/quotes", icon: FileText },
   { label: "Browse Products", href: "/products", icon: FlaskConical },
   { label: "Rewards", href: "/dashboard/rewards", icon: Gift },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
@@ -193,9 +195,13 @@ function SidebarContent({
               <TooltipTrigger asChild>
                 <button
                   onClick={handleSignOut}
-                  className="mx-auto flex size-9 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  className="mx-auto flex size-9 items-center justify-center overflow-hidden rounded-full bg-muted text-sm font-semibold text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 >
-                  {initials}
+                  {profile?.company_logo_url ? (
+                    <img src={profile.company_logo_url} alt="" className="size-full object-cover" />
+                  ) : (
+                    initials
+                  )}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right" sideOffset={8}>
@@ -207,9 +213,17 @@ function SidebarContent({
             </Tooltip>
           ) : (
             <div className="flex items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">
-                {initials}
-              </div>
+              {profile?.company_logo_url ? (
+                <img
+                  src={profile.company_logo_url}
+                  alt=""
+                  className="size-9 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">
+                  {initials}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground">
                   {profile?.contact_name || "User"}

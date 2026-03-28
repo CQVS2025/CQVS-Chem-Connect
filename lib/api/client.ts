@@ -81,6 +81,14 @@ export function put<T>(
   return request<T>("PUT", path, body, options);
 }
 
+export function patch<T>(
+  path: string,
+  body?: unknown,
+  options?: RequestOptions,
+): Promise<T> {
+  return request<T>("PATCH", path, body, options);
+}
+
 export function del<T>(path: string, options?: RequestOptions): Promise<T> {
   return request<T>("DELETE", path, undefined, options);
 }

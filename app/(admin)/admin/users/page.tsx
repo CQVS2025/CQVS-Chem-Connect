@@ -80,6 +80,9 @@ export default function AdminUsersPage() {
 
   function handleToggleStatus(user: Profile) {
     const newStatus = user.status === "active" ? "suspended" : "active"
+    const toastId = toast.loading(
+      newStatus === "active" ? "Reactivating user..." : "Suspending user...",
+    )
     updateUser.mutate(
       { id: user.id, data: { status: newStatus } },
       {
@@ -88,24 +91,27 @@ export default function AdminUsersPage() {
             newStatus === "active"
               ? `${user.contact_name || user.email} has been reactivated.`
               : `${user.contact_name || user.email} has been suspended.`,
+            { id: toastId },
           )
         },
-        onError: (err) => toast.error(err.message),
+        onError: () => toast.error("Unable to update user status. Please try again.", { id: toastId }),
       },
     )
   }
 
   function handleToggleRole(user: Profile) {
     const newRole = user.role === "admin" ? "customer" : "admin"
+    const toastId = toast.loading("Updating user role...")
     updateUser.mutate(
       { id: user.id, data: { role: newRole } },
       {
         onSuccess: () => {
           toast.success(
             `${user.contact_name || user.email} is now ${newRole === "admin" ? "an admin" : "a customer"}.`,
+            { id: toastId },
           )
         },
-        onError: (err) => toast.error(err.message),
+        onError: () => toast.error("Unable to update user role. Please try again.", { id: toastId }),
       },
     )
   }

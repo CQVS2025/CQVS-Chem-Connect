@@ -54,6 +54,7 @@ export async function updateSession(request: NextRequest) {
       pathname.startsWith("/dashboard") ||
       pathname === "/login" ||
       pathname === "/register" ||
+      pathname === "/cart" ||
       pathname === "/checkout"
 
     if (needsProfile) {
@@ -100,6 +101,13 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  // Admin users cannot access cart/checkout (ordering is customer-only)
+  if ((pathname === "/cart" || pathname === "/checkout") && user && userRole === "admin") {
+    const url = request.nextUrl.clone()
+    url.pathname = "/admin"
+    return NextResponse.redirect(url)
+  }
+
   // Customer dashboard - admin users should go to /admin instead
   if (pathname === "/dashboard" && user && userRole === "admin") {
     const url = request.nextUrl.clone()
@@ -108,7 +116,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect logged-in users away from auth pages
-  const authPaths = ["/login", "/register"]
+  const authPaths = ["/login", "/register", "/forgot-password"]
   const isAuthPage = authPaths.some((path) => pathname === path)
 
   if (isAuthPage && user) {
