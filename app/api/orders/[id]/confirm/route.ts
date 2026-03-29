@@ -124,11 +124,21 @@ export async function POST(
         amount: updatedOrder.total,
       })
 
-      // Fetch order items for confirmation + receipt
+      // Fetch order items with product shipping fees
       const { data: orderItems } = await supabase
         .from("order_items")
-        .select("product_name, quantity, unit, packaging_size, unit_price, total_price")
+        .select("product_id, product_name, quantity, unit, packaging_size, unit_price, total_price")
         .eq("order_id", id)
+
+      // Get shipping fees from products
+      const productIds = (orderItems ?? []).map((i) => i.product_id)
+      const { data: shippingProducts } = await supabase
+        .from("products")
+        .select("id, shipping_fee")
+        .in("id", productIds)
+      const shippingMap = new Map(
+        (shippingProducts ?? []).map((p) => [p.id, p.shipping_fee ?? 0]),
+      )
 
       if (orderItems) {
         sendOrderConfirmationEmail(profile.email, {
@@ -139,6 +149,7 @@ export async function POST(
             qty: item.quantity,
             unitPrice: item.unit_price,
             total: item.total_price,
+            shippingFee: shippingMap.get(item.product_id) ?? 0,
           })),
           subtotal: updatedOrder.subtotal,
           shipping: updatedOrder.shipping,
@@ -166,6 +177,7 @@ export async function POST(
             packagingSize: item.packaging_size,
             unitPrice: item.unit_price,
             total: item.total_price,
+            shippingFee: shippingMap.get(item.product_id) ?? 0,
           })),
           subtotal: updatedOrder.subtotal,
           shipping: updatedOrder.shipping,

@@ -87,6 +87,7 @@ export default function AdminProductsPage() {
   const [formRegion, setFormRegion] = useState("NSW")
   const [formStockQty, setFormStockQty] = useState("")
   const [formInStock, setFormInStock] = useState(true)
+  const [formShippingFee, setFormShippingFee] = useState("0")
   const [formBadge, setFormBadge] = useState("")
   const [formExistingImage, setFormExistingImage] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -121,6 +122,7 @@ export default function AdminProductsPage() {
         manufacturer: p.manufacturer,
         imageUrl: p.image_url,
         badge: p.badge,
+        shippingFee: p.shipping_fee ?? 0,
       }))
     }
     return staticProducts.map((p) => ({
@@ -142,6 +144,7 @@ export default function AdminProductsPage() {
       manufacturer: p.manufacturer,
       imageUrl: p.image ?? null,
       badge: p.badge ?? null,
+      shippingFee: 0,
     }))
   }, [apiProducts])
 
@@ -168,6 +171,7 @@ export default function AdminProductsPage() {
     setFormRegion("NSW")
     setFormStockQty("1")
     setFormInStock(true)
+    setFormShippingFee("0")
     setFormBadge("")
     setFormExistingImage(null)
     setImageFile(null)
@@ -191,6 +195,7 @@ export default function AdminProductsPage() {
     setFormRegion(product.region)
     setFormStockQty(product.stockQty.toString())
     setFormInStock(product.inStock)
+    setFormShippingFee((product.shippingFee ?? 0).toString())
     setFormBadge(product.badge || "")
     setFormExistingImage(product.imageUrl)
     setImageFile(null)
@@ -277,6 +282,7 @@ export default function AdminProductsPage() {
       region: formRegion,
       stock_qty: parseInt(formStockQty) || 0,
       in_stock: formInStock,
+      shipping_fee: parseFloat(formShippingFee) || 0,
       badge: formBadge && formBadge !== "none" ? formBadge : null,
       ...(imageUrl ? { image_url: imageUrl } : {}),
     }
@@ -674,6 +680,51 @@ export default function AdminProductsPage() {
                       )}
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+              {/* Shipping Fee */}
+              <div className="grid gap-2">
+                <Label htmlFor="product-shipping-fee">Shipping Fee (AUD)</Label>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormShippingFee("0")}
+                      className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                        parseFloat(formShippingFee) === 0
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      Free Shipping
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { if (parseFloat(formShippingFee) === 0) setFormShippingFee("") }}
+                      className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                        parseFloat(formShippingFee) > 0 || formShippingFee === ""
+                          ? "border-primary/30 bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      Fixed Fee
+                    </button>
+                  </div>
+                  {(parseFloat(formShippingFee) > 0 || formShippingFee === "") && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm text-muted-foreground">$</span>
+                      <Input
+                        id="product-shipping-fee"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-24"
+                        value={formShippingFee}
+                        onChange={(e) => setFormShippingFee(e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">

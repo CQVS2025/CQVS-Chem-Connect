@@ -16,6 +16,7 @@ interface ReceiptEmailData {
     packagingSize: string
     unitPrice: number
     total: number
+    shippingFee?: number
   }[]
   subtotal: number
   shipping: number

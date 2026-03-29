@@ -12,6 +12,7 @@ export interface CartItemProduct {
   image_url: string | null
   in_stock: boolean
   stock_qty: number
+  shipping_fee: number
 }
 
 export interface CartItem {

@@ -32,6 +32,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useOrders } from "@/lib/hooks/use-orders"
 import type { Order, OrderStatus } from "@/lib/types/order"
 
@@ -120,6 +127,7 @@ function OrderCardSkeleton() {
 export default function OrdersPage() {
   const { data: orders, isLoading, error } = useOrders()
   const [activeStatus, setActiveStatus] = useState<OrderStatus | "all">("all")
+  const [paymentFilter, setPaymentFilter] = useState<"all" | "stripe" | "purchase_order">("all")
   const [search, setSearch] = useState("")
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [page, setPage] = useState(1)
@@ -141,13 +149,17 @@ export default function OrdersPage() {
       )
     }
 
+    if (paymentFilter !== "all") {
+      result = result.filter((o) => o.payment_method === paymentFilter)
+    }
+
     result.sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
 
     return result
-  }, [orders, activeStatus, search])
+  }, [orders, activeStatus, search, paymentFilter])
 
   const toggleExpand = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId)
@@ -164,8 +176,9 @@ export default function OrdersPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2">
+      <div className="space-y-3">
+        {/* Status pills */}
+        <div className="flex flex-wrap gap-1.5">
           {statuses.map((s) => (
             <Button
               key={s}
@@ -175,24 +188,37 @@ export default function OrdersPage() {
                 setActiveStatus(s)
                 setPage(1)
               }}
-              className="capitalize"
+              className="h-8 text-xs capitalize"
             >
               {s === "all" ? "All" : statusLabels[s]}
             </Button>
           ))}
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search order number..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setPage(1)
-            }}
-            className="pl-9 w-56"
-          />
+        {/* Search + payment filter */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative flex-1 sm:max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search order number..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
+              className="h-9 pl-9"
+            />
+          </div>
+          <Select value={paymentFilter} onValueChange={(v) => { setPaymentFilter(v as typeof paymentFilter); setPage(1) }}>
+            <SelectTrigger className="h-9 w-full sm:w-40">
+              <SelectValue placeholder="Payment" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Payments</SelectItem>
+              <SelectItem value="stripe">Card</SelectItem>
+              <SelectItem value="purchase_order">Purchase Order</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -386,12 +412,25 @@ export default function OrdersPage() {
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>Shipping</span>
                                   <span>
-                                    $
-                                    {order.shipping.toLocaleString("en-AU", {
-                                      minimumFractionDigits: 2,
-                                    })}
+                                    {order.shipping > 0
+                                      ? `$${order.shipping.toLocaleString("en-AU", { minimumFractionDigits: 2 })}`
+                                      : "Free"}
                                   </span>
                                 </div>
+                                {order.shipping > 0 && (
+                                  <div className="space-y-0.5 ml-4 pl-3 border-l-2 border-border">
+                                    {order.items.map((item) => (
+                                      <div key={item.id} className="flex justify-between text-xs text-muted-foreground">
+                                        <span className="truncate max-w-40">{item.product_name}</span>
+                                        <span className="shrink-0 ml-2">
+                                          {(item.shipping_fee ?? 0) > 0
+                                            ? `$${item.shipping_fee.toFixed(2)}`
+                                            : "Free"}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>GST</span>
                                   <span>

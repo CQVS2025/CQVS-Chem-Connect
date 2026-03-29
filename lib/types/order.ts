@@ -8,6 +8,7 @@ export interface OrderItem {
   packaging_size: string
   unit_price: number
   total_price: number
+  shipping_fee: number
 }
 
 export interface OrderStatusHistory {

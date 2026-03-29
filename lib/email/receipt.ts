@@ -14,6 +14,7 @@ interface ReceiptData {
     packagingSize: string
     unitPrice: number
     total: number
+    shippingFee?: number
   }[]
   subtotal: number
   shipping: number
@@ -159,6 +160,10 @@ export function buildReceiptHtml(data: ReceiptData): string {
                   <td style="padding: 4px 12px; font-size: 13px; color: #94A3B8; text-align: right; font-family: Arial, Helvetica, sans-serif;">Shipping</td>
                   <td style="padding: 4px 12px; font-size: 13px; color: #E5E7EB; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">${data.shipping === 0 ? "Free" : "$" + data.shipping.toFixed(2)}</td>
                 </tr>
+                ${data.shipping > 0 ? data.items.map((item) => `<tr>
+                  <td style="padding: 1px 12px; font-size: 11px; color: #64748B; text-align: right; font-family: Arial, Helvetica, sans-serif;">${item.name}</td>
+                  <td style="padding: 1px 12px; font-size: 11px; color: #64748B; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">${(item.shippingFee ?? 0) > 0 ? "$" + item.shippingFee!.toFixed(2) : "Free"}</td>
+                </tr>`).join("") : ""}
                 <tr>
                   <td style="padding: 4px 12px; font-size: 13px; color: #94A3B8; text-align: right; font-family: Arial, Helvetica, sans-serif;">GST (10%)</td>
                   <td style="padding: 4px 12px; font-size: 13px; color: #E5E7EB; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">$${data.gst.toFixed(2)}</td>

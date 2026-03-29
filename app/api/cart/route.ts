@@ -36,7 +36,8 @@ export async function GET() {
           unit,
           image_url,
           in_stock,
-          stock_qty
+          stock_qty,
+          shipping_fee
         )
       `,
       )
@@ -163,7 +164,8 @@ export async function POST(request: NextRequest) {
           unit,
           image_url,
           in_stock,
-          stock_qty
+          stock_qty,
+          shipping_fee
         )
       `,
       )

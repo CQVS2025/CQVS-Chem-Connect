@@ -96,6 +96,7 @@ async function getProduct(slug: string) {
             packagingSizes: data.packaging_sizes as string[],
             safetyInfo: data.safety_info as string,
             deliveryInfo: data.delivery_info as string,
+            shippingFee: (data.shipping_fee as number) ?? 0,
             inStock: data.in_stock as boolean,
             stockQty: data.stock_qty as number,
             region: data.region as string,
@@ -109,7 +110,9 @@ async function getProduct(slug: string) {
     }
   }
 
-  return getProductBySlug(slug) || null
+  const staticProduct = getProductBySlug(slug)
+  if (!staticProduct) return null
+  return { ...staticProduct, shippingFee: 0 }
 }
 
 async function getRelatedProducts(category: string, excludeSlug: string) {
@@ -399,6 +402,14 @@ export default async function ProductDetailPage({
                   <p className="font-medium">Delivery Information</p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {product.deliveryInfo}
+                  </p>
+                  <p className="mt-2 text-sm font-medium">
+                    Shipping:{" "}
+                    {product.shippingFee > 0 ? (
+                      <span className="text-foreground">${product.shippingFee.toFixed(2)}</span>
+                    ) : (
+                      <span className="text-emerald-500">Free</span>
+                    )}
                   </p>
                 </div>
               </CardContent>

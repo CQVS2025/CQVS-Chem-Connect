@@ -242,7 +242,10 @@ export default function CartPage() {
     (sum, item) => sum + item.product.price * item.quantity,
     0
   )
-  const shipping = 0
+  const shipping = items.reduce(
+    (sum, item) => sum + (item.product.shipping_fee ?? 0),
+    0,
+  )
   const gst = (subtotal + shipping) * 0.1
   const total = subtotal + shipping + gst
 
@@ -286,17 +289,33 @@ export default function CartPage() {
                     <span className="text-muted-foreground">Subtotal</span>
                     <span>{formatCurrency(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span>
-                      {shipping === 0 ? (
-                        <Badge variant="secondary" className="text-xs">
-                          Free
-                        </Badge>
-                      ) : (
-                        formatCurrency(shipping)
-                      )}
-                    </span>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Shipping</span>
+                      <span>
+                        {shipping === 0 ? (
+                          <Badge variant="secondary" className="text-xs">
+                            Free
+                          </Badge>
+                        ) : (
+                          formatCurrency(shipping)
+                        )}
+                      </span>
+                    </div>
+                    {shipping > 0 && (
+                      <div className="space-y-1 pl-2 border-l-2 border-border">
+                        {items.map((item) => (
+                          <div key={item.id} className="flex justify-between text-xs text-muted-foreground">
+                            <span className="truncate max-w-32">{item.product.name}</span>
+                            <span className="shrink-0">
+                              {(item.product.shipping_fee ?? 0) > 0
+                                ? formatCurrency(item.product.shipping_fee)
+                                : "Free"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">GST (10%)</span>

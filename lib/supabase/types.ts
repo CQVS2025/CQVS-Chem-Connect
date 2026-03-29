@@ -84,6 +84,7 @@ export interface Database {
           region: string
           image_url: string | null
           badge: string | null
+          shipping_fee: number
           created_at: string
           updated_at: string
         }
@@ -106,6 +107,7 @@ export interface Database {
           region?: string
           image_url?: string | null
           badge?: string | null
+          shipping_fee?: number
           created_at?: string
           updated_at?: string
         }
@@ -127,6 +129,7 @@ export interface Database {
           region?: string
           image_url?: string | null
           badge?: string | null
+          shipping_fee?: number
           updated_at?: string
         }
       }

@@ -263,7 +263,7 @@ export async function sendOrderConfirmationEmail(
   data: {
     customerName: string
     orderNumber: string
-    items: { name: string; qty: number; unitPrice: number; total: number }[]
+    items: { name: string; qty: number; unitPrice: number; total: number; shippingFee?: number }[]
     subtotal: number
     shipping: number
     gst: number
@@ -344,8 +344,12 @@ export async function sendOrderConfirmationEmail(
             </tr>
             <tr>
               <td style="padding: 4px 12px; font-size: 14px; color: #94A3B8; font-family: Arial, Helvetica, sans-serif; text-align: right;">Shipping</td>
-              <td style="padding: 4px 12px; font-size: 14px; color: #E5E7EB; font-family: Arial, Helvetica, sans-serif; text-align: right; width: 100px;">${formatCurrency(data.shipping)}</td>
+              <td style="padding: 4px 12px; font-size: 14px; color: #E5E7EB; font-family: Arial, Helvetica, sans-serif; text-align: right; width: 100px;">${data.shipping > 0 ? formatCurrency(data.shipping) : "Free"}</td>
             </tr>
+            ${data.shipping > 0 ? data.items.map((item) => `<tr>
+              <td style="padding: 2px 12px; font-size: 12px; color: #64748B; font-family: Arial, Helvetica, sans-serif; text-align: right;">${item.name}</td>
+              <td style="padding: 2px 12px; font-size: 12px; color: #64748B; font-family: Arial, Helvetica, sans-serif; text-align: right; width: 100px;">${(item.shippingFee ?? 0) > 0 ? formatCurrency(item.shippingFee!) : "Free"}</td>
+            </tr>`).join("") : ""}
             <tr>
               <td style="padding: 4px 12px; font-size: 14px; color: #94A3B8; font-family: Arial, Helvetica, sans-serif; text-align: right;">GST</td>
               <td style="padding: 4px 12px; font-size: 14px; color: #E5E7EB; font-family: Arial, Helvetica, sans-serif; text-align: right; width: 100px;">${formatCurrency(data.gst)}</td>

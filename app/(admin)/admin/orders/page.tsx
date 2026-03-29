@@ -252,6 +252,7 @@ function OrderDocuments({ orderId }: { orderId: string }) {
 export default function AdminOrdersPage() {
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState<OrderStatus | "all">("all")
+  const [paymentFilter, setPaymentFilter] = useState<"all" | "stripe" | "purchase_order">("all")
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -284,13 +285,17 @@ export default function AdminOrdersPage() {
       )
     }
 
+    if (paymentFilter !== "all") {
+      result = result.filter((o) => o.payment_method === paymentFilter)
+    }
+
     result.sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
 
     return result
-  }, [orders, search])
+  }, [orders, search, paymentFilter])
 
   const statusCounts = useMemo(() => {
     if (!orders)
@@ -351,23 +356,31 @@ export default function AdminOrdersPage() {
           </p>
         </div>
 
-        {/* Search */}
-        <Card>
-          <CardContent className="pt-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search by order number or customer name..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  setPage(1)
-                }}
-                className="pl-9"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Filters */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search order or customer..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
+              className="h-9 pl-9"
+            />
+          </div>
+          <Select value={paymentFilter} onValueChange={(v) => { setPaymentFilter(v as typeof paymentFilter); setPage(1) }}>
+            <SelectTrigger className="h-9 w-full sm:w-44">
+              <SelectValue placeholder="Payment" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">All Payments</SelectItem>
+                <SelectItem value="stripe">Card (Stripe)</SelectItem>
+                <SelectItem value="purchase_order">Purchase Order</SelectItem>
+              </SelectContent>
+          </Select>
+        </div>
 
         {/* Status Tabs and Table */}
         <Tabs
@@ -377,13 +390,15 @@ export default function AdminOrdersPage() {
             setPage(1)
           }}
         >
-          <TabsList>
-            {statusTabs.map((tab) => (
-              <TabsTrigger key={tab} value={tab}>
-                {statusLabels[tab]} ({statusCounts[tab]})
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList className="inline-flex w-auto min-w-full sm:min-w-0">
+              {statusTabs.map((tab) => (
+                <TabsTrigger key={tab} value={tab} className="text-xs sm:text-sm whitespace-nowrap">
+                  {statusLabels[tab]} ({statusCounts[tab]})
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
 
           <TabsContent value={activeTab}>
             <Card>
@@ -648,13 +663,25 @@ export default function AdminOrdersPage() {
                                           <div className="flex justify-between text-muted-foreground">
                                             <span>Shipping</span>
                                             <span>
-                                              $
-                                              {order.shipping.toLocaleString(
-                                                "en-AU",
-                                                { minimumFractionDigits: 2 }
-                                              )}
+                                              {order.shipping > 0
+                                                ? `$${order.shipping.toLocaleString("en-AU", { minimumFractionDigits: 2 })}`
+                                                : "Free"}
                                             </span>
                                           </div>
+                                          {order.shipping > 0 && (
+                                            <div className="space-y-0.5 ml-4 pl-3 border-l-2 border-border">
+                                              {order.items.map((item) => (
+                                                <div key={item.id} className="flex justify-between text-xs text-muted-foreground">
+                                                  <span className="truncate max-w-40">{item.product_name}</span>
+                                                  <span className="shrink-0 ml-2">
+                                                    {(item.shipping_fee ?? 0) > 0
+                                                      ? `$${item.shipping_fee.toFixed(2)}`
+                                                      : "Free"}
+                                                  </span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
                                           <div className="flex justify-between text-muted-foreground">
                                             <span>GST</span>
                                             <span>

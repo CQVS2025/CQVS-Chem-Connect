@@ -9,7 +9,6 @@ import {
 import { sendReceiptEmail } from "@/lib/email/receipt-email"
 
 const GST_RATE = 0.1
-const SHIPPING_COST = 0
 const STRIPE_FEE_PERCENT = 0.0175 // 1.75% for domestic AU cards
 const STRIPE_FEE_FIXED = 0.30 // 30 cents per transaction
 const STRIPE_FEE_GST = 0.10 // 10% GST on Stripe fee itself
@@ -51,7 +50,8 @@ export async function GET(request: NextRequest) {
       unit,
       packaging_size,
       unit_price,
-      total_price
+      total_price,
+      shipping_fee
     `
 
     let query = supabase
@@ -154,13 +154,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Fetch product details for shipping fees and order items snapshot
+    const productIds = items.map((item: { product_id: string }) => item.product_id)
+    const { data: productsData } = await supabase
+      .from("products")
+      .select("id, name, image_url, unit, shipping_fee")
+      .in("id", productIds)
+
+    const productMap = new Map(
+      (productsData ?? []).map((p: { id: string; name: string; image_url: string | null; unit: string; shipping_fee?: number }) => [p.id, p]),
+    )
+
     // Calculate totals
     const subtotal = items.reduce(
       (sum: number, item: { quantity: number; unit_price: number }) =>
         sum + item.quantity * item.unit_price,
       0,
     )
-    const shipping = SHIPPING_COST
+
+    // Calculate shipping from per-product fees
+    const shippingMap = new Map(
+      (productsData ?? []).map((p: { id: string; shipping_fee?: number }) => [p.id, p.shipping_fee ?? 0]),
+    )
+    const shipping = Math.round(
+      items.reduce(
+        (sum: number, item: { product_id: string }) => sum + (shippingMap.get(item.product_id) ?? 0),
+        0,
+      ) * 100,
+    ) / 100
+
     const gst = Math.round(subtotal * GST_RATE * 100) / 100
     // Processing fee only for card payments
     // Stripe charges: 1.75% + $0.30 + 10% GST on the fee
@@ -187,17 +209,6 @@ export async function POST(request: NextRequest) {
       clientSecret = paymentIntent.client_secret
       stripePaymentIntentId = paymentIntent.id
     }
-
-    // Fetch product details for order items snapshot
-    const productIds = items.map((item: { product_id: string }) => item.product_id)
-    const { data: productsData } = await supabase
-      .from("products")
-      .select("id, name, image_url, unit")
-      .in("id", productIds)
-
-    const productMap = new Map(
-      (productsData ?? []).map((p: { id: string; name: string; image_url: string | null; unit: string }) => [p.id, p]),
-    )
 
     // Create the order
     const { data: order, error: orderError } = await supabase
@@ -246,6 +257,7 @@ export async function POST(request: NextRequest) {
           packaging_size: item.packaging_size,
           unit_price: item.unit_price,
           total_price: Math.round(item.quantity * item.unit_price * 100) / 100,
+          shipping_fee: product?.shipping_fee ?? 0,
         }
       },
     )
@@ -290,6 +302,7 @@ export async function POST(request: NextRequest) {
           qty: item.quantity,
           unitPrice: item.unit_price,
           total: item.total_price,
+          shippingFee: shippingMap.get(item.product_id) ?? 0,
         })),
         subtotal,
         shipping,
@@ -318,6 +331,7 @@ export async function POST(request: NextRequest) {
           packagingSize: item.packaging_size,
           unitPrice: item.unit_price,
           total: item.total_price,
+          shippingFee: shippingMap.get(item.product_id) ?? 0,
         })),
         subtotal,
         shipping,

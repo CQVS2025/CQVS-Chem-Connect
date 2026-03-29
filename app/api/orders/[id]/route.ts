@@ -38,7 +38,8 @@ export async function GET(
           unit,
           packaging_size,
           unit_price,
-          total_price
+          total_price,
+          shipping_fee
         ),
         order_status_history (
           id,
