@@ -6,9 +6,13 @@ import {
   sendOrderConfirmationEmail,
   notifyAdminNewOrder,
 } from "@/lib/email/notifications"
+import { sendReceiptEmail } from "@/lib/email/receipt-email"
 
 const GST_RATE = 0.1
 const SHIPPING_COST = 0
+const STRIPE_FEE_PERCENT = 0.0175 // 1.75% for domestic AU cards
+const STRIPE_FEE_FIXED = 0.30 // 30 cents per transaction
+const STRIPE_FEE_GST = 0.10 // 10% GST on Stripe fee itself
 
 // GET /api/orders - list orders (user sees own, admin sees all)
 export async function GET(request: NextRequest) {
@@ -158,7 +162,15 @@ export async function POST(request: NextRequest) {
     )
     const shipping = SHIPPING_COST
     const gst = Math.round(subtotal * GST_RATE * 100) / 100
-    const total = Math.round((subtotal + shipping + gst) * 100) / 100
+    // Processing fee only for card payments
+    // Stripe charges: 1.75% + $0.30 + 10% GST on the fee
+    let processingFee = 0
+    if (payment_method === "stripe") {
+      const stripeFee = (subtotal + shipping + gst) * STRIPE_FEE_PERCENT + STRIPE_FEE_FIXED
+      const feeGst = stripeFee * STRIPE_FEE_GST
+      processingFee = Math.round((stripeFee + feeGst) * 100) / 100
+    }
+    const total = Math.round((subtotal + shipping + gst + processingFee) * 100) / 100
 
     let clientSecret: string | null = null
     let stripePaymentIntentId: string | null = null
@@ -200,6 +212,7 @@ export async function POST(request: NextRequest) {
         subtotal,
         shipping,
         gst,
+        processing_fee: processingFee,
         total,
         delivery_address_street: delivery_address_street || null,
         delivery_address_city: delivery_address_city || null,
@@ -281,9 +294,44 @@ export async function POST(request: NextRequest) {
         subtotal,
         shipping,
         gst,
+        processingFee,
         total,
         paymentMethod: "Purchase Order",
         poNumber: po_number,
+      })
+
+      // Send invoice/receipt for PO orders
+      sendReceiptEmail(customerEmail, {
+        customerName,
+        companyName: userProfile?.company_name || undefined,
+        customerEmail,
+        orderNumber: order.order_number,
+        date: new Date().toLocaleDateString("en-AU", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+        items: orderItems.map((item) => ({
+          name: item.product_name,
+          qty: item.quantity,
+          unit: item.unit,
+          packagingSize: item.packaging_size,
+          unitPrice: item.unit_price,
+          total: item.total_price,
+        })),
+        subtotal,
+        shipping,
+        gst,
+        processingFee,
+        total,
+        paymentMethod: "Purchase Order",
+        poNumber: po_number,
+        deliveryAddress: [
+          delivery_address_street,
+          delivery_address_city,
+          delivery_address_state,
+          delivery_address_postcode,
+        ].filter(Boolean).join(", ") || undefined,
       })
     }
 

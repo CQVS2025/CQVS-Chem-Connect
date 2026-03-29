@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useState, useMemo } from "react"
+import { Fragment, useState, useMemo, useEffect, useCallback } from "react"
 import { toast } from "sonner"
 import {
   Search,
@@ -14,7 +14,9 @@ import {
   XCircle,
   Loader2,
   Clock,
+  FileDown,
   MapPin,
+  Paperclip,
   Trash2,
 } from "lucide-react"
 
@@ -156,6 +158,93 @@ function TableSkeleton() {
           <Skeleton className="h-8 w-8" />
         </div>
       ))}
+    </div>
+  )
+}
+
+// Inline component to fetch and display PO documents for an order
+function OrderDocuments({ orderId }: { orderId: string }) {
+  const [docs, setDocs] = useState<
+    { id: string; file_name: string; file_size: number; file_type: string; signed_url: string; view_url: string }[]
+  >([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchDocs = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}/documents`)
+      if (res.ok) setDocs(await res.json())
+    } catch {
+      // Silent
+    } finally {
+      setLoading(false)
+    }
+  }, [orderId])
+
+  useEffect(() => {
+    fetchDocs()
+  }, [fetchDocs])
+
+  if (loading) return (
+    <div>
+      <h4 className="mb-2 text-sm font-medium flex items-center gap-2">
+        <Paperclip className="h-4 w-4" />
+        PO Documents
+      </h4>
+      <div className="space-y-2">
+        {[1, 2].map((i) => (
+          <div key={i} className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 animate-pulse">
+            <div className="h-4 w-4 rounded bg-muted" />
+            <div className="flex-1 space-y-1.5">
+              <div className="h-3.5 w-36 rounded bg-muted" />
+              <div className="h-2.5 w-20 rounded bg-muted" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+  if (docs.length === 0) return null
+
+  return (
+    <div>
+      <h4 className="mb-2 text-sm font-medium flex items-center gap-2">
+        <Paperclip className="h-4 w-4" />
+        PO Documents ({docs.length})
+      </h4>
+      <div className="space-y-2">
+        {docs.map((doc) => (
+          <div
+            key={doc.id}
+            className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          >
+            <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium">{doc.file_name}</p>
+              <p className="text-xs text-muted-foreground">
+                {(doc.file_size / 1024).toFixed(0)} KB - {doc.file_type.split("/").pop()?.toUpperCase()}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <a
+                href={doc.view_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-md px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+              >
+                View
+              </a>
+              <a
+                href={doc.signed_url}
+                download={doc.file_name}
+                className="flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <FileDown className="h-3 w-3" />
+                Download
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -576,6 +665,18 @@ export default function AdminOrdersPage() {
                                               )}
                                             </span>
                                           </div>
+                                          {order.processing_fee > 0 && (
+                                            <div className="flex justify-between text-muted-foreground">
+                                              <span>Card Processing Fee</span>
+                                              <span>
+                                                $
+                                                {order.processing_fee.toLocaleString(
+                                                  "en-AU",
+                                                  { minimumFractionDigits: 2 }
+                                                )}
+                                              </span>
+                                            </div>
+                                          )}
                                           <div className="flex justify-between font-semibold">
                                             <span>Total</span>
                                             <span>
@@ -604,6 +705,11 @@ export default function AdminOrdersPage() {
                                             {order.delivery_address_postcode}
                                           </p>
                                         </div>
+                                      )}
+
+                                      {/* PO Documents */}
+                                      {order.payment_method === "purchase_order" && (
+                                        <OrderDocuments orderId={order.id} />
                                       )}
 
                                       {/* Tracking */}

@@ -29,6 +29,7 @@ export default function AdminSettingsPage() {
   const [taxRate, setTaxRate] = useState("")
   const [minOrderValue, setMinOrderValue] = useState("")
   const [emailNotifications, setEmailNotifications] = useState(true)
+  const [quotesEnabled, setQuotesEnabled] = useState(true)
 
   // Populate from API data
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function AdminSettingsPage() {
       setTaxRate(settings.tax_rate || "10")
       setMinOrderValue(settings.min_order_value || "100")
       setEmailNotifications(settings.email_notifications_enabled !== "false")
+      setQuotesEnabled(settings.quotes_enabled !== "false")
     }
   }, [settings])
 
@@ -53,6 +55,7 @@ export default function AdminSettingsPage() {
         tax_rate: taxRate,
         min_order_value: minOrderValue,
         email_notifications_enabled: emailNotifications ? "true" : "false",
+        quotes_enabled: quotesEnabled ? "true" : "false",
       },
       {
         onSuccess: () => toast.success("Settings saved successfully."),
@@ -174,6 +177,44 @@ export default function AdminSettingsPage() {
                   onChange={(e) => setMinOrderValue(e.target.value)}
                 />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Feature Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Feature Settings</CardTitle>
+            <CardDescription>
+              Enable or disable platform features for customers.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">
+                  Quote Requests
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Allow customers to request custom quotes on product pages
+                  and view their quotes in the dashboard.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={quotesEnabled}
+                onClick={() => setQuotesEnabled(!quotesEnabled)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                  quotesEnabled ? "bg-primary" : "bg-muted"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-lg ring-0 transition-transform ${
+                    quotesEnabled ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
             </div>
           </CardContent>
         </Card>

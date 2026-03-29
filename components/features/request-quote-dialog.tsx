@@ -116,7 +116,7 @@ export function RequestQuoteDialog({
     <Button
       variant="outline"
       size="lg"
-      className="flex-1 gap-2"
+      className="h-12 flex-1 gap-2 text-base sm:h-11 sm:text-sm"
       onClick={() => {
         if (!user) {
           setAuthPromptOpen(true)

@@ -9,6 +9,7 @@ import {
   FileText,
   FlaskConical,
   Gift,
+  Home,
   LayoutDashboard,
   LogOut,
   Package,
@@ -17,6 +18,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { useProfile } from "@/lib/hooks/use-profile"
+import { useFeatureFlags } from "@/lib/hooks/use-feature-flags"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -33,6 +35,7 @@ import {
 } from "@/components/ui/tooltip"
 
 const navItems = [
+  { label: "Home", href: "/", icon: Home },
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Orders", href: "/dashboard/orders", icon: Package },
   { label: "My Quotes", href: "/dashboard/quotes", icon: FileText },
@@ -53,6 +56,12 @@ function SidebarContent({
   const pathname = usePathname()
   const router = useRouter()
   const { data: profile, isLoading: profileLoading } = useProfile()
+  const { data: flags } = useFeatureFlags()
+
+  const filteredNavItems = navItems.filter((item) => {
+    if (item.href === "/dashboard/quotes" && flags?.quotes_enabled === false) return false
+    return true
+  })
 
   const initials = profile?.contact_name
     ? profile.contact_name
@@ -99,10 +108,10 @@ function SidebarContent({
 
         {/* Navigation */}
         <nav className={cn("flex-1 space-y-1 py-2", collapsed ? "px-2" : "px-3")}>
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive =
               pathname === item.href ||
-              (item.href !== "/dashboard" && pathname.startsWith(item.href))
+              (item.href !== "/" && item.href !== "/dashboard" && pathname.startsWith(item.href))
 
             const link = (
               <Link

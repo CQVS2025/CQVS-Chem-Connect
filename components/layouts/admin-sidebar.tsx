@@ -8,6 +8,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   FileText,
+  Home,
   Users,
   Package,
   ShoppingCart,
@@ -37,6 +38,7 @@ import {
 } from "@/components/ui/tooltip"
 
 const navItems = [
+  { label: "Home", href: "/", icon: Home },
   { label: "Overview", href: "/admin", icon: BarChart3 },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Products", href: "/admin/products", icon: Package },
@@ -123,7 +125,7 @@ function SidebarContent({
           {navItems.map((item) => {
             const isActive =
               pathname === item.href ||
-              (item.href !== "/admin" && pathname.startsWith(item.href))
+              (item.href !== "/" && item.href !== "/admin" && pathname.startsWith(item.href))
 
             const link = (
               <Link

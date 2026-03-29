@@ -2,11 +2,14 @@
 
 import { useState, useMemo } from "react"
 import {
+  FileText,
+  Loader2,
   Search,
   Plus,
   Pencil,
   Trash2,
   Upload,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -19,6 +22,8 @@ import {
 import { useUploadImage } from "@/lib/hooks/use-upload"
 import { products as staticProducts, categories } from "@/lib/data/products"
 import { PageTransition } from "@/components/shared/page-transition"
+import { ProductImageManager } from "@/components/features/product-image-manager"
+import { ProductDocumentManager } from "@/components/features/product-document-manager"
 import {
   Card,
   CardContent,
@@ -82,8 +87,10 @@ export default function AdminProductsPage() {
   const [formRegion, setFormRegion] = useState("NSW")
   const [formStockQty, setFormStockQty] = useState("")
   const [formInStock, setFormInStock] = useState(true)
+  const [formBadge, setFormBadge] = useState("")
   const [formExistingImage, setFormExistingImage] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
+  const [sdsFiles, setSdsFiles] = useState<File[]>([])
 
   // Supabase data with static fallback
   const { data: apiProducts, isLoading } = useProducts()
@@ -113,6 +120,7 @@ export default function AdminProductsPage() {
         description: p.description,
         manufacturer: p.manufacturer,
         imageUrl: p.image_url,
+        badge: p.badge,
       }))
     }
     return staticProducts.map((p) => ({
@@ -133,6 +141,7 @@ export default function AdminProductsPage() {
       description: p.description,
       manufacturer: p.manufacturer,
       imageUrl: p.image ?? null,
+      badge: p.badge ?? null,
     }))
   }, [apiProducts])
 
@@ -157,10 +166,12 @@ export default function AdminProductsPage() {
     setFormPackagingSizes("")
     setFormDeliveryInfo("Ships from your state. 2-5 business day delivery.")
     setFormRegion("NSW")
-    setFormStockQty("0")
+    setFormStockQty("1")
     setFormInStock(true)
+    setFormBadge("")
     setFormExistingImage(null)
     setImageFile(null)
+    setSdsFiles([])
     setDialogOpen(true)
   }
 
@@ -180,12 +191,58 @@ export default function AdminProductsPage() {
     setFormRegion(product.region)
     setFormStockQty(product.stockQty.toString())
     setFormInStock(product.inStock)
+    setFormBadge(product.badge || "")
     setFormExistingImage(product.imageUrl)
     setImageFile(null)
     setDialogOpen(true)
   }
 
+  const [saving, setSaving] = useState(false)
+
+  // Live validation - tracks which required fields are missing
+  const missingFields = useMemo(() => {
+    const missing: string[] = []
+    if (!formName.trim()) missing.push("Name")
+    const price = parseFloat(formPrice)
+    if (!price || price <= 0) missing.push("Price")
+    if (!formCategory.trim()) missing.push("Category")
+    if (!formDescription.trim()) missing.push("Description")
+    if (!formManufacturer.trim()) missing.push("Manufacturer")
+    if (formInStock && (parseInt(formStockQty) || 0) < 1) missing.push("Stock Qty")
+    return missing
+  }, [formName, formPrice, formCategory, formDescription, formManufacturer, formInStock, formStockQty])
+
+  const isFormValid = missingFields.length === 0
+
   async function handleSave() {
+    // Show specific validation messages
+    if (!formName.trim()) {
+      toast.error("Please enter a product name.")
+      return
+    }
+    const price = parseFloat(formPrice)
+    if (!price || price <= 0) {
+      toast.error("Please set a valid price greater than $0.")
+      return
+    }
+    if (!formCategory.trim()) {
+      toast.error("Please select or enter a product category (e.g. Cleaning, Acid, Automotive).")
+      return
+    }
+    if (!formDescription.trim()) {
+      toast.error("Please add a product description so customers know what this product is.")
+      return
+    }
+    if (!formManufacturer.trim()) {
+      toast.error("Please enter the manufacturer name.")
+      return
+    }
+    if (formInStock && (parseInt(formStockQty) || 0) < 1) {
+      toast.error("Stock quantity must be at least 1 when the product is marked as In Stock.")
+      return
+    }
+
+    setSaving(true)
     let imageUrl: string | undefined
 
     // Upload image first if selected
@@ -197,6 +254,7 @@ export default function AdminProductsPage() {
         toast.error("Failed to upload image", {
           description: "Please check the file size and format, then try again.",
         })
+        setSaving(false)
         return
       }
     }
@@ -219,6 +277,7 @@ export default function AdminProductsPage() {
       region: formRegion,
       stock_qty: parseInt(formStockQty) || 0,
       in_stock: formInStock,
+      badge: formBadge && formBadge !== "none" ? formBadge : null,
       ...(imageUrl ? { image_url: imageUrl } : {}),
     }
 
@@ -228,18 +287,42 @@ export default function AdminProductsPage() {
         {
           onSuccess: () => {
             toast.success("Product updated")
+            setSaving(false)
             setDialogOpen(false)
           },
-          onError: () => toast.error("Unable to update product. Please try again."),
+          onError: () => {
+            toast.error("Unable to update product. Please try again.")
+            setSaving(false)
+          },
         },
       )
     } else {
       createProduct.mutate(productData, {
-        onSuccess: () => {
+        onSuccess: async (newProduct) => {
+          // Upload SDS files if any
+          if (sdsFiles.length > 0 && newProduct?.id) {
+            try {
+              const formData = new FormData()
+              for (const file of sdsFiles) {
+                formData.append("files", file)
+              }
+              formData.append("doc_type", "sds")
+              await fetch(`/api/products/${newProduct.id}/documents`, {
+                method: "POST",
+                body: formData,
+              })
+            } catch {
+              // Non-blocking
+            }
+          }
           toast.success("Product created")
+          setSaving(false)
           setDialogOpen(false)
         },
-        onError: () => toast.error("Unable to create product. Please check the details and try again."),
+        onError: () => {
+          toast.error("Unable to create product. Please check the details and try again.")
+          setSaving(false)
+        },
       })
     }
   }
@@ -456,7 +539,7 @@ export default function AdminProductsPage() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="product-name">Name</Label>
+                <Label htmlFor="product-name">Name <span className="text-destructive">*</span></Label>
                 <Input
                   id="product-name"
                   placeholder="Product name"
@@ -466,7 +549,7 @@ export default function AdminProductsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="product-price">Price</Label>
+                  <Label htmlFor="product-price">Price <span className="text-destructive">*</span></Label>
                   <Input
                     id="product-price"
                     placeholder="0.00"
@@ -487,7 +570,7 @@ export default function AdminProductsPage() {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="product-category">Category</Label>
+                <Label htmlFor="product-category">Category <span className="text-destructive">*</span></Label>
                 <Input
                   id="product-category"
                   placeholder="e.g. Cleaning, Acid, Automotive"
@@ -496,7 +579,7 @@ export default function AdminProductsPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="product-description">Description</Label>
+                <Label htmlFor="product-description">Description <span className="text-destructive">*</span></Label>
                 <Input
                   id="product-description"
                   placeholder="Product description"
@@ -505,7 +588,7 @@ export default function AdminProductsPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="product-manufacturer">Manufacturer</Label>
+                <Label htmlFor="product-manufacturer">Manufacturer <span className="text-destructive">*</span></Label>
                 <Input
                   id="product-manufacturer"
                   placeholder="Manufacturer name"
@@ -595,21 +678,29 @@ export default function AdminProductsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="product-stock-qty">Stock Quantity</Label>
+                  <Label htmlFor="product-stock-qty">
+                    Stock Quantity {formInStock && <span className="text-destructive">*</span>}
+                  </Label>
                   <Input
                     id="product-stock-qty"
-                    placeholder="0"
+                    placeholder="1"
                     type="number"
-                    min="0"
+                    min={formInStock ? "1" : "0"}
                     value={formStockQty}
                     onChange={(e) => setFormStockQty(e.target.value)}
+                    disabled={!formInStock}
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label>Stock Status</Label>
                   <button
                     type="button"
-                    onClick={() => setFormInStock(!formInStock)}
+                    onClick={() => {
+                      const next = !formInStock
+                      setFormInStock(next)
+                      if (!next) setFormStockQty("0")
+                      else if (formStockQty === "0") setFormStockQty("1")
+                    }}
                     className={`flex h-10 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors ${
                       formInStock
                         ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
@@ -620,61 +711,125 @@ export default function AdminProductsPage() {
                   </button>
                 </div>
               </div>
+              {/* Badge */}
               <div className="grid gap-2">
-                <Label htmlFor="product-image">Product Image</Label>
-                <div className="flex items-center gap-3">
-                  <label
-                    htmlFor="product-image"
-                    className="flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted/50 transition-colors hover:border-primary/50 hover:bg-muted"
-                  >
-                    {formExistingImage && !imageFile ? (
-                      <img
-                        src={formExistingImage}
-                        alt="Current"
-                        className="h-full w-full object-cover"
+                <Label htmlFor="product-badge">Product Badge</Label>
+                <Select value={formBadge} onValueChange={setFormBadge}>
+                  <SelectTrigger id="product-badge">
+                    <SelectValue placeholder="No badge" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Badge</SelectItem>
+                    <SelectItem value="Best Seller">Best Seller</SelectItem>
+                    <SelectItem value="New">New</SelectItem>
+                    <SelectItem value="Coming Soon">Coming Soon</SelectItem>
+                    <SelectItem value="Popular">Popular</SelectItem>
+                    <SelectItem value="Limited Stock">Limited Stock</SelectItem>
+                    <SelectItem value="DG Class 3">DG Class 3</SelectItem>
+                    <SelectItem value="DG Class 5">DG Class 5</SelectItem>
+                    <SelectItem value="DG Class 6">DG Class 6</SelectItem>
+                    <SelectItem value="DG Class 8">DG Class 8</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Images - show manager for existing products, simple upload for new */}
+              {editingId ? (
+                <>
+                  <div className="grid gap-2">
+                    <Label>Product Images</Label>
+                    <ProductImageManager productId={editingId} legacyImageUrl={formExistingImage} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Safety Data Sheets (SDS)</Label>
+                    <ProductDocumentManager productId={editingId} />
+                  </div>
+                </>
+              ) : (
+                <>
+                <div className="grid gap-2">
+                  <Label htmlFor="product-image">Product Image</Label>
+                  <div className="flex items-center gap-3">
+                    <label
+                      htmlFor="product-image"
+                      className="flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted/50 transition-colors hover:border-primary/50 hover:bg-muted"
+                    >
+                      {imageFile ? (
+                        <img
+                          src={URL.createObjectURL(imageFile)}
+                          alt="Preview"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Upload className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </label>
+                    <div className="flex-1">
+                      <input
+                        id="product-image"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) =>
+                          setImageFile(e.target.files?.[0] || null)
+                        }
                       />
-                    ) : imageFile ? (
-                      <img
-                        src={URL.createObjectURL(imageFile)}
-                        alt="Preview"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <Upload className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </label>
-                  <div className="flex-1">
-                    <input
-                      id="product-image"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        setImageFile(e.target.files?.[0] || null)
-                      }
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      {imageFile
-                        ? imageFile.name
-                        : formExistingImage
-                          ? "Click to replace the current image."
-                          : "Click to upload a product image. PNG, JPG up to 5MB."}
-                    </p>
-                    {(formExistingImage || imageFile) && (
-                      <button
-                        type="button"
-                        className="mt-1 text-xs text-destructive hover:underline"
-                        onClick={() => {
-                          setImageFile(null)
-                          setFormExistingImage(null)
-                        }}
-                      >
-                        Remove image
-                      </button>
-                    )}
+                      <p className="text-sm text-muted-foreground">
+                        {imageFile
+                          ? imageFile.name
+                          : "Upload a cover image. You can add more images after creating the product."}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+
+                {/* SDS Documents for new products */}
+                <div className="grid gap-2">
+                  <Label>SDS Documents <span className="text-xs text-muted-foreground">(optional)</span></Label>
+                  {sdsFiles.length > 0 && (
+                    <div className="space-y-2">
+                      {sdsFiles.map((file, idx) => (
+                        <div key={idx} className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
+                          <FileText className="h-4 w-4 shrink-0 text-amber-500" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate">{file.name}</p>
+                            <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 shrink-0"
+                            onClick={() => setSdsFiles(sdsFiles.filter((_, i) => i !== idx))}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const input = document.createElement("input")
+                      input.type = "file"
+                      input.multiple = true
+                      input.accept = ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                      input.onchange = (e) => {
+                        const files = (e.target as HTMLInputElement).files
+                        if (files) setSdsFiles((prev) => [...prev, ...Array.from(files)])
+                      }
+                      input.click()
+                    }}
+                  >
+                    <Upload className="mr-2 h-3 w-3" />
+                    {sdsFiles.length > 0 ? "Add More" : "Attach SDS Documents"}
+                  </Button>
+                </div>
+                </>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
@@ -682,14 +837,10 @@ export default function AdminProductsPage() {
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={
-                  createProduct.isPending ||
-                  updateProduct.isPending ||
-                  uploadImage.isPending
-                }
+                disabled={saving}
               >
-                {createProduct.isPending || updateProduct.isPending
-                  ? "Saving..."
+                {saving
+                  ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</>)
                   : editingId
                     ? "Save Changes"
                     : "Add Product"}

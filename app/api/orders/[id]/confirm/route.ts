@@ -5,6 +5,7 @@ import {
   sendPaymentSuccessEmail,
   sendOrderConfirmationEmail,
 } from "@/lib/email/notifications"
+import { sendReceiptEmail } from "@/lib/email/receipt-email"
 
 // POST /api/orders/[id]/confirm - confirm Stripe payment after client-side success
 export async function POST(
@@ -93,10 +94,26 @@ export async function POST(
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    // Send payment success + order confirmation emails (non-blocking)
+    // Get Stripe receipt URL from the charge
+    let stripeReceiptUrl: string | undefined
+    try {
+      const stripe = getStripeServer()
+      // Expand latest_charge to get receipt_url
+      const pi = await stripe.paymentIntents.retrieve(payment_intent_id, {
+        expand: ["latest_charge"],
+      })
+      const charge = pi.latest_charge
+      if (charge && typeof charge === "object" && "receipt_url" in charge) {
+        stripeReceiptUrl = (charge as { receipt_url: string | null }).receipt_url || undefined
+      }
+    } catch {
+      // Non-blocking - receipt URL is optional
+    }
+
+    // Send payment success + order confirmation + receipt emails (non-blocking)
     const { data: profile } = await supabase
       .from("profiles")
-      .select("contact_name, email")
+      .select("contact_name, email, company_name")
       .eq("id", user.id)
       .single()
 
@@ -107,10 +124,10 @@ export async function POST(
         amount: updatedOrder.total,
       })
 
-      // Also fetch order items for full confirmation email
+      // Fetch order items for confirmation + receipt
       const { data: orderItems } = await supabase
         .from("order_items")
-        .select("product_name, quantity, unit_price, total_price")
+        .select("product_name, quantity, unit, packaging_size, unit_price, total_price")
         .eq("order_id", id)
 
       if (orderItems) {
@@ -126,8 +143,37 @@ export async function POST(
           subtotal: updatedOrder.subtotal,
           shipping: updatedOrder.shipping,
           gst: updatedOrder.gst,
+          processingFee: updatedOrder.processing_fee,
           total: updatedOrder.total,
           paymentMethod: "Card Payment (Stripe)",
+        })
+
+        // Send branded receipt with Stripe receipt link
+        sendReceiptEmail(profile.email, {
+          customerName: profile.contact_name || "Customer",
+          companyName: profile.company_name || undefined,
+          customerEmail: profile.email,
+          orderNumber: updatedOrder.order_number,
+          date: new Date(updatedOrder.created_at).toLocaleDateString("en-AU", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          }),
+          items: orderItems.map((item) => ({
+            name: item.product_name,
+            qty: item.quantity,
+            unit: item.unit,
+            packagingSize: item.packaging_size,
+            unitPrice: item.unit_price,
+            total: item.total_price,
+          })),
+          subtotal: updatedOrder.subtotal,
+          shipping: updatedOrder.shipping,
+          gst: updatedOrder.gst,
+          processingFee: updatedOrder.processing_fee,
+          total: updatedOrder.total,
+          paymentMethod: "Card Payment (Stripe)",
+          stripeReceiptUrl,
         })
       }
     }

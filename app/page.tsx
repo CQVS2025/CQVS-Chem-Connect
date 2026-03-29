@@ -19,11 +19,12 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { products } from "@/lib/data/products"
 import { MarketplaceNavbar } from "@/components/layouts/marketplace-navbar"
 import { MarketplaceFooter } from "@/components/layouts/marketplace-footer"
-import { FeaturedProductsScroll } from "@/components/features/featured-products-scroll"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { AuthCTA, AuthCTAPrimary } from "@/components/shared/auth-cta"
+import { ProductRequestForm } from "@/components/shared/product-request-form"
 import {
   FadeIn,
   StaggerContainer,
@@ -40,14 +41,26 @@ export const metadata = {
 }
 
 // Fetch products server-side from Supabase, fall back to static data
-async function getFeaturedProducts() {
+interface FeaturedProduct {
+  id: string
+  name: string
+  slug: string
+  price: number
+  unit: string
+  manufacturer: string
+  category: string
+  badge: string | null
+  image: string | null
+}
+
+async function getFeaturedProducts(): Promise<FeaturedProduct[]> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (supabaseUrl && supabaseKey) {
     try {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/products?select=id,name,slug,price,unit,manufacturer,category,badge,image_url&order=name.asc&limit=15`,
+        `${supabaseUrl}/rest/v1/products?select=id,name,slug,price,unit,manufacturer,category,badge,image_url&order=name.asc&limit=6`,
         {
           headers: {
             apikey: supabaseKey,
@@ -77,7 +90,7 @@ async function getFeaturedProducts() {
     }
   }
 
-  return products.slice(0, 15).map((p) => ({
+  return products.slice(0, 6).map((p) => ({
     id: p.id,
     name: p.name,
     slug: p.slug,
@@ -228,9 +241,7 @@ export default async function HomePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="rounded-xl" asChild>
-                <Link href="/register">Create Free Account</Link>
-              </Button>
+              <AuthCTA variant="outline" />
             </div>
           </FadeIn>
 
@@ -247,8 +258,97 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products - Horizontal Scroll */}
-      <FeaturedProductsScroll products={scrollProducts} />
+      {/* Featured Products */}
+      <section className="border-t border-border/50 px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <FadeIn>
+            <div className="mb-10 text-center">
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                Featured Products
+              </h2>
+              <p className="mt-3 text-muted-foreground">
+                Manufacturing-direct chemicals at wholesale pricing
+              </p>
+            </div>
+          </FadeIn>
+
+          <StaggerContainer
+            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            staggerDelay={0.08}
+          >
+            {scrollProducts.map((product) => (
+              <StaggerItem key={product.id}>
+                <Link
+                  href={`/products/${product.slug}`}
+                  className="group block"
+                >
+                  <Card className="flex h-full flex-col overflow-hidden border-white/5 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:ring-1 hover:ring-primary/20">
+                    <div className="relative h-48 overflow-hidden bg-white">
+                      <Image
+                        src={product.image || "/images/cqvs-logo.png"}
+                        alt={product.name}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      {product.badge && (
+                        <span
+                          className={`absolute right-3 top-3 rounded-md px-2.5 py-1 text-xs font-semibold shadow-lg backdrop-blur-sm ${
+                            product.badge === "Best Seller"
+                              ? "bg-emerald-500 text-emerald-950"
+                              : product.badge === "Coming Soon"
+                                ? "bg-amber-400 text-amber-950"
+                                : product.badge.startsWith("DG")
+                                  ? "bg-rose-500 text-rose-950"
+                                  : "bg-sky-500 text-sky-950"
+                          }`}
+                        >
+                          {product.badge}
+                        </span>
+                      )}
+                    </div>
+
+                    <CardContent className="flex flex-1 flex-col gap-2 p-5">
+                      <h3 className="font-semibold transition-colors group-hover:text-primary">
+                        {product.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {product.manufacturer} - {product.category}
+                      </p>
+                    </CardContent>
+
+                    <CardFooter className="flex items-end justify-between border-t border-border/30 px-5 py-4">
+                      <div>
+                        <span className="text-xl font-bold text-primary">
+                          ${product.price.toFixed(2)}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          /{product.unit}
+                        </span>
+                      </div>
+                      <span className="flex items-center gap-1 text-sm font-medium text-primary opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5">
+                        View Details
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </span>
+                    </CardFooter>
+                  </Card>
+                </Link>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
+
+          <FadeIn delay={0.3}>
+            <div className="mt-12 text-center">
+              <Button variant="outline" size="lg" className="rounded-xl" asChild>
+                <Link href="/products">
+                  View All Products
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
 
       {/* How It Works */}
       <section id="how-it-works" className="scroll-mt-24 border-t border-border/50 px-4 py-20 sm:px-6 lg:px-8">
@@ -334,16 +434,9 @@ export default async function HomePage() {
                     </div>
                   ))}
                 </div>
-                <Button
-                  className="mt-8 w-full rounded-xl shadow-md shadow-primary/25"
-                  size="lg"
-                  asChild
-                >
-                  <Link href="/register">
-                    Get Started Free
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                <div className="mt-8 w-full">
+                  <AuthCTA />
+                </div>
               </div>
             </FadeIn>
 
@@ -392,16 +485,7 @@ export default async function HomePage() {
               Tell us what chemical you are looking for and we will source it
               from our manufacturer network.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Input
-                type="text"
-                placeholder="e.g. Calcium Chloride, Degreaser, Dust Suppressant..."
-                className="h-11 flex-1 rounded-xl"
-              />
-              <Button size="lg" className="rounded-xl shadow-primary/25 shadow-md">
-                Submit Request
-              </Button>
-            </div>
+            <ProductRequestForm />
           </div>
         </ScaleIn>
       </section>
@@ -422,16 +506,7 @@ export default async function HomePage() {
                 Join concrete plants and quarries across Australia already saving
                 with manufacturing-direct pricing on Chem Connect.
               </p>
-              <Button
-                size="lg"
-                className="mt-8 rounded-xl shadow-primary/25 shadow-lg hover:shadow-primary/40 hover:shadow-xl transition-shadow duration-200"
-                asChild
-              >
-                <Link href="/register">
-                  Create Your Free Account
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+              <AuthCTAPrimary />
             </div>
           </div>
         </FadeIn>

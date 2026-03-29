@@ -27,6 +27,39 @@ import {
 } from "@/components/shared/motion"
 import { AddToCartButton } from "@/components/features/add-to-cart-button"
 import { RelatedProducts } from "@/components/features/related-products"
+import { ProductGallery } from "@/components/features/product-gallery"
+import { ProductSdsDocuments } from "@/components/features/product-sds-documents"
+
+interface ProductImageRow {
+  id: string
+  image_url: string
+  is_cover: boolean
+  sort_order: number
+}
+
+async function getProductImages(productId: string): Promise<ProductImageRow[]> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseKey) return []
+
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/product_images?product_id=eq.${productId}&select=id,image_url,is_cover,sort_order&order=is_cover.desc,sort_order.asc`,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
+        next: { revalidate: 60 },
+      },
+    )
+    if (res.ok) return res.json()
+  } catch {
+    // Silent fail
+  }
+  return []
+}
 
 async function getProduct(slug: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -170,7 +203,10 @@ export default async function ProductDetailPage({
     notFound()
   }
 
-  const relatedProducts = await getRelatedProducts(product.category, product.slug)
+  const [relatedProducts, productImages] = await Promise.all([
+    getRelatedProducts(product.category, product.slug),
+    getProductImages(product.id),
+  ])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -200,20 +236,11 @@ export default async function ProductDetailPage({
         {/* Left column */}
         <div className="space-y-6">
           <ScaleIn>
-            <Card className="overflow-hidden">
-              <CardContent className="p-0">
-                <div className="relative h-72 sm:h-80 lg:h-96">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover"
-                    priority
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            <ProductGallery
+              images={productImages}
+              fallbackImage={product.image}
+              productName={product.name}
+            />
           </ScaleIn>
 
           <FadeIn delay={0.15}>
@@ -243,6 +270,11 @@ export default async function ProductDetailPage({
                 </p>
               </CardContent>
             </Card>
+          </FadeIn>
+
+          {/* SDS Documents */}
+          <FadeIn delay={0.3}>
+            <ProductSdsDocuments productId={product.id} />
           </FadeIn>
         </div>
 
@@ -352,6 +384,8 @@ export default async function ProductDetailPage({
                   productId={product.id}
                   productName={product.name}
                   packagingSizes={product.packagingSizes}
+                  inStock={product.inStock}
+                  stockQty={product.stockQty}
                 />
               </CardContent>
             </Card>

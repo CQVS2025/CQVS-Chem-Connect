@@ -12,7 +12,9 @@ import {
   ArrowRight,
   Loader2,
   MapPin,
+  Paperclip,
   ShoppingCart,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 import { domAnimation, LazyMotion, m } from "framer-motion"
@@ -115,8 +117,10 @@ function CheckoutForm({
     "stripe" | "purchase_order"
   >("purchase_order")
   const [poNumber, setPoNumber] = useState("")
+  const [poDocuments, setPoDocuments] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [stripeReady, setStripeReady] = useState(false)
+  const [cardComplete, setCardComplete] = useState(false)
 
   const [address, setAddress] = useState<DeliveryAddress>({
     street: "",
@@ -158,9 +162,21 @@ function CheckoutForm({
 
   const isPaymentValid = useMemo(() => {
     if (paymentMethod === "purchase_order") return poNumber.trim() !== ""
-    // For stripe we need stripe + elements ready + client secret
-    return stripeReady
-  }, [paymentMethod, poNumber, stripeReady])
+    // Card must be fully filled in (not just rendered)
+    return stripeReady && cardComplete
+  }, [paymentMethod, poNumber, stripeReady, cardComplete])
+
+  // ------- Processing fee (card payments only) -------
+  // Stripe fee: 1.75% + $0.30 + 10% GST on the fee
+  const processingFee = useMemo(() => {
+    if (paymentMethod !== "stripe") return 0
+    const beforeFee = subtotal + shipping + gst
+    const stripeFee = beforeFee * 0.0175 + 0.30
+    const feeGst = stripeFee * 0.10
+    return Math.round((stripeFee + feeGst) * 100) / 100
+  }, [paymentMethod, subtotal, shipping, gst])
+
+  const totalWithFee = Math.round((total + processingFee) * 100) / 100
 
   // ------- Step navigation -------
   const goNext = useCallback(async () => {
@@ -208,7 +224,7 @@ function CheckoutForm({
     try {
       if (paymentMethod === "purchase_order") {
         // PO flow - create order directly
-        await createOrder.mutateAsync({
+        const poOrder = await createOrder.mutateAsync({
           payment_method: "purchase_order",
           po_number: poNumber,
           items: cartItems.map((item) => ({
@@ -223,6 +239,23 @@ function CheckoutForm({
           delivery_address_postcode: address.postcode,
           delivery_notes: address.notes,
         })
+
+        // Upload PO documents if any (non-blocking)
+        if (poDocuments.length > 0 && poOrder.id) {
+          try {
+            const docFormData = new FormData()
+            for (const file of poDocuments) {
+              docFormData.append("files", file)
+            }
+            await fetch(`/api/orders/${poOrder.id}/documents`, {
+              method: "POST",
+              body: docFormData,
+            })
+          } catch {
+            // Non-blocking - documents can be managed later
+          }
+        }
+
         toast.success("Order placed successfully!")
         router.push("/dashboard/orders")
         return
@@ -558,6 +591,7 @@ function CheckoutForm({
                         <div className="rounded-lg border border-border p-4">
                           <PaymentElement
                             onReady={() => setStripeReady(true)}
+                            onChange={(e) => setCardComplete(e.complete)}
                             options={{
                               layout: "tabs",
                             }}
@@ -578,6 +612,7 @@ function CheckoutForm({
 
                     {/* PO Number Input */}
                     {paymentMethod === "purchase_order" && (
+                      <>
                       <div className="space-y-2 pt-2">
                         <Label htmlFor="po-number">
                           Purchase Order Number{" "}
@@ -591,6 +626,71 @@ function CheckoutForm({
                           onChange={(e) => setPoNumber(e.target.value)}
                         />
                       </div>
+
+                      {/* PO Document attachments */}
+                      <div className="space-y-2">
+                        <Label>
+                          Attach Documents{" "}
+                          <span className="text-xs text-muted-foreground">(optional)</span>
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Upload purchase order documents, approvals, or other supporting files. PDF, Word, Excel, or images accepted.
+                        </p>
+
+                        {poDocuments.length > 0 && (
+                          <div className="space-y-2">
+                            {poDocuments.map((file, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2"
+                              >
+                                <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm">{file.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {(file.size / 1024).toFixed(0)} KB
+                                  </p>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 shrink-0"
+                                  onClick={() =>
+                                    setPoDocuments(poDocuments.filter((_, i) => i !== idx))
+                                  }
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => {
+                            const input = document.createElement("input")
+                            input.type = "file"
+                            input.multiple = true
+                            input.accept = ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"
+                            input.onchange = (e) => {
+                              const files = (e.target as HTMLInputElement).files
+                              if (files) {
+                                setPoDocuments((prev) => [...prev, ...Array.from(files)])
+                              }
+                            }
+                            input.click()
+                          }}
+                        >
+                          <Paperclip className="mr-2 h-4 w-4" />
+                          {poDocuments.length > 0 ? "Add More Files" : "Attach Files"}
+                        </Button>
+                      </div>
+                      </>
                     )}
 
                     <div className="flex justify-between pt-2">
@@ -684,6 +784,12 @@ function CheckoutForm({
                           <span className="font-medium text-foreground">
                             {poNumber}
                           </span>
+                          {poDocuments.length > 0 && (
+                            <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              <Paperclip className="h-3 w-3" />
+                              {poDocuments.length} file{poDocuments.length > 1 ? "s" : ""} attached
+                            </span>
+                          )}
                         </p>
                       )}
                     </div>
@@ -754,7 +860,7 @@ function CheckoutForm({
                         Placing Order...
                       </>
                     ) : (
-                      <>Place Order - {formatCurrency(total)}</>
+                      <>Place Order - {formatCurrency(totalWithFee)}</>
                     )}
                   </Button>
                 </div>
@@ -818,13 +924,24 @@ function CheckoutForm({
                   <span className="text-muted-foreground">GST (10%)</span>
                   <span>{formatCurrency(gst)}</span>
                 </div>
+                {processingFee > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Card Processing Fee</span>
+                    <span>{formatCurrency(processingFee)}</span>
+                  </div>
+                )}
               </div>
 
               <div className="border-t pt-3">
                 <div className="flex justify-between text-base font-semibold">
                   <span>Total</span>
-                  <span>{formatCurrency(total)}</span>
+                  <span>{formatCurrency(totalWithFee)}</span>
                 </div>
+                {processingFee > 0 && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Includes card processing fee of {formatCurrency(processingFee)}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -896,7 +1013,7 @@ export default function CheckoutPage() {
     0
   )
   const shipping = 0
-  const gst = (subtotal + shipping) * 0.1
+  const gst = Math.round((subtotal + shipping) * 0.1 * 100) / 100
   const total = subtotal + shipping + gst
 
   const handleOrderCreated = useCallback((order: Order) => {
@@ -976,7 +1093,7 @@ export default function CheckoutPage() {
           options={
             stripeOptions || {
               mode: "payment" as const,
-              amount: Math.max(50, Math.round(total * 100)),
+              amount: Math.max(50, Math.round((total * 1.02) * 100)),
               currency: "aud",
               appearance: {
                 theme: "night" as const,

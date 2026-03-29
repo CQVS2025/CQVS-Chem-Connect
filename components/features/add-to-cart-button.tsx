@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { useUser } from "@/lib/hooks/use-auth"
 import { useProfile } from "@/lib/hooks/use-profile"
 import { useAddToCart } from "@/lib/hooks/use-cart"
+import { useFeatureFlags } from "@/lib/hooks/use-feature-flags"
 import { Button } from "@/components/ui/button"
 import { RequestQuoteDialog } from "@/components/features/request-quote-dialog"
 import { AuthPromptDialog } from "@/components/shared/auth-prompt-dialog"
@@ -16,12 +17,16 @@ interface AddToCartButtonProps {
   productId: string
   productName: string
   packagingSizes: string[]
+  inStock: boolean
+  stockQty: number
 }
 
 export function AddToCartButton({
   productId,
   productName,
   packagingSizes,
+  inStock,
+  stockQty,
 }: AddToCartButtonProps) {
   const [selectedSize, setSelectedSize] = useState(packagingSizes[0] || "")
   const [quantity, setQuantity] = useState(1)
@@ -29,6 +34,8 @@ export function AddToCartButton({
   const { user, loading: authLoading } = useUser()
   const { data: profile } = useProfile()
   const addToCart = useAddToCart()
+  const { data: flags } = useFeatureFlags()
+  const quotesEnabled = flags?.quotes_enabled !== false
 
   const isAdmin = profile?.role === "admin"
   const isLoggedIn = !!user
@@ -45,6 +52,27 @@ export function AddToCartButton({
     )
   }
 
+  // Out of stock
+  if (!inStock || stockQty <= 0) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-5 text-center">
+          <div className="mb-2 text-lg font-semibold text-red-500">Out of Stock</div>
+          <p className="text-sm text-muted-foreground">
+            This product is currently unavailable. Check back soon when it is back in stock.
+          </p>
+        </div>
+        {quotesEnabled && (
+          <RequestQuoteDialog
+            productId={productId}
+            productName={productName}
+            packagingSizes={packagingSizes}
+          />
+        )}
+      </div>
+    )
+  }
+
   function handleAddToCart() {
     if (!isLoggedIn) {
       setAuthDialogOpen(true)
@@ -53,6 +81,13 @@ export function AddToCartButton({
 
     if (!selectedSize) {
       toast.error("Please select a packaging size.")
+      return
+    }
+
+    if (quantity > stockQty) {
+      toast.error(`Only ${stockQty} units available.`, {
+        description: `Please reduce your quantity to ${stockQty} or less.`,
+      })
       return
     }
 
@@ -128,11 +163,12 @@ export function AddToCartButton({
           <input
             type="number"
             min={1}
+            max={stockQty}
             value={quantity}
             onChange={(e) => {
               const val = parseInt(e.target.value, 10)
               if (!isNaN(val) && val >= 1) {
-                setQuantity(val)
+                setQuantity(Math.min(val, stockQty))
               }
             }}
             className="h-9 w-16 rounded-md border border-input bg-background text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -141,18 +177,24 @@ export function AddToCartButton({
             variant="outline"
             size="icon"
             className="h-9 w-9"
-            onClick={() => setQuantity(quantity + 1)}
+            onClick={() => setQuantity(Math.min(quantity + 1, stockQty))}
+            disabled={quantity >= stockQty}
           >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
+        {stockQty <= 20 && (
+          <p className="mt-1 text-xs text-amber-500">
+            Only {stockQty} units left in stock
+          </p>
+        )}
       </div>
 
       {/* Action buttons */}
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button
           size="lg"
-          className="flex-1 gap-2 glow-primary"
+          className="h-12 flex-1 gap-2 text-base sm:h-11 sm:text-sm glow-primary"
           onClick={handleAddToCart}
           disabled={addToCart.isPending || !selectedSize}
         >
@@ -173,11 +215,13 @@ export function AddToCartButton({
             </>
           )}
         </Button>
-        <RequestQuoteDialog
-          productId={productId}
-          productName={productName}
-          packagingSizes={packagingSizes}
-        />
+        {quotesEnabled && (
+          <RequestQuoteDialog
+            productId={productId}
+            productName={productName}
+            packagingSizes={packagingSizes}
+          />
+        )}
       </div>
 
       {/* Auth prompt for unauthenticated users */}

@@ -31,6 +31,7 @@ import {
 import { ThemeToggle } from "@/components/shared/theme-toggle"
 
 const navLinks = [
+  { label: "Home", href: "/" },
   { label: "Products", href: "/products" },
   { label: "How It Works", href: "/#how-it-works" },
 ]
@@ -135,6 +136,11 @@ export function MarketplaceNavbar() {
               {link.label}
             </NavLink>
           ))}
+          {user && (
+            <NavLink href={dashboardHref}>
+              Dashboard
+            </NavLink>
+          )}
         </div>
 
         {/* Right actions */}
@@ -265,6 +271,18 @@ export function MarketplaceNavbar() {
                     {link.label}
                   </Link>
                 ))}
+                {user && (
+                  <Link
+                    href={dashboardHref}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "rounded-lg px-3 py-2.5 text-sm font-medium text-primary transition-colors",
+                      "hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    Dashboard
+                  </Link>
+                )}
               </nav>
 
               <div className="mt-auto flex flex-col gap-2 border-t border-border px-4 pt-4">

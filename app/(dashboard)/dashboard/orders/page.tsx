@@ -401,6 +401,17 @@ export default function OrdersPage() {
                                     })}
                                   </span>
                                 </div>
+                                {order.processing_fee > 0 && (
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Card Processing Fee</span>
+                                    <span>
+                                      $
+                                      {order.processing_fee.toLocaleString("en-AU", {
+                                        minimumFractionDigits: 2,
+                                      })}
+                                    </span>
+                                  </div>
+                                )}
                                 <div className="flex justify-between font-semibold">
                                   <span>Total</span>
                                   <span>

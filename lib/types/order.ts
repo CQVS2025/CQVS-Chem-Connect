@@ -39,6 +39,7 @@ export interface Order {
   subtotal: number
   shipping: number
   gst: number
+  processing_fee: number
   total: number
   delivery_address_street: string | null
   delivery_address_city: string | null

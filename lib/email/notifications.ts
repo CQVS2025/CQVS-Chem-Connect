@@ -267,6 +267,7 @@ export async function sendOrderConfirmationEmail(
     subtotal: number
     shipping: number
     gst: number
+    processingFee?: number
     total: number
     paymentMethod: string
     poNumber?: string
@@ -292,15 +293,24 @@ export async function sendOrderConfirmationEmail(
         </tr>`
       : ""
 
+    const isPO = data.paymentMethod === "Purchase Order"
+
     await sendEmail({
       to: customerEmail,
-      subject: `Order Confirmed - ${data.orderNumber} - Chem Connect`,
-      heading: "Order Confirmation",
-      preheader: `Your order ${data.orderNumber} has been confirmed.`,
+      subject: isPO
+        ? `Order Received - ${data.orderNumber} - Chem Connect`
+        : `Order Confirmed - ${data.orderNumber} - Chem Connect`,
+      heading: isPO ? "Order Received" : "Order Confirmation",
+      preheader: isPO
+        ? `Your PO order ${data.orderNumber} has been received and is under review.`
+        : `Your order ${data.orderNumber} has been confirmed.`,
       sections: [
         {
-          content: `<p style="margin: 0 0 16px 0;">Hi ${data.customerName},</p>
-            <p style="margin: 0 0 8px 0;">Thank you for your order. We have received your order and will begin processing it shortly.</p>`,
+          content: isPO
+            ? `<p style="margin: 0 0 16px 0;">Hi ${data.customerName},</p>
+              <p style="margin: 0 0 8px 0;">We have received your purchase order. Our team will review it and get in touch to confirm details and arrange invoicing.</p>`
+            : `<p style="margin: 0 0 16px 0;">Hi ${data.customerName},</p>
+              <p style="margin: 0 0 8px 0;">Thank you for your order. Your payment has been received and we will begin processing your order shortly.</p>`,
         },
         {
           title: "Order Summary",
@@ -340,6 +350,10 @@ export async function sendOrderConfirmationEmail(
               <td style="padding: 4px 12px; font-size: 14px; color: #94A3B8; font-family: Arial, Helvetica, sans-serif; text-align: right;">GST</td>
               <td style="padding: 4px 12px; font-size: 14px; color: #E5E7EB; font-family: Arial, Helvetica, sans-serif; text-align: right; width: 100px;">${formatCurrency(data.gst)}</td>
             </tr>
+            ${data.processingFee && data.processingFee > 0 ? `<tr>
+              <td style="padding: 4px 12px; font-size: 14px; color: #94A3B8; font-family: Arial, Helvetica, sans-serif; text-align: right;">Card Processing Fee</td>
+              <td style="padding: 4px 12px; font-size: 14px; color: #E5E7EB; font-family: Arial, Helvetica, sans-serif; text-align: right; width: 100px;">${formatCurrency(data.processingFee)}</td>
+            </tr>` : ""}
             <tr style="border-top: 2px solid #1E3A4C;">
               <td style="padding: 8px 12px; font-size: 16px; font-weight: 700; color: #FFFFFF; font-family: Arial, Helvetica, sans-serif; text-align: right;">Total</td>
               <td style="padding: 8px 12px; font-size: 16px; font-weight: 700; color: #4ADE80; font-family: Arial, Helvetica, sans-serif; text-align: right; width: 100px;">${formatCurrency(data.total)}</td>

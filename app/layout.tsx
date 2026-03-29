@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   title: "Chem Connect - B2B Chemical Marketplace",
   description:
     "Your trusted B2B marketplace for industrial chemicals. Browse, order, and manage chemical procurement with ease.",
+  icons: {
+    icon: "/images/cqvs-logo.png",
+    apple: "/images/cqvs-logo.png",
+  },
 }
 
 export default function RootLayout({
