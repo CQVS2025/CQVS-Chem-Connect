@@ -18,6 +18,7 @@ export function useUpdateSettings() {
       put<{ success: boolean }>("/settings", settings),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-settings"] })
+      queryClient.invalidateQueries({ queryKey: ["feature-flags"] })
     },
   })
 }

@@ -51,6 +51,15 @@ import {
 } from "@/lib/hooks/use-orders"
 import { useProfile } from "@/lib/hooks/use-profile"
 import { getStripe } from "@/lib/stripe-client"
+import { postForm } from "@/lib/api/client"
+
+function uploadOrderDocuments(orderId: string, files: File[]) {
+  const formData = new FormData()
+  for (const file of files) {
+    formData.append("files", file)
+  }
+  return postForm(`/orders/${orderId}/documents`, formData)
+}
 
 const AU_STATES = [
   { label: "New South Wales", value: "NSW" },
@@ -242,18 +251,9 @@ function CheckoutForm({
 
         // Upload PO documents if any (non-blocking)
         if (poDocuments.length > 0 && poOrder.id) {
-          try {
-            const docFormData = new FormData()
-            for (const file of poDocuments) {
-              docFormData.append("files", file)
-            }
-            await fetch(`/api/orders/${poOrder.id}/documents`, {
-              method: "POST",
-              body: docFormData,
-            })
-          } catch {
+          uploadOrderDocuments(poOrder.id, poDocuments).catch(() => {
             // Non-blocking - documents can be managed later
-          }
+          })
         }
 
         toast.success("Order placed successfully!")

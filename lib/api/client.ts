@@ -89,6 +89,41 @@ export function patch<T>(
   return request<T>("PATCH", path, body, options);
 }
 
-export function del<T>(path: string, options?: RequestOptions): Promise<T> {
-  return request<T>("DELETE", path, undefined, options);
+export function del<T>(
+  path: string,
+  body?: unknown,
+  options?: RequestOptions,
+): Promise<T> {
+  return request<T>("DELETE", path, body, options);
+}
+
+export async function postForm<T>(
+  path: string,
+  formData: FormData,
+  options: Omit<RequestOptions, "params"> = {},
+): Promise<T> {
+  const url = `${BASE_URL}${path}`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    body: formData,
+    ...options,
+  });
+
+  if (!response.ok) {
+    let message: string;
+    try {
+      const errorBody = await response.json();
+      message = errorBody.message ?? errorBody.error ?? response.statusText;
+    } catch {
+      message = response.statusText;
+    }
+    throw new ApiError(response.status, message);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return response.json() as Promise<T>;
 }

@@ -3,6 +3,8 @@
 import { useState, useRef } from "react"
 import Image from "next/image"
 import { Building2, Camera, Loader2, X } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import { postForm } from "@/lib/api/client"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -30,16 +32,22 @@ export function LogoUpload({
   className,
 }: LogoUploadProps) {
   const [preview, setPreview] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const displayUrl = preview || currentLogoUrl
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const uploadMutation = useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData()
+      formData.append("file", file)
+      return postForm<{ url: string }>("/upload-logo", formData)
+    },
+  })
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate client-side
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"]
     if (!allowedTypes.includes(file.type)) {
       toast.error("Please upload a JPG, PNG, WebP, or SVG file.")
@@ -54,34 +62,20 @@ export function LogoUpload({
     const objectUrl = URL.createObjectURL(file)
     setPreview(objectUrl)
 
-    // Upload
-    setUploading(true)
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const res = await fetch("/api/upload-logo", {
-        method: "POST",
-        body: formData,
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Upload failed")
-      }
-
-      const { url } = await res.json()
-      setPreview(url)
-      onUploaded?.(url)
-      toast.success("Logo uploaded successfully")
-    } catch {
-      setPreview(null)
-      toast.error("Unable to upload logo. Please try again.")
-    } finally {
-      setUploading(false)
-      // Reset input so same file can be re-selected
-      if (inputRef.current) inputRef.current.value = ""
-    }
+    uploadMutation.mutate(file, {
+      onSuccess: (data) => {
+        setPreview(data.url)
+        onUploaded?.(data.url)
+        toast.success("Logo uploaded successfully")
+      },
+      onError: () => {
+        setPreview(null)
+        toast.error("Unable to upload logo. Please try again.")
+      },
+      onSettled: () => {
+        if (inputRef.current) inputRef.current.value = ""
+      },
+    })
   }
 
   function handleRemove() {
@@ -119,7 +113,7 @@ export function LogoUpload({
             onClick={() => inputRef.current?.click()}
             className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
           >
-            {uploading ? (
+            {uploadMutation.isPending ? (
               <Loader2 className="h-5 w-5 animate-spin text-white" />
             ) : (
               <Camera className="h-5 w-5 text-white" />
@@ -128,7 +122,7 @@ export function LogoUpload({
         </div>
 
         {/* Remove button */}
-        {displayUrl && !uploading && (
+        {displayUrl && !uploadMutation.isPending && (
           <button
             type="button"
             onClick={handleRemove}
@@ -152,9 +146,9 @@ export function LogoUpload({
           variant="outline"
           size="sm"
           onClick={() => inputRef.current?.click()}
-          disabled={uploading}
+          disabled={uploadMutation.isPending}
         >
-          {uploading ? (
+          {uploadMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-3 w-3 animate-spin" />
               Uploading...

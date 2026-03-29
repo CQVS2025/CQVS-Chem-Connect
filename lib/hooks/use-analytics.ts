@@ -43,5 +43,7 @@ export function useAnalytics() {
     queryKey: ["analytics"],
     queryFn: () => get<AnalyticsData>("/analytics"),
     staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 60 * 1000,
   })
 }

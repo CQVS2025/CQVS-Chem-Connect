@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import { FileText, Download, Eye, Lock } from "lucide-react"
 
 import { useUser } from "@/lib/hooks/use-auth"
@@ -8,46 +8,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AuthPromptDialog } from "@/components/shared/auth-prompt-dialog"
-
-interface SdsDoc {
-  id: string
-  file_name: string
-  file_size: number
-  file_type: string
-  doc_type: string
-  download_url: string | null
-  view_url: string | null
-}
+import { useProductDocuments, type ProductDoc } from "@/lib/hooks/use-product-documents"
 
 interface ProductSdsDocumentsProps {
   productId: string
 }
 
 export function ProductSdsDocuments({ productId }: ProductSdsDocumentsProps) {
-  const [docs, setDocs] = useState<SdsDoc[]>([])
-  const [loading, setLoading] = useState(true)
   const [authPrompt, setAuthPrompt] = useState(false)
   const { user } = useUser()
 
-  const fetchDocs = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/products/${productId}/documents`)
-      if (res.ok) {
-        const data = await res.json()
-        setDocs(data)
-      }
-    } catch {
-      // Silent
-    } finally {
-      setLoading(false)
-    }
-  }, [productId])
+  const { data: docs = [], isLoading } = useProductDocuments(productId)
 
-  useEffect(() => {
-    fetchDocs()
-  }, [fetchDocs])
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
@@ -62,7 +35,7 @@ export function ProductSdsDocuments({ productId }: ProductSdsDocumentsProps) {
 
   if (docs.length === 0) return null
 
-  function handleDocClick(doc: SdsDoc, action: "view" | "download") {
+  function handleDocClick(doc: ProductDoc, action: "view" | "download") {
     if (!user) {
       setAuthPrompt(true)
       return

@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { get, post, patch, del } from "@/lib/api/client"
 import type { Order, OrderStatus } from "@/lib/types/order"
 
@@ -46,12 +46,13 @@ export function useOrders() {
   return useQuery({
     queryKey: ["orders"],
     queryFn: () => get<Order[]>("/orders"),
+    refetchOnWindowFocus: true,
   })
 }
 
 export function useOrder(id: string) {
   return useQuery({
-    queryKey: ["order", id],
+    queryKey: ["orders", "detail", id],
     queryFn: () => get<Order>(`/orders/${id}`),
     enabled: !!id,
   })
@@ -64,6 +65,7 @@ export function useCreateOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] })
       queryClient.invalidateQueries({ queryKey: ["cart"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
 }
@@ -75,7 +77,7 @@ export function useConfirmPayment() {
       post<Order>(`/orders/${id}/confirm`, { payment_intent_id }),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["orders"] })
-      queryClient.invalidateQueries({ queryKey: ["order", variables.id] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
 }
@@ -87,6 +89,9 @@ export function useAdminOrders(filters: OrderFilters = {}) {
   return useQuery({
     queryKey: ["orders", "admin", filters],
     queryFn: () => get<Order[]>("/orders", { params }),
+    placeholderData: keepPreviousData,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000,
   })
 }
 
@@ -95,9 +100,9 @@ export function useUpdateOrderStatus() {
   return useMutation({
     mutationFn: ({ id, ...data }: UpdateOrderStatusInput) =>
       patch<Order>(`/orders/${id}`, data),
-    onSuccess: (_data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] })
-      queryClient.invalidateQueries({ queryKey: ["order", variables.id] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
 }

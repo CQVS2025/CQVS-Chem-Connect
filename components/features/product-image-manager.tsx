@@ -1,19 +1,18 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useRef } from "react"
 import Image from "next/image"
-import { ImagePlus, Loader2, Star, Trash2, X } from "lucide-react"
+import { ImagePlus, Loader2, Star, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-
-interface ProductImageData {
-  id: string
-  image_url: string
-  is_cover: boolean
-  sort_order: number
-}
+import {
+  useProductImages,
+  useUploadProductImages,
+  useSetCoverImage,
+  useDeleteProductImage,
+} from "@/lib/hooks/use-product-images"
 
 interface ProductImageManagerProps {
   productId: string
@@ -21,103 +20,47 @@ interface ProductImageManagerProps {
 }
 
 export function ProductImageManager({ productId, legacyImageUrl }: ProductImageManagerProps) {
-  const [images, setImages] = useState<ProductImageData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const fetchImages = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/products/${productId}/images`)
-      if (res.ok) {
-        const data = await res.json()
-        setImages(data)
+  const { data: images = [], isLoading } = useProductImages(productId)
+  const uploadMutation = useUploadProductImages(productId)
+  const setCoverMutation = useSetCoverImage(productId)
+  const deleteMutation = useDeleteProductImage(productId)
+
+  function handleUpload(files: FileList) {
+    const isCover = images.length === 0 && !legacyImageUrl
+    uploadMutation.mutate(
+      { files, isCover },
+      {
+        onSuccess: () => {
+          toast.success(`${files.length} image${files.length > 1 ? "s" : ""} uploaded`)
+          if (inputRef.current) inputRef.current.value = ""
+        },
+        onError: () => {
+          toast.error("Unable to upload images. Please try again.")
+          if (inputRef.current) inputRef.current.value = ""
+        },
       }
-    } catch {
-      // Silent fail
-    } finally {
-      setLoading(false)
-    }
-  }, [productId])
-
-  useEffect(() => {
-    fetchImages()
-  }, [fetchImages])
-
-  async function handleUpload(files: FileList) {
-    setUploading(true)
-    const formData = new FormData()
-
-    for (let i = 0; i < files.length; i++) {
-      formData.append("files", files[i])
-    }
-
-    // First image becomes cover only if no images AND no legacy image
-    if (images.length === 0 && !legacyImageUrl) {
-      formData.append("is_cover", "true")
-    }
-
-    try {
-      const res = await fetch(`/api/products/${productId}/images`, {
-        method: "POST",
-        body: formData,
-      })
-
-      if (res.ok) {
-        toast.success(`${files.length} image${files.length > 1 ? "s" : ""} uploaded`)
-        fetchImages()
-      } else {
-        toast.error("Unable to upload images. Please try again.")
-      }
-    } catch {
-      toast.error("Unable to upload images. Please try again.")
-    } finally {
-      setUploading(false)
-      if (inputRef.current) inputRef.current.value = ""
-    }
+    )
   }
 
-  async function handleSetCover(imageId: string) {
+  function handleSetCover(imageId: string) {
     const tid = toast.loading("Setting cover image...")
-    try {
-      const res = await fetch(`/api/products/${productId}/images`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image_id: imageId }),
-      })
-
-      if (res.ok) {
-        toast.success("Cover image updated", { id: tid })
-        fetchImages()
-      } else {
-        toast.error("Unable to set cover image.", { id: tid })
-      }
-    } catch {
-      toast.error("Unable to set cover image.", { id: tid })
-    }
+    setCoverMutation.mutate(imageId, {
+      onSuccess: () => toast.success("Cover image updated", { id: tid }),
+      onError: () => toast.error("Unable to set cover image.", { id: tid }),
+    })
   }
 
-  async function handleDelete(imageId: string) {
+  function handleDelete(imageId: string) {
     const tid = toast.loading("Removing image...")
-    try {
-      const res = await fetch(`/api/products/${productId}/images`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image_id: imageId }),
-      })
-
-      if (res.ok) {
-        toast.success("Image removed", { id: tid })
-        fetchImages()
-      } else {
-        toast.error("Unable to remove image.", { id: tid })
-      }
-    } catch {
-      toast.error("Unable to remove image.", { id: tid })
-    }
+    deleteMutation.mutate(imageId, {
+      onSuccess: () => toast.success("Image removed", { id: tid }),
+      onError: () => toast.error("Unable to remove image.", { id: tid }),
+    })
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -136,14 +79,14 @@ export function ProductImageManager({ productId, legacyImageUrl }: ProductImageM
           variant="outline"
           size="sm"
           onClick={() => inputRef.current?.click()}
-          disabled={uploading}
+          disabled={uploadMutation.isPending}
         >
-          {uploading ? (
+          {uploadMutation.isPending ? (
             <Loader2 className="mr-2 h-3 w-3 animate-spin" />
           ) : (
             <ImagePlus className="mr-2 h-3 w-3" />
           )}
-          {uploading ? "Uploading..." : "Add Images"}
+          {uploadMutation.isPending ? "Uploading..." : "Add Images"}
         </Button>
         <input
           ref={inputRef}

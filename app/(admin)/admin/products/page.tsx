@@ -20,7 +20,17 @@ import {
   useDeleteProduct,
 } from "@/lib/hooks/use-products"
 import { useUploadImage } from "@/lib/hooks/use-upload"
+import { postForm } from "@/lib/api/client"
 import { products as staticProducts, categories } from "@/lib/data/products"
+
+function uploadProductSdsDocuments(productId: string, files: File[]) {
+  const formData = new FormData()
+  for (const file of files) {
+    formData.append("files", file)
+  }
+  formData.append("doc_type", "sds")
+  return postForm(`/products/${productId}/documents`, formData)
+}
 import { PageTransition } from "@/components/shared/page-transition"
 import { ProductImageManager } from "@/components/features/product-image-manager"
 import { ProductDocumentManager } from "@/components/features/product-document-manager"
@@ -307,19 +317,9 @@ export default function AdminProductsPage() {
         onSuccess: async (newProduct) => {
           // Upload SDS files if any
           if (sdsFiles.length > 0 && newProduct?.id) {
-            try {
-              const formData = new FormData()
-              for (const file of sdsFiles) {
-                formData.append("files", file)
-              }
-              formData.append("doc_type", "sds")
-              await fetch(`/api/products/${newProduct.id}/documents`, {
-                method: "POST",
-                body: formData,
-              })
-            } catch {
+            uploadProductSdsDocuments(newProduct.id, sdsFiles).catch(() => {
               // Non-blocking
-            }
+            })
           }
           toast.success("Product created")
           setSaving(false)

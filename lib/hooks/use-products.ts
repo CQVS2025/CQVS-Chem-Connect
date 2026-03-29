@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { get, post, put, del } from "@/lib/api/client"
 import type { Product, ProductInsert, ProductUpdate } from "@/lib/supabase/types"
 
@@ -25,12 +25,13 @@ export function useProducts(filters: ProductFilters = {}) {
   return useQuery({
     queryKey: ["products", filters],
     queryFn: () => get<Product[]>("/products", { params }),
+    placeholderData: keepPreviousData,
   })
 }
 
 export function useProduct(slugOrId: string) {
   return useQuery({
-    queryKey: ["product", slugOrId],
+    queryKey: ["products", "detail", slugOrId],
     queryFn: () => get<Product>(`/products/${slugOrId}`),
     enabled: !!slugOrId,
   })
@@ -43,6 +44,7 @@ export function useCreateProduct() {
       post<Product>("/products", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
 }
@@ -52,8 +54,9 @@ export function useUpdateProduct() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ProductUpdate }) =>
       put<Product>(`/products/${id}`, data),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
 }
@@ -64,6 +67,7 @@ export function useDeleteProduct() {
     mutationFn: (id: string) => del(`/products/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
 }

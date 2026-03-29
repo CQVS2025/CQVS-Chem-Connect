@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { get, post, patch, del } from "@/lib/api/client"
 
 export interface QuoteRequest {
@@ -45,14 +45,18 @@ export function useQuotes() {
   return useQuery({
     queryKey: ["quotes"],
     queryFn: () => get<QuoteRequest[]>("/quotes"),
+    refetchOnWindowFocus: true,
   })
 }
 
 export function useAdminQuotes(status?: string) {
   return useQuery({
-    queryKey: ["admin-quotes", status],
+    queryKey: ["quotes", "admin", status],
     queryFn: () =>
       get<QuoteRequest[]>(`/quotes${status && status !== "all" ? `?status=${status}` : ""}`),
+    placeholderData: keepPreviousData,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000,
   })
 }
 
@@ -62,6 +66,7 @@ export function useCreateQuote() {
     mutationFn: (data: CreateQuoteInput) => post<QuoteRequest>("/quotes", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
 }
@@ -73,7 +78,7 @@ export function useUpdateQuote() {
       patch<QuoteRequest>(`/quotes/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] })
-      queryClient.invalidateQueries({ queryKey: ["admin-quotes"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
 }
@@ -84,7 +89,7 @@ export function useDeleteQuote() {
     mutationFn: (id: string) => del(`/quotes/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] })
-      queryClient.invalidateQueries({ queryKey: ["admin-quotes"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { get, put } from "@/lib/api/client"
 import type { Profile } from "@/lib/supabase/types"
 
@@ -19,6 +19,7 @@ export function useAdminUsers(filters: UserFilters = {}) {
   return useQuery({
     queryKey: ["admin-users", filters],
     queryFn: () => get<Profile[]>("/admin/users", { params }),
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -34,6 +35,7 @@ export function useUpdateUser() {
     }) => put<Profile>(`/admin/users/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
 }

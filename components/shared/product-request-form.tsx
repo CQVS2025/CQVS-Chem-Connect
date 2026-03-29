@@ -2,47 +2,37 @@
 
 import { useState } from "react"
 import { Loader2, CheckCircle } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { post } from "@/lib/api/client"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 export function ProductRequestForm() {
   const [value, setValue] = useState("")
-  const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
 
-  async function handleSubmit() {
+  const submitRequest = useMutation({
+    mutationFn: (request: string) =>
+      post("/product-request", { request }),
+    onSuccess: () => {
+      setSent(true)
+      toast.success("Request submitted! Our team will look into it.")
+      setValue("")
+      setTimeout(() => setSent(false), 5000)
+    },
+    onError: () => {
+      toast.error("Unable to submit your request. Please try again.")
+    },
+  })
+
+  function handleSubmit() {
     if (!value.trim()) {
       toast.error("Please enter a product name or description.")
       return
     }
-
-    setLoading(true)
-
-    try {
-      const res = await fetch("/api/product-request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ request: value.trim() }),
-      })
-
-      if (!res.ok) {
-        toast.error("Unable to submit your request. Please try again.")
-        return
-      }
-
-      setSent(true)
-      toast.success("Request submitted! Our team will look into it.")
-      setValue("")
-
-      // Reset after 5 seconds
-      setTimeout(() => setSent(false), 5000)
-    } catch {
-      toast.error("Something went wrong. Please try again.")
-    } finally {
-      setLoading(false)
-    }
+    submitRequest.mutate(value.trim())
   }
 
   return (
@@ -56,15 +46,15 @@ export function ProductRequestForm() {
         onKeyDown={(e) => {
           if (e.key === "Enter") handleSubmit()
         }}
-        disabled={loading}
+        disabled={submitRequest.isPending}
       />
       <Button
         size="lg"
         className="rounded-xl shadow-primary/25 shadow-md"
         onClick={handleSubmit}
-        disabled={loading || sent}
+        disabled={submitRequest.isPending || sent}
       >
-        {loading ? (
+        {submitRequest.isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Sending...

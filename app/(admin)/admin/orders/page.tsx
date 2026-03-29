@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useState, useMemo, useEffect, useCallback } from "react"
+import { Fragment, useState, useMemo } from "react"
 import { toast } from "sonner"
 import {
   Search,
@@ -25,6 +25,7 @@ import {
   useUpdateOrderStatus,
   useDeleteOrder,
 } from "@/lib/hooks/use-orders"
+import { useOrderDocuments } from "@/lib/hooks/use-order-documents"
 import type { Order, OrderStatus } from "@/lib/types/order"
 import {
   AlertDialog,
@@ -164,25 +165,7 @@ function TableSkeleton() {
 
 // Inline component to fetch and display PO documents for an order
 function OrderDocuments({ orderId }: { orderId: string }) {
-  const [docs, setDocs] = useState<
-    { id: string; file_name: string; file_size: number; file_type: string; signed_url: string; view_url: string }[]
-  >([])
-  const [loading, setLoading] = useState(true)
-
-  const fetchDocs = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/orders/${orderId}/documents`)
-      if (res.ok) setDocs(await res.json())
-    } catch {
-      // Silent
-    } finally {
-      setLoading(false)
-    }
-  }, [orderId])
-
-  useEffect(() => {
-    fetchDocs()
-  }, [fetchDocs])
+  const { data: docs = [], isLoading: loading } = useOrderDocuments(orderId)
 
   if (loading) return (
     <div>

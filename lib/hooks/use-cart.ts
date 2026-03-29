@@ -40,6 +40,7 @@ export function useCart() {
     queryKey: ["cart"],
     queryFn: () => get<CartItem[]>("/cart"),
     staleTime: 30 * 1000,
+    refetchOnWindowFocus: true,
   })
 }
 
@@ -58,7 +59,22 @@ export function useUpdateCartItem() {
   return useMutation({
     mutationFn: ({ id, quantity }: UpdateCartItemInput) =>
       patch<CartItem>(`/cart/${id}`, { quantity }),
-    onSuccess: () => {
+    onMutate: async ({ id, quantity }) => {
+      await queryClient.cancelQueries({ queryKey: ["cart"] })
+      const previous = queryClient.getQueryData<CartItem[]>(["cart"])
+      queryClient.setQueryData<CartItem[]>(["cart"], (old) =>
+        old?.map((item) =>
+          item.id === id ? { ...item, quantity } : item
+        )
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["cart"], context.previous)
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] })
     },
   })
@@ -68,7 +84,20 @@ export function useRemoveCartItem() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => del(`/cart/${id}`),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["cart"] })
+      const previous = queryClient.getQueryData<CartItem[]>(["cart"])
+      queryClient.setQueryData<CartItem[]>(["cart"], (old) =>
+        old?.filter((item) => item.id !== id)
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["cart"], context.previous)
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] })
     },
   })
