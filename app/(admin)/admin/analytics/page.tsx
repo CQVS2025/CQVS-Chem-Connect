@@ -7,6 +7,11 @@ import {
   Users,
   BarChart3,
   FileText,
+  Gift,
+  Crown,
+  Award,
+  Medal,
+  Megaphone,
 } from "lucide-react"
 import {
   Bar,
@@ -22,6 +27,8 @@ import {
   XAxis,
 } from "recharts"
 
+import { useQuery } from "@tanstack/react-query"
+import { get } from "@/lib/api/client"
 import { useAnalytics } from "@/lib/hooks/use-analytics"
 import {
   Card,
@@ -122,9 +129,47 @@ export default function AdminAnalyticsPage() {
     paymentChartData.map((d) => [d.method, { label: d.method, color: d.fill }]),
   ) satisfies ChartConfig
 
-  const paidOrders = stats?.totalOrders
-    ? (stats.totalOrders > 0 ? stats.totalRevenue / stats.totalOrders : 0)
-    : 0
+  // Rewards data
+  const { data: customerRewards } = useQuery<
+    {
+      user_id: string
+      current_tier: string
+      current_month_spend: number
+      annual_spend: number
+      total_stamps: number
+      referral_count: number
+      contact_name: string
+      company_name: string
+    }[]
+  >({
+    queryKey: ["admin-customer-rewards-analytics"],
+    queryFn: () => get("/admin/rewards/customers"),
+  })
+
+  const { data: referrals } = useQuery<{ status: string }[]>({
+    queryKey: ["admin-referrals-analytics"],
+    queryFn: () => get("/admin/rewards/referrals"),
+  })
+
+  const tierCounts = {
+    gold: customerRewards?.filter((c) => c.current_tier === "gold").length ?? 0,
+    silver: customerRewards?.filter((c) => c.current_tier === "silver").length ?? 0,
+    bronze: customerRewards?.filter((c) => c.current_tier === "bronze").length ?? 0,
+    none: customerRewards?.filter((c) => c.current_tier === "none").length ?? 0,
+  }
+  const totalReferrals = referrals?.length ?? 0
+  const convertedReferrals = referrals?.filter((r) => r.status === "converted").length ?? 0
+  const tierIcons = { gold: Crown, silver: Award, bronze: Medal }
+  const tierTextColors = {
+    gold: "text-yellow-400",
+    silver: "text-slate-300",
+    bronze: "text-amber-600",
+  }
+  const tierBgColors = {
+    gold: "bg-yellow-400/10",
+    silver: "bg-slate-300/10",
+    bronze: "bg-amber-500/10",
+  }
 
   return (
     <PageTransition>
@@ -500,6 +545,125 @@ export default function AdminAnalyticsPage() {
                   </span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+        {/* Rewards & Loyalty Insights */}
+        <div>
+          <h2 className="mb-4 text-xl font-semibold tracking-tight">
+            Rewards & Loyalty Insights
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Tier Distribution */}
+            {(["gold", "silver", "bronze"] as const).map((tier) => {
+              const TierIcon = tierIcons[tier]
+              return (
+                <Card key={tier}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`flex size-10 items-center justify-center rounded-xl ${tierBgColors[tier]}`}>
+                        <TierIcon className={`size-5 ${tierTextColors[tier]}`} />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{tierCounts[tier]}</p>
+                        <p className="text-xs capitalize text-muted-foreground">
+                          {tier} members
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+
+            {/* Referrals */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-violet-400/10">
+                    <Megaphone className="size-5 text-violet-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">
+                      {convertedReferrals}/{totalReferrals}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Referrals converted
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Rewards Overview & Top Spenders */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Gift className="h-4 w-4 text-muted-foreground" />
+                <CardTitle>Rewards Overview</CardTitle>
+              </div>
+              <CardDescription>Loyalty program metrics</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Total customers with tier</span>
+                  <span className="font-medium">{tierCounts.gold + tierCounts.silver + tierCounts.bronze}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Customers without tier</span>
+                  <span className="font-medium">{tierCounts.none}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Referral conversion rate</span>
+                  <span className="font-semibold text-primary">
+                    {totalReferrals > 0 ? `${Math.round((convertedReferrals / totalReferrals) * 100)}%` : "--"}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Gift className="h-4 w-4 text-muted-foreground" />
+                <CardTitle>Top Spenders</CardTitle>
+              </div>
+              <CardDescription>Highest annual spend this year</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {!customerRewards?.length ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  No customer data yet.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {customerRewards
+                    .sort((a, b) => (b.annual_spend ?? 0) - (a.annual_spend ?? 0))
+                    .slice(0, 5)
+                    .map((customer, i) => (
+                      <div key={customer.user_id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary/10 text-xs font-bold text-primary">
+                            {i + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">
+                              {customer.company_name || customer.contact_name || "Unknown"}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="shrink-0 text-sm font-semibold text-primary">
+                          ${(customer.annual_spend ?? 0).toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

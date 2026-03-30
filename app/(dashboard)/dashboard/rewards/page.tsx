@@ -1,15 +1,23 @@
-import type { Metadata } from "next"
+"use client"
+
+import Link from "next/link"
 import {
-  Star,
-  ShoppingCart,
-  Users,
-  MessageSquare,
+  Crown,
+  Award,
+  Medal,
   Gift,
-  Truck,
-  Headphones,
-  Trophy,
+  Megaphone,
+  CreditCard,
+  ArrowRight,
+  Stamp,
+  TrendingUp,
+  ExternalLink,
+  Star,
 } from "lucide-react"
 
+import { useQuery } from "@tanstack/react-query"
+import { get } from "@/lib/api/client"
+import { useRewards, useReferrals, useRewardTiers } from "@/lib/hooks/use-rewards"
 import {
   Card,
   CardContent,
@@ -17,267 +25,516 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@/lib/utils"
 
-export const metadata: Metadata = {
-  title: "Rewards - Chem Connect",
-  description: "View your loyalty points and available rewards.",
+const tierVisuals: Record<
+  string,
+  {
+    label: string
+    icon: typeof Crown
+    color: string
+    bgColor: string
+  }
+> = {
+  none: {
+    label: "No Tier",
+    icon: Gift,
+    color: "text-muted-foreground",
+    bgColor: "bg-muted/50",
+  },
+  bronze: {
+    label: "Bronze",
+    icon: Medal,
+    color: "text-amber-600",
+    bgColor: "bg-amber-500/10",
+  },
+  silver: {
+    label: "Silver",
+    icon: Award,
+    color: "text-slate-300",
+    bgColor: "bg-slate-300/10",
+  },
+  gold: {
+    label: "Gold",
+    icon: Crown,
+    color: "text-yellow-400",
+    bgColor: "bg-yellow-400/10",
+  },
 }
 
-const earnMethods = [
-  {
-    title: "Place Orders",
-    description: "Earn 1 point for every $10 spent on qualifying orders.",
-    icon: ShoppingCart,
-    highlight: "1 pt / $10",
-  },
-  {
-    title: "Refer a Business",
-    description: "Get 500 bonus points when a referred business places their first order.",
-    icon: Users,
-    highlight: "500 pts",
-  },
-  {
-    title: "Write Reviews",
-    description: "Share your experience with a product and earn points per approved review.",
-    icon: MessageSquare,
-    highlight: "50 pts",
-  },
-]
+interface RebateTier {
+  id: string
+  min_annual_spend: number
+  max_annual_spend: number | null
+  rebate_percent: number
+  sort_order: number
+  is_active: boolean
+}
 
-const rewardsHistory = [
-  {
-    date: "2026-03-20",
-    description: "Order ORD-2026-001 - purchase points",
-    points: 1016,
-  },
-  {
-    date: "2026-03-18",
-    description: "Order ORD-2026-002 - purchase points",
-    points: 690,
-  },
-  {
-    date: "2026-03-10",
-    description: "Product review - Green Acid Replacement",
-    points: 50,
-  },
-  {
-    date: "2026-03-01",
-    description: "Referral bonus - AquaPure Industries",
-    points: 500,
-  },
-  {
-    date: "2026-02-15",
-    description: "Order ORD-2026-005 - purchase points",
-    points: 194,
-  },
-]
+export default function DashboardRewardsPage() {
+  const { data: rewards, isLoading: rewardsLoading } = useRewards()
+  const { data: referrals } = useReferrals()
+  const { data: tiers } = useRewardTiers()
+  const { data: rebateTiersRaw } = useQuery<RebateTier[]>({
+    queryKey: ["public-rebates"],
+    queryFn: () => get<RebateTier[]>("/admin/rewards/rebates"),
+    staleTime: 300_000,
+  })
 
-const availableRewards = [
-  {
-    title: "$50 Account Credit",
-    description: "Apply a $50 credit to your next order.",
-    cost: 2000,
-    icon: Gift,
-  },
-  {
-    title: "Free Shipping",
-    description: "Free delivery on your next order, any size.",
-    cost: 1000,
-    icon: Truck,
-  },
-  {
-    title: "Priority Support",
-    description: "Dedicated account manager for 30 days.",
-    cost: 3000,
-    icon: Headphones,
-  },
-]
+  const rebateThresholds = (rebateTiersRaw ?? [])
+    .filter((t) => t.is_active)
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((t) => ({
+      min: t.min_annual_spend,
+      max: t.max_annual_spend ?? Infinity,
+      percent: t.rebate_percent,
+    }))
 
-const currentPoints = 2450
-const currentTier = "Silver"
-const nextTier = "Gold"
-const nextTierThreshold = 5000
-const progress = Math.round((currentPoints / nextTierThreshold) * 100)
+  const tier = rewards?.current_tier || "none"
+  const currentTierVisual = tierVisuals[tier] || tierVisuals.none
+  const TierIcon = currentTierVisual.icon
+  const monthlySpend = rewards?.current_month_spend ?? 0
+  const annualSpend = rewards?.annual_spend ?? 0
+  const totalStamps = rewards?.total_stamps ?? 0
+  const referralCount = referrals?.length ?? 0
+  const convertedReferrals =
+    referrals?.filter((r) => r.status === "converted").length ?? 0
+  const isAmbassador = convertedReferrals >= 5
 
-export default function RewardsPage() {
+  // Build tier thresholds from API data
+  const tierThresholds = (tiers ?? [])
+    .sort((a, b) => a.min_monthly_spend - b.min_monthly_spend)
+    .map((t) => ({ name: t.name, threshold: t.min_monthly_spend, description: t.reward_description }))
+
+  // Calculate next tier progress using dynamic thresholds
+  const nextTier = tierThresholds.find((t) => monthlySpend < t.threshold)
+  const nextTierThreshold = nextTier?.threshold ?? tierThresholds[tierThresholds.length - 1]?.threshold ?? 10000
+  const progressPercent = nextTierThreshold > 0
+    ? Math.min((monthlySpend / nextTierThreshold) * 100, 100)
+    : 0
+
+  // Build "no tier" description dynamically
+  const lowestTier = tierThresholds[0]
+  const noTierDescription = lowestTier
+    ? `Spend $${lowestTier.threshold.toLocaleString()}/mo to unlock ${lowestTier.name.charAt(0).toUpperCase() + lowestTier.name.slice(1)}`
+    : "Start ordering to unlock rewards"
+
+  // Get current tier's reward description from API
+  const currentTierData = tiers?.find((t) => t.name === tier)
+  const tierDescription = tier === "none"
+    ? noTierDescription
+    : currentTierData?.reward_description ?? ""
+
+  // Calculate rebate tier
+  const currentRebate = rebateThresholds.find(
+    (r) => annualSpend >= r.min && annualSpend <= r.max
+  )
+  const nextRebate = rebateThresholds.find((r) => annualSpend < r.min)
+  const rebatePercent = currentRebate?.percent ?? 0
+  const estimatedCredit = Math.round(annualSpend * (rebatePercent / 100))
+
+  // Stamp card progress
+  const stampsToFreeIBC = 10
+  const currentCardStamps = totalStamps % stampsToFreeIBC
+  const freeIBCsEarned = Math.floor(totalStamps / stampsToFreeIBC)
+  const stampsRemaining = stampsToFreeIBC - currentCardStamps
+
+  if (rewardsLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-48" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+        <Skeleton className="h-64" />
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Page header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Rewards & Loyalty
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Earn points on every purchase and redeem them for exclusive perks.
-        </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight">
+              Rewards & Loyalty
+            </h1>
+            {isAmbassador && (
+              <Badge className="border-0 bg-amber-400/15 text-amber-400 gap-1">
+                <Star className="size-3 fill-amber-400" />
+                Ambassador
+              </Badge>
+            )}
+          </div>
+          <p className="mt-1 text-muted-foreground">
+            {isAmbassador
+              ? "You're a CQVS Ambassador! Enjoy your permanent 5% discount on all orders."
+              : "Track your rewards progress and see how much you're saving."}
+          </p>
+        </div>
+        <Button variant="outline" asChild>
+          <Link href="/rewards">
+            View All Programs
+            <ExternalLink className="ml-2 size-3.5" />
+          </Link>
+        </Button>
       </div>
 
-      {/* Hero card - points and tier */}
+      {/* Tier Hero Card */}
       <Card className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
-        <CardContent className="relative py-8">
-          <div className="flex flex-col items-center gap-6 text-center md:flex-row md:text-left">
-            {/* Points display */}
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary/10">
-              <Star className="h-10 w-10 text-primary" />
+        <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-primary/5" />
+        <CardContent className="relative py-6 sm:py-8">
+          <div className="flex flex-col items-center gap-5 text-center md:flex-row md:text-left">
+            <div
+              className={cn(
+                "flex size-16 shrink-0 items-center justify-center rounded-2xl sm:size-20",
+                currentTierVisual.bgColor
+              )}
+            >
+              <TierIcon
+                className={cn("size-8 sm:size-10", currentTierVisual.color)}
+              />
             </div>
             <div className="flex-1 space-y-3">
               <div>
-                <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-                  Your Points Balance
-                </p>
-                <p className="text-5xl font-bold tracking-tight">
-                  {currentPoints.toLocaleString()}
+                <div className="flex items-center justify-center gap-2 md:justify-start">
+                  <Badge
+                    className={cn(
+                      "border-0 capitalize",
+                      currentTierVisual.bgColor,
+                      currentTierVisual.color
+                    )}
+                  >
+                    {currentTierVisual.label} Tier
+                  </Badge>
+                  {isAmbassador && (
+                    <Badge className="border-0 bg-amber-400/15 text-amber-400 gap-1">
+                      <Star className="size-3 fill-amber-400" />
+                      Ambassador
+                    </Badge>
+                  )}
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {tierDescription}
                 </p>
               </div>
-              {/* Tier and progress */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-1.5">
-                    <Trophy className="h-4 w-4 text-amber-500" />
-                    <span className="font-medium">{currentTier}</span>
-                  </span>
-                  <span className="text-muted-foreground">
-                    {nextTierThreshold - currentPoints} pts to {nextTier}
-                  </span>
+
+              {/* Progress to next tier */}
+              {nextTier && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Monthly spend: ${monthlySpend.toLocaleString()}
+                    </span>
+                    <span className="text-muted-foreground">
+                      ${nextTierThreshold.toLocaleString()} for{" "}
+                      <span className="capitalize font-medium text-foreground">
+                        {nextTier.name}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-linear-to-r from-primary to-emerald-400 transition-all duration-1000"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    ${Math.max(nextTierThreshold - monthlySpend, 0).toLocaleString()}{" "}
+                    away from {nextTier.name}
+                  </p>
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {currentPoints.toLocaleString()} / {nextTierThreshold.toLocaleString()} points
+              )}
+
+              {tier === "gold" && (
+                <p className="text-sm font-medium text-primary">
+                  You&apos;ve reached the highest tier! Enjoy all rewards.
                 </p>
-              </div>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* How to earn */}
-      <div>
-        <h2 className="mb-4 text-xl font-semibold tracking-tight">
-          How to Earn Points
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {earnMethods.map((method) => {
-            const Icon = method.icon
-            return (
-              <Card key={method.title}>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">
-                        {method.title}
-                      </CardTitle>
-                      <Badge variant="secondary" className="mt-1">
-                        {method.highlight}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {method.description}
-                  </p>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
+      {/* Quick Stats */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+                <TrendingUp className="size-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">
+                  ${annualSpend.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Annual spend
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-sky-400/10">
+                <CreditCard className="size-5 text-sky-400" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">
+                  {currentCardStamps}/{stampsToFreeIBC}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {freeIBCsEarned > 0
+                    ? `${freeIBCsEarned} free IBC${freeIBCsEarned > 1 ? "s" : ""} earned - ${stampsRemaining} to next`
+                    : `Stamp card (${stampsRemaining} to free IBC)`}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-violet-400/10">
+                <Megaphone className="size-5 text-violet-400" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{referralCount}</p>
+                <p className="text-xs text-muted-foreground">
+                  {isAmbassador
+                    ? "Ambassador - 5% permanent discount"
+                    : `Referrals (${convertedReferrals} converted)`}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-amber-400/10">
+                <Gift className="size-5 text-amber-400" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">
+                  {rebatePercent > 0 ? `${rebatePercent}%` : "--"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {rebatePercent > 0
+                    ? `~$${estimatedCredit.toLocaleString()} credit`
+                    : "Annual rebate"}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Points history */}
+      {/* Active Programs */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {/* Stamp Card Visual */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Stamp className="size-4 text-primary" />
+              Loyalty Stamp Card
+            </CardTitle>
+            <CardDescription>
+              Every IBC order = 1 stamp. 10 stamps = free IBC.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-5 gap-2">
+              {Array.from({ length: stampsToFreeIBC }).map((_, i) => {
+                const isFilled = i < currentCardStamps
+                return (
+                  <div
+                    key={i}
+                    className={cn(
+                      "flex aspect-square items-center justify-center rounded-lg border-2 text-xs font-bold transition-all",
+                      isFilled
+                        ? "border-primary/40 bg-primary/15 text-primary"
+                        : "border-white/5 bg-muted/20 text-muted-foreground/40"
+                    )}
+                  >
+                    {isFilled ? (
+                      <Stamp className="size-4 text-primary" />
+                    ) : (
+                      i + 1
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              {freeIBCsEarned > 0 && (
+                <span className="block mb-1 font-medium text-primary">
+                  {freeIBCsEarned} free IBC{freeIBCsEarned > 1 ? "s" : ""} earned! ({totalStamps} total stamps)
+                </span>
+              )}
+              {currentCardStamps === 0 && freeIBCsEarned > 0
+                ? "New card started - keep ordering!"
+                : `${stampsRemaining} more stamps to free IBC (up to $2,210 value)`}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Referral Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Megaphone className="size-4 text-primary" />
+              Referral Progress
+            </CardTitle>
+            <CardDescription>
+              Refer sites and earn free products.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[
+                {
+                  count: 1,
+                  reward: "Free 200L drum",
+                  achieved: convertedReferrals >= 1,
+                },
+                {
+                  count: 3,
+                  reward: "Free freight for a quarter",
+                  achieved: convertedReferrals >= 3,
+                },
+                {
+                  count: 5,
+                  reward: "Ambassador - 5% permanent discount",
+                  achieved: convertedReferrals >= 5,
+                },
+              ].map((milestone) => (
+                <div
+                  key={milestone.count}
+                  className={cn(
+                    "flex items-center justify-between rounded-lg border px-3 py-2",
+                    milestone.achieved
+                      ? "border-primary/20 bg-primary/5"
+                      : "border-white/5 bg-muted/10"
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={cn(
+                        "flex size-7 items-center justify-center rounded-full text-xs font-bold",
+                        milestone.achieved
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {milestone.count}
+                    </div>
+                    <span
+                      className={cn(
+                        "text-sm",
+                        milestone.achieved
+                          ? "font-medium"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {milestone.reward}
+                    </span>
+                  </div>
+                  {milestone.achieved && (
+                    <Badge className="border-0 bg-primary/15 text-primary">
+                      Unlocked
+                    </Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              {convertedReferrals} of your referrals have converted
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Annual Rebate Progress */}
       <Card>
         <CardHeader>
-          <CardTitle>Points History</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <TrendingUp className="size-4 text-primary" />
+            Annual Spend & Save Rebate
+          </CardTitle>
           <CardDescription>
-            Recent points earned from your activity.
+            Year-end store credit based on total annual spend.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Points</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rewardsHistory.map((entry, idx) => (
-                <TableRow key={idx}>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(entry.date).toLocaleDateString("en-AU", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </TableCell>
-                  <TableCell>{entry.description}</TableCell>
-                  <TableCell className="text-right font-medium text-emerald-500">
-                    +{entry.points.toLocaleString()}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {rebateThresholds.map((rt) => {
+              const isActive =
+                annualSpend >= rt.min &&
+                annualSpend <= (rt.max === Infinity ? 999999999 : rt.max)
+              return (
+                <div
+                  key={rt.percent}
+                  className={cn(
+                    "rounded-xl border px-4 py-3 text-center transition-all",
+                    isActive
+                      ? "border-primary/20 bg-primary/5"
+                      : "border-white/5 bg-muted/10"
+                  )}
+                >
+                  <p className="text-2xl font-bold text-primary">
+                    {rt.percent}%
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    ${rt.min.toLocaleString()} -{" "}
+                    {rt.max === Infinity
+                      ? "$100k+"
+                      : `$${rt.max.toLocaleString()}`}
+                  </p>
+                  {isActive && (
+                    <p className="mt-1 text-xs font-medium text-primary">
+                      ~${estimatedCredit.toLocaleString()} credit
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          {nextRebate && (
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              You&apos;re ${Math.max(nextRebate.min - annualSpend, 0).toLocaleString()}{" "}
+              away from the {nextRebate.percent}% tier.
+            </p>
+          )}
         </CardContent>
       </Card>
 
-      {/* Available rewards */}
-      <div>
-        <h2 className="mb-4 text-xl font-semibold tracking-tight">
-          Redeem Rewards
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {availableRewards.map((reward) => {
-            const Icon = reward.icon
-            const canAfford = currentPoints >= reward.cost
-            return (
-              <Card key={reward.title}>
-                <CardHeader>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <CardTitle className="mt-2 text-base">
-                    {reward.title}
-                  </CardTitle>
-                  <CardDescription>{reward.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline">
-                      {reward.cost.toLocaleString()} pts
-                    </Badge>
-                    <Button
-                      size="sm"
-                      variant={canAfford ? "default" : "outline"}
-                      disabled={!canAfford}
-                    >
-                      {canAfford ? "Redeem" : "Not enough pts"}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+      {/* CTA */}
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-primary/10 bg-primary/5 p-6 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div>
+          <p className="font-semibold">Want to see all 8 reward programs?</p>
+          <p className="text-sm text-muted-foreground">
+            Volume tiers, bundles, seasonal promos, and more.
+          </p>
         </div>
+        <Button asChild>
+          <Link href="/rewards">
+            Explore All Rewards
+            <ArrowRight className="ml-2 size-4" />
+          </Link>
+        </Button>
       </div>
     </div>
   )

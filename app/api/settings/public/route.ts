@@ -8,7 +8,7 @@ export async function GET() {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ quotes_enabled: true })
+      return NextResponse.json({ quotes_enabled: true, early_access_limit: 20 })
     }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey)
@@ -16,7 +16,7 @@ export async function GET() {
     const { data } = await supabase
       .from("admin_settings")
       .select("key, value")
-      .in("key", ["quotes_enabled"])
+      .in("key", ["quotes_enabled", "early_access_limit"])
 
     const settings: Record<string, string> = {}
     for (const row of data ?? []) {
@@ -25,8 +25,9 @@ export async function GET() {
 
     return NextResponse.json({
       quotes_enabled: settings.quotes_enabled !== "false",
+      early_access_limit: parseInt(settings.early_access_limit || "20") || 20,
     })
   } catch {
-    return NextResponse.json({ quotes_enabled: true })
+    return NextResponse.json({ quotes_enabled: true, early_access_limit: 20 })
   }
 }

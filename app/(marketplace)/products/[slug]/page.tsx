@@ -29,6 +29,7 @@ import { AddToCartButton } from "@/components/features/add-to-cart-button"
 import { RelatedProducts } from "@/components/features/related-products"
 import { ProductGallery } from "@/components/features/product-gallery"
 import { ProductSdsDocuments } from "@/components/features/product-sds-documents"
+import { BundleIndicator } from "@/components/features/bundle-indicator"
 
 interface ProductImageRow {
   id: string
@@ -392,6 +393,11 @@ export default async function ProductDetailPage({
                 />
               </CardContent>
             </Card>
+          </StaggerItem>
+
+          {/* Bundle indicator */}
+          <StaggerItem>
+            <BundleIndicator productId={product.id} />
           </StaggerItem>
 
           <StaggerItem>

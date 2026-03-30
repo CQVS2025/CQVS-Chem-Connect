@@ -33,6 +33,7 @@ import { ThemeToggle } from "@/components/shared/theme-toggle"
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "Products", href: "/products" },
+  { label: "Rewards", href: "/rewards" },
   { label: "How It Works", href: "/#how-it-works" },
 ]
 

@@ -44,6 +44,13 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCart, type CartItem } from "@/lib/hooks/use-cart"
+import { useBundles } from "@/lib/hooks/use-rewards"
+import {
+  detectQualifiedBundles,
+  buildItemDiscountMap,
+  calculateBundleDiscount,
+  type QualifiedBundle,
+} from "@/lib/utils/bundle-detection"
 import {
   useCreateOrder,
   useConfirmPayment,
@@ -95,6 +102,8 @@ interface CheckoutFormProps {
   shipping: number
   gst: number
   total: number
+  bundleDiscount: number
+  qualifiedBundles: QualifiedBundle[]
   clientSecret: string | null
   orderId: string | null
   onOrderCreated: (order: Order) => void
@@ -109,6 +118,8 @@ function CheckoutForm({
   shipping,
   gst,
   total,
+  bundleDiscount,
+  qualifiedBundles,
   clientSecret,
   orderId,
   onOrderCreated,
@@ -908,6 +919,12 @@ function CheckoutForm({
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
+                {bundleDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-primary">Bundle Discount</span>
+                    <span className="font-medium text-primary">-{formatCurrency(bundleDiscount)}</span>
+                  </div>
+                )}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
@@ -1019,10 +1036,33 @@ function CheckoutSkeleton() {
 // ----------------------------------------------------------------
 export default function CheckoutPage() {
   const { data: cartItems, isLoading } = useCart()
+  const { data: bundles } = useBundles()
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
 
   const items = cartItems ?? []
+
+  const cartProductIds = items.map((i) => i.product.id)
+  const qualifiedBundles = useMemo(
+    () => detectQualifiedBundles(bundles ?? [], cartProductIds),
+    [bundles, cartProductIds]
+  )
+  const discountMap = useMemo(
+    () => buildItemDiscountMap(qualifiedBundles),
+    [qualifiedBundles]
+  )
+  const bundleDiscount = useMemo(
+    () =>
+      calculateBundleDiscount(
+        discountMap,
+        items.map((i) => ({
+          product_id: i.product.id,
+          quantity: i.quantity,
+          unit_price: i.product.price,
+        }))
+      ),
+    [discountMap, items]
+  )
 
   const subtotal = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
@@ -1032,8 +1072,8 @@ export default function CheckoutPage() {
     (sum, item) => sum + (item.product.shipping_fee ?? 0),
     0
   )
-  const gst = Math.round((subtotal + shipping) * 0.1 * 100) / 100
-  const total = subtotal + shipping + gst
+  const gst = Math.round((subtotal - bundleDiscount + shipping) * 0.1 * 100) / 100
+  const total = subtotal - bundleDiscount + shipping + gst
 
   const handleOrderCreated = useCallback((order: Order) => {
     if (order.id) {
@@ -1130,6 +1170,8 @@ export default function CheckoutPage() {
             shipping={shipping}
             gst={gst}
             total={total}
+            bundleDiscount={bundleDiscount}
+            qualifiedBundles={qualifiedBundles}
             clientSecret={clientSecret}
             orderId={orderId}
             onOrderCreated={handleOrderCreated}

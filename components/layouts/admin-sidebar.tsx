@@ -8,6 +8,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   FileText,
+  Gift,
   Home,
   Users,
   Package,
@@ -44,6 +45,7 @@ const navItems = [
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Quotes", href: "/admin/quotes", icon: FileText },
+  { label: "Rewards", href: "/admin/rewards", icon: Gift },
   { label: "Analytics", href: "/admin/analytics", icon: TrendingUp },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ]

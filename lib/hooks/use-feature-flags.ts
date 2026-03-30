@@ -5,6 +5,12 @@ import { get } from "@/lib/api/client"
 
 interface FeatureFlags {
   quotes_enabled: boolean
+  early_access_limit: number
+}
+
+const defaults: FeatureFlags = {
+  quotes_enabled: true,
+  early_access_limit: 20,
 }
 
 export function useFeatureFlags() {
@@ -14,10 +20,10 @@ export function useFeatureFlags() {
       try {
         return await get<FeatureFlags>("/settings/public")
       } catch {
-        return { quotes_enabled: true }
+        return defaults
       }
     },
     staleTime: 5 * 60 * 1000,
-    placeholderData: { quotes_enabled: true },
+    placeholderData: defaults,
   })
 }

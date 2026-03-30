@@ -158,19 +158,62 @@ export async function POST(request: NextRequest) {
     const productIds = items.map((item: { product_id: string }) => item.product_id)
     const { data: productsData } = await supabase
       .from("products")
-      .select("id, name, image_url, unit, shipping_fee")
+      .select("id, name, image_url, unit, shipping_fee, price")
       .in("id", productIds)
 
     const productMap = new Map(
-      (productsData ?? []).map((p: { id: string; name: string; image_url: string | null; unit: string; shipping_fee?: number }) => [p.id, p]),
+      (productsData ?? []).map((p: { id: string; name: string; image_url: string | null; unit: string; shipping_fee?: number; price: number }) => [p.id, p]),
     )
 
-    // Calculate totals
+    // Calculate subtotal
     const subtotal = items.reduce(
       (sum: number, item: { quantity: number; unit_price: number }) =>
         sum + item.quantity * item.unit_price,
       0,
     )
+
+    // Calculate bundle discount server-side (independent of client calculation)
+    const { data: activeBundles } = await supabase
+      .from("product_bundles")
+      .select("id, name, discount_percent, min_products, badge_text, is_active, bundle_products (product_id)")
+      .eq("is_active", true)
+
+    let bundleDiscount = 0
+    if (activeBundles && activeBundles.length > 0) {
+      const uniqueProductIds = [...new Set(productIds as string[])]
+      // Sort by highest discount first
+      const sortedBundles = [...activeBundles].sort((a, b) => b.discount_percent - a.discount_percent)
+      const claimed = new Set<string>()
+
+      for (const bundle of sortedBundles) {
+        const bundleProductIds = (bundle.bundle_products as { product_id: string }[])?.map(bp => bp.product_id) ?? []
+
+        if (bundleProductIds.length > 0) {
+          const matching = bundleProductIds.filter(pid => uniqueProductIds.includes(pid) && !claimed.has(pid))
+          if (matching.length >= bundle.min_products) {
+            for (const pid of matching) {
+              claimed.add(pid)
+              const item = items.find((i: { product_id: string }) => i.product_id === pid)
+              if (item) {
+                bundleDiscount += (item.unit_price * item.quantity) * (bundle.discount_percent / 100)
+              }
+            }
+          }
+        } else {
+          const unclaimed = uniqueProductIds.filter(pid => !claimed.has(pid))
+          if (unclaimed.length >= bundle.min_products) {
+            for (const pid of unclaimed) {
+              claimed.add(pid)
+              const item = items.find((i: { product_id: string }) => i.product_id === pid)
+              if (item) {
+                bundleDiscount += (item.unit_price * item.quantity) * (bundle.discount_percent / 100)
+              }
+            }
+          }
+        }
+      }
+      bundleDiscount = Math.round(bundleDiscount * 100) / 100
+    }
 
     // Calculate shipping from per-product fees
     const shippingMap = new Map(
@@ -183,16 +226,15 @@ export async function POST(request: NextRequest) {
       ) * 100,
     ) / 100
 
-    const gst = Math.round(subtotal * GST_RATE * 100) / 100
+    const gst = Math.round((subtotal - bundleDiscount) * GST_RATE * 100) / 100
     // Processing fee only for card payments
-    // Stripe charges: 1.75% + $0.30 + 10% GST on the fee
     let processingFee = 0
     if (payment_method === "stripe") {
-      const stripeFee = (subtotal + shipping + gst) * STRIPE_FEE_PERCENT + STRIPE_FEE_FIXED
+      const stripeFee = (subtotal - bundleDiscount + shipping + gst) * STRIPE_FEE_PERCENT + STRIPE_FEE_FIXED
       const feeGst = stripeFee * STRIPE_FEE_GST
       processingFee = Math.round((stripeFee + feeGst) * 100) / 100
     }
-    const total = Math.round((subtotal + shipping + gst + processingFee) * 100) / 100
+    const total = Math.round((subtotal - bundleDiscount + shipping + gst + processingFee) * 100) / 100
 
     let clientSecret: string | null = null
     let stripePaymentIntentId: string | null = null

@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/shared/motion"
+import { RecommendedProducts } from "@/components/features/recommended-products"
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | "name-desc"
 
@@ -127,6 +128,9 @@ export default function ProductsPage() {
             </p>
           </div>
         </FadeIn>
+
+        {/* Recommended products for logged-in users */}
+        <RecommendedProducts />
 
         {/* Search */}
         <FadeIn delay={0.1}>

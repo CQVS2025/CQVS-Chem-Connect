@@ -30,6 +30,7 @@ export default function AdminSettingsPage() {
   const [minOrderValue, setMinOrderValue] = useState("")
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [quotesEnabled, setQuotesEnabled] = useState(true)
+  const [earlyAccessLimit, setEarlyAccessLimit] = useState("20")
 
   // Populate from API data
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function AdminSettingsPage() {
       setMinOrderValue(settings.min_order_value || "100")
       setEmailNotifications(settings.email_notifications_enabled !== "false")
       setQuotesEnabled(settings.quotes_enabled !== "false")
+      setEarlyAccessLimit(settings.early_access_limit || "20")
     }
   }, [settings])
 
@@ -56,6 +58,7 @@ export default function AdminSettingsPage() {
         min_order_value: minOrderValue,
         email_notifications_enabled: emailNotifications ? "true" : "false",
         quotes_enabled: quotesEnabled ? "true" : "false",
+        early_access_limit: earlyAccessLimit,
       },
       {
         onSuccess: () => toast.success("Settings saved successfully."),
@@ -176,6 +179,19 @@ export default function AdminSettingsPage() {
                   value={minOrderValue}
                   onChange={(e) => setMinOrderValue(e.target.value)}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="early-access-limit">Early Access Limit</Label>
+                <Input
+                  id="early-access-limit"
+                  type="number"
+                  min="1"
+                  value={earlyAccessLimit}
+                  onChange={(e) => setEarlyAccessLimit(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Number of customers eligible for early access rewards on new product launches.
+                </p>
               </div>
             </div>
           </CardContent>

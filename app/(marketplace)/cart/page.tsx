@@ -1,9 +1,9 @@
 "use client"
 
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Minus, Plus, ShoppingCart, Trash2, ArrowRight } from "lucide-react"
+import { Minus, Plus, ShoppingCart, Trash2, ArrowRight, Package } from "lucide-react"
 import { domAnimation, LazyMotion, m, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
@@ -23,6 +23,12 @@ import {
   useRemoveCartItem,
   type CartItem,
 } from "@/lib/hooks/use-cart"
+import { useBundles } from "@/lib/hooks/use-rewards"
+import {
+  detectQualifiedBundles,
+  buildItemDiscountMap,
+  calculateBundleDiscount,
+} from "@/lib/utils/bundle-detection"
 
 function formatCurrency(amount: number) {
   return `$${amount.toLocaleString("en-AU", {
@@ -193,6 +199,43 @@ function CartItemRow({
 
 export default function CartPage() {
   const { data: cartItems, isLoading } = useCart()
+  const { data: bundles } = useBundles()
+
+  const items = cartItems ?? []
+
+  // Bundle detection - must be called unconditionally (hooks rules)
+  const cartProductIds = items.map((i) => i.product.id)
+  const qualifiedBundles = useMemo(
+    () => detectQualifiedBundles(bundles ?? [], cartProductIds),
+    [bundles, cartProductIds]
+  )
+  const discountMap = useMemo(
+    () => buildItemDiscountMap(qualifiedBundles),
+    [qualifiedBundles]
+  )
+  const bundleDiscount = useMemo(
+    () =>
+      calculateBundleDiscount(
+        discountMap,
+        items.map((i) => ({
+          product_id: i.product.id,
+          quantity: i.quantity,
+          unit_price: i.product.price,
+        }))
+      ),
+    [discountMap, items]
+  )
+
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  )
+  const shipping = items.reduce(
+    (sum, item) => sum + (item.product.shipping_fee ?? 0),
+    0,
+  )
+  const gst = (subtotal - bundleDiscount + shipping) * 0.1
+  const total = subtotal - bundleDiscount + shipping + gst
 
   if (isLoading) {
     return (
@@ -201,8 +244,6 @@ export default function CartPage() {
       </LazyMotion>
     )
   }
-
-  const items = cartItems ?? []
 
   if (items.length === 0) {
     return (
@@ -237,17 +278,6 @@ export default function CartPage() {
       </LazyMotion>
     )
   }
-
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  )
-  const shipping = items.reduce(
-    (sum, item) => sum + (item.product.shipping_fee ?? 0),
-    0,
-  )
-  const gst = (subtotal + shipping) * 0.1
-  const total = subtotal + shipping + gst
 
   return (
     <LazyMotion features={domAnimation} strict>
@@ -289,6 +319,27 @@ export default function CartPage() {
                     <span className="text-muted-foreground">Subtotal</span>
                     <span>{formatCurrency(subtotal)}</span>
                   </div>
+                  {/* Bundle Discount */}
+                  {bundleDiscount > 0 && (
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-sm">
+                        <span className="flex items-center gap-1.5 text-primary">
+                          <Package className="size-3.5" />
+                          Bundle Discount
+                        </span>
+                        <span className="font-medium text-primary">
+                          -{formatCurrency(bundleDiscount)}
+                        </span>
+                      </div>
+                      <div className="space-y-1 pl-2 border-l-2 border-primary/20">
+                        {qualifiedBundles.map((qb) => (
+                          <div key={qb.bundleId} className="text-xs text-primary/80">
+                            {qb.bundleName} ({qb.discountPercent}% off {qb.qualifyingProductIds.length} items)
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Shipping</span>
