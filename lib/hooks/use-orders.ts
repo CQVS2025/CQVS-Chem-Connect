@@ -21,6 +21,8 @@ interface CreateOrderItem {
 interface CreateOrderInput {
   payment_method: "stripe" | "purchase_order"
   po_number?: string
+  first_order_choice?: string | null
+  first_order_truck_wash?: string | null
   items: CreateOrderItem[]
   delivery_address_street: string
   delivery_address_city: string

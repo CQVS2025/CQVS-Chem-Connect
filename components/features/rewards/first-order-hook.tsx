@@ -21,11 +21,11 @@ const options = [
   {
     id: "b",
     label: "Option B",
-    title: "Half-Price First Fill",
+    title: "Half-Price Truck Wash",
     subtitle: "Best for: Switching suppliers",
     icon: FlaskConical,
     description:
-      "First IBC at container cost ($200) with chemical at 50% off. 1,000 litres to properly test.",
+      "Container cost + chemical at 50% off on Truck Wash Standard or Truck Wash Premium. Available as a bonus with any first order.",
     color: "text-violet-400",
     bgColor: "bg-violet-400/10",
     borderColor: "hover:ring-violet-400/30",

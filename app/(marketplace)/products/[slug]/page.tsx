@@ -30,6 +30,8 @@ import { RelatedProducts } from "@/components/features/related-products"
 import { ProductGallery } from "@/components/features/product-gallery"
 import { ProductSdsDocuments } from "@/components/features/product-sds-documents"
 import { BundleIndicator } from "@/components/features/bundle-indicator"
+import { FirstOrderProductBanner } from "@/components/features/first-order-product-banner"
+import { StampProductBanner } from "@/components/features/stamp-product-banner"
 
 interface ProductImageRow {
   id: string
@@ -324,6 +326,20 @@ export default async function ProductDetailPage({
                 </span>
               </p>
             </div>
+          </StaggerItem>
+
+          {/* First Order Banner - only on truck wash pages for new customers */}
+          <StaggerItem>
+            <FirstOrderProductBanner
+              productSlug={product.slug}
+              productPrice={product.price}
+              productUnit={product.unit}
+            />
+          </StaggerItem>
+
+          {/* Stamp indicator - shows on products with 1000L IBC packaging */}
+          <StaggerItem>
+            <StampProductBanner packagingSizes={product.packagingSizes} />
           </StaggerItem>
 
           <StaggerItem>

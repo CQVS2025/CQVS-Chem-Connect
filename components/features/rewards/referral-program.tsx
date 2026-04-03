@@ -16,21 +16,24 @@ const milestones = [
   {
     count: "1",
     label: "1 referral",
-    reward: "Free 200L drum of any product",
+    reward: "Free 200L drum of Truck Wash Standard or Premium",
+    condition: "Referred customer must place an order",
     color: "text-primary",
     bgColor: "bg-primary/10",
   },
   {
     count: "3",
-    label: "3 in a year",
+    label: "3 referrals",
     reward: "Free freight for a full quarter",
+    condition: "All 3 referred customers must place an order",
     color: "text-sky-400",
     bgColor: "bg-sky-400/10",
   },
   {
     count: "5+",
-    label: "5+ in a year",
+    label: "5+ referrals",
     reward: "Ambassador - permanent 5% discount",
+    condition: "All 5 referred customers must place an order",
     color: "text-yellow-400",
     bgColor: "bg-yellow-400/10",
   },
@@ -122,10 +125,11 @@ export function ReferralProgram() {
                   >
                     {m.count}
                   </div>
-                  <p className="mb-2 text-sm font-semibold text-foreground">
+                  <p className="mb-1 text-sm font-semibold text-foreground">
                     {m.label}
                   </p>
                   <p className="text-sm text-muted-foreground">{m.reward}</p>
+                  <p className="mt-1.5 text-[11px] italic text-muted-foreground/70">{m.condition}</p>
                 </CardContent>
               </Card>
             </StaggerItem>
@@ -134,8 +138,8 @@ export function ReferralProgram() {
 
         <FadeIn delay={0.1}>
           <p className="mb-6 text-center text-xs font-medium text-muted-foreground">
-            A &quot;successful referral&quot; = the referred site places their
-            first order of $500+
+            A &quot;successful referral&quot; = the referred customer places their
+            first order. Rewards are issued automatically once the condition is met.
           </p>
         </FadeIn>
 

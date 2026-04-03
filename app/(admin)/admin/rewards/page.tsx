@@ -70,8 +70,8 @@ import { useFeatureFlags } from "@/lib/hooks/use-feature-flags"
 
 // --- Types ---
 interface RewardTier { id: string; name: string; display_name: string; min_monthly_spend: number; reward_description: string; estimated_monthly_savings: number; sort_order: number; is_active: boolean }
-interface Referral { id: string; referrer_name: string; referred_site_name: string; referred_contact_name: string; referred_email: string | null; referred_phone: string; status: string; reward_given: boolean; created_at: string }
-interface Promotion { id: string; name: string; description: string | null; type: string; season: string | null; discount_type: string; discount_value: number; min_order_value: number; start_date: string | null; end_date: string | null; is_active: boolean }
+interface Referral { id: string; referrer_name: string; referred_site_name: string; referred_contact_name: string; referred_email: string | null; referred_phone: string; status: string; reward_given: boolean; created_at: string; referred_order_count?: number }
+interface Promotion { id: string; name: string; headline: string | null; description: string | null; type: string; season: string | null; discount_type: string; discount_value: number; promotion_type_detail: string | null; buy_quantity: number; min_order_value: number; eligible_product_ids: string[] | null; display_style: string | null; fine_print: string | null; start_date: string | null; end_date: string | null; is_active: boolean }
 interface BundleProduct { id: string; product_id: string; product: { id: string; name: string; slug: string; price: number; unit: string } | null }
 interface Bundle { id: string; name: string; description: string | null; discount_percent: number; min_products: number; badge_text: string | null; is_active: boolean; bundle_products?: BundleProduct[] }
 interface Product { id: string; name: string; slug: string; price: number; unit: string }
@@ -112,12 +112,46 @@ export default function AdminRewardsPage() {
   // --- Promotion State ---
   const [promoDialog, setPromoDialog] = useState<"create" | "edit" | null>(null)
   const [editingPromo, setEditingPromo] = useState<Promotion | null>(null)
-  const [pf, setPf] = useState({ name: "", description: "", type: "seasonal", season: "", discount_type: "percentage", discount_value: "", min_order_value: "", start_date: "", end_date: "" })
-  function openCreatePromo() { setPf({ name: "", description: "", type: "seasonal", season: "", discount_type: "percentage", discount_value: "", min_order_value: "", start_date: "", end_date: "" }); setEditingPromo(null); setPromoDialog("create") }
-  function openEditPromo(p: Promotion) { setEditingPromo(p); setPf({ name: p.name, description: p.description || "", type: p.type, season: p.season || "", discount_type: p.discount_type, discount_value: String(p.discount_value || ""), min_order_value: String(p.min_order_value || ""), start_date: p.start_date || "", end_date: p.end_date || "" }); setPromoDialog("edit") }
+  const [promoProductIds, setPromoProductIds] = useState<string[]>([])
+  const [pf, setPf] = useState({
+    name: "", headline: "", description: "", type: "seasonal", season: "",
+    discount_type: "percentage", discount_value: "", promotion_type_detail: "",
+    buy_quantity: "3", min_order_value: "", display_style: "card", fine_print: "",
+    start_date: "", end_date: "",
+  })
+  function openCreatePromo() {
+    setPf({ name: "", headline: "", description: "", type: "seasonal", season: "", discount_type: "percentage", discount_value: "", promotion_type_detail: "", buy_quantity: "3", min_order_value: "", display_style: "card", fine_print: "", start_date: "", end_date: "" })
+    setPromoProductIds([])
+    setEditingPromo(null)
+    setPromoDialog("create")
+  }
+  function openEditPromo(p: Promotion) {
+    setEditingPromo(p)
+    setPf({
+      name: p.name, headline: p.headline || "", description: p.description || "",
+      type: p.type, season: p.season || "", discount_type: p.discount_type,
+      discount_value: String(p.discount_value || ""), promotion_type_detail: p.promotion_type_detail || "",
+      buy_quantity: String(p.buy_quantity || 3), min_order_value: String(p.min_order_value || ""), display_style: p.display_style || "card",
+      fine_print: p.fine_print || "", start_date: p.start_date || "", end_date: p.end_date || "",
+    })
+    setPromoProductIds(p.eligible_product_ids ?? [])
+    setPromoDialog("edit")
+  }
   const savePromo = useMutation({ mutationFn: (d: Record<string, unknown>) => d.id ? put("/admin/rewards/promotions", d) : post("/admin/rewards/promotions", d), onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-promotions"] }); toast.success(promoDialog === "create" ? "Promotion created" : "Promotion updated"); setPromoDialog(null) }, onError: () => toast.error("Failed to save promotion") })
   const togglePromo = useMutation({ mutationFn: (d: { id: string; is_active: boolean }) => put("/admin/rewards/promotions", d), onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-promotions"] }); toast.success("Status updated") } })
-  function handleSavePromo() { const payload: Record<string, unknown> = { name: pf.name, description: pf.description || null, type: pf.type, season: pf.season || null, discount_type: pf.discount_type, discount_value: parseFloat(pf.discount_value) || 0, min_order_value: parseFloat(pf.min_order_value) || 0, start_date: pf.start_date || null, end_date: pf.end_date || null }; if (promoDialog === "edit" && editingPromo) payload.id = editingPromo.id; savePromo.mutate(payload) }
+  function handleSavePromo() {
+    const payload: Record<string, unknown> = {
+      name: pf.name, headline: pf.headline || null, description: pf.description || null,
+      type: pf.type, season: pf.season || null, discount_type: pf.discount_type,
+      discount_value: parseFloat(pf.discount_value) || 0, promotion_type_detail: pf.promotion_type_detail || null,
+      buy_quantity: parseInt(pf.buy_quantity) || 0, min_order_value: parseFloat(pf.min_order_value) || 0,
+      eligible_product_ids: promoProductIds.length > 0 ? promoProductIds : [],
+      display_style: pf.display_style || "card", fine_print: pf.fine_print || null,
+      start_date: pf.start_date || null, end_date: pf.end_date || null,
+    }
+    if (promoDialog === "edit" && editingPromo) payload.id = editingPromo.id
+    savePromo.mutate(payload)
+  }
 
   // --- Bundle State ---
   const [bundleDialog, setBundleDialog] = useState<"create" | "edit" | null>(null)
@@ -144,7 +178,7 @@ export default function AdminRewardsPage() {
   const addStamp = useMutation({ mutationFn: (d: Record<string, unknown>) => post("/admin/rewards/stamps", d), onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-stamps"] }); toast.success("Stamp added"); setStampDialog(false); setSf({ user_id: "", stamps_earned: "1", notes: "" }) }, onError: () => toast.error("Failed to add stamp") })
   const [editingStamp, setEditingStamp] = useState<StampRecord | null>(null)
   const [esf, setEsf] = useState({ stamps_earned: "1", notes: "" })
-  function openEditStamp(s: StampRecord) { setEditingStamp(s); setEsf({ stamps_earned: String(s.stamps_earned), notes: s.notes || "" }) }
+  function openEditStamp(s: StampRecord) { setEditingStamp(s); setEsf({ stamps_earned: String(s.stamps_earned), notes: (s.notes || "").replace(/\[orders:[^\]]*\]/, "").trim() }) }
   const updateStamp = useMutation({ mutationFn: (d: Record<string, unknown>) => put("/admin/rewards/stamps", d), onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-stamps"] }); toast.success("Stamp updated"); setEditingStamp(null) }, onError: () => toast.error("Failed to update stamp") })
   const deleteStamp = useMutation({ mutationFn: (id: string) => fetch(`/api/admin/rewards/stamps?id=${id}`, { method: "DELETE" }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-stamps"] }); toast.success("Stamp removed") }, onError: () => toast.error("Failed to remove stamp") })
 
@@ -225,14 +259,72 @@ export default function AdminRewardsPage() {
           {/* ===== REFERRALS ===== */}
           <TabsContent value="referrals" className="mt-4">
             <Card><CardHeader><CardTitle>Referral Submissions</CardTitle><CardDescription>Manage referral submissions from customers.</CardDescription></CardHeader>
-              <CardContent>{referralsLoading ? <div className="space-y-3">{[1,2,3].map(i=><Skeleton key={i} className="h-12"/>)}</div> : !referrals?.length ? <p className="py-8 text-center text-sm text-muted-foreground">No referrals yet.</p> : <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Referrer</TableHead><TableHead>Referred Site</TableHead><TableHead className="hidden md:table-cell">Contact</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden md:table-cell">Phone</TableHead><TableHead>Status</TableHead><TableHead className="hidden sm:table-cell">Date</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{referrals.map(ref=><TableRow key={ref.id}><TableCell className="font-medium">{ref.referrer_name}</TableCell><TableCell>{ref.referred_site_name}</TableCell><TableCell className="hidden md:table-cell">{ref.referred_contact_name}</TableCell><TableCell className="hidden lg:table-cell text-muted-foreground">{ref.referred_email||"-"}</TableCell><TableCell className="hidden md:table-cell">{ref.referred_phone}</TableCell><TableCell><Badge className={cn("border-0",statusColors[ref.status]||"bg-muted text-muted-foreground")}>{ref.status}</Badge></TableCell><TableCell className="hidden sm:table-cell text-muted-foreground">{new Date(ref.created_at).toLocaleDateString()}</TableCell><TableCell className="text-right"><Select value={ref.status} onValueChange={v=>updateReferral.mutate({id:ref.id,status:v,reward_given:v==="converted"})}><SelectTrigger className="h-7 w-28"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="pending">Pending</SelectItem><SelectItem value="contacted">Contacted</SelectItem><SelectItem value="converted">Converted</SelectItem><SelectItem value="rejected">Rejected</SelectItem></SelectContent></Select></TableCell></TableRow>)}</TableBody></Table></div>}</CardContent>
+              <CardContent>{referralsLoading ? <div className="space-y-3">{[1,2,3].map(i=><Skeleton key={i} className="h-12"/>)}</div> : !referrals?.length ? <p className="py-8 text-center text-sm text-muted-foreground">No referrals yet.</p> : <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Referrer</TableHead><TableHead>Referred Site</TableHead><TableHead className="hidden md:table-cell">Contact</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden md:table-cell">Phone</TableHead><TableHead className="hidden sm:table-cell">Orders</TableHead><TableHead>Status</TableHead><TableHead className="hidden sm:table-cell">Date</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{referrals.map(ref=><TableRow key={ref.id}><TableCell className="font-medium">{ref.referrer_name}</TableCell><TableCell>{ref.referred_site_name}</TableCell><TableCell className="hidden md:table-cell">{ref.referred_contact_name}</TableCell><TableCell className="hidden lg:table-cell text-muted-foreground">{ref.referred_email||"-"}</TableCell><TableCell className="hidden md:table-cell">{ref.referred_phone}</TableCell><TableCell className="hidden sm:table-cell">{(ref.referred_order_count??0)>0?<Badge className="border-0 bg-emerald-500/15 text-emerald-500">{ref.referred_order_count} order{(ref.referred_order_count??0)>1?"s":""}</Badge>:<span className="text-muted-foreground text-xs">None</span>}</TableCell><TableCell><Badge className={cn("border-0",statusColors[ref.status]||"bg-muted text-muted-foreground")}>{ref.status}</Badge></TableCell><TableCell className="hidden sm:table-cell text-muted-foreground">{new Date(ref.created_at).toLocaleDateString()}</TableCell><TableCell className="text-right"><Select value={ref.status} onValueChange={v=>updateReferral.mutate({id:ref.id,status:v,reward_given:v==="converted"})}><SelectTrigger className="h-7 w-28"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="pending">Pending</SelectItem><SelectItem value="contacted">Contacted</SelectItem><SelectItem value="converted">Converted</SelectItem><SelectItem value="rejected">Rejected</SelectItem></SelectContent></Select></TableCell></TableRow>)}</TableBody></Table></div>}</CardContent>
             </Card>
           </TabsContent>
 
           {/* ===== PROMOTIONS ===== */}
           <TabsContent value="promotions" className="mt-4">
-            <Card><CardHeader><div className="flex items-center justify-between"><div><CardTitle>Seasonal Promotions</CardTitle><CardDescription>Create and manage promotions. Active ones show on the customer rewards page.</CardDescription></div><Button size="sm" onClick={openCreatePromo}><Plus className="mr-1.5 size-3.5"/>Add Promotion</Button></div></CardHeader>
-              <CardContent>{promosLoading ? <div className="space-y-3">{[1,2,3].map(i=><Skeleton key={i} className="h-12"/>)}</div> : !promotions?.length ? <p className="py-8 text-center text-sm text-muted-foreground">No promotions yet.</p> : <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead className="hidden md:table-cell">Discount</TableHead><TableHead className="hidden sm:table-cell">Period</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{promotions.map(p=><TableRow key={p.id}><TableCell><div><p className="font-medium">{p.name}</p><p className="text-xs text-muted-foreground">{p.description}</p></div></TableCell><TableCell><Badge variant="secondary" className="capitalize">{p.season||p.type}</Badge></TableCell><TableCell className="hidden md:table-cell">{p.discount_type==="percentage"?`${p.discount_value}%`:p.discount_type==="free_freight"?"Free freight":p.discount_type==="bonus_credit"?`${p.discount_value}% credit`:`$${p.discount_value}`}</TableCell><TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{p.start_date&&p.end_date?`${new Date(p.start_date).toLocaleDateString()} - ${new Date(p.end_date).toLocaleDateString()}`:"Always"}</TableCell><TableCell><button onClick={()=>togglePromo.mutate({id:p.id,is_active:!p.is_active})} className="cursor-pointer"><Badge className={cn("border-0",p.is_active?"bg-emerald-500/15 text-emerald-500":"bg-muted text-muted-foreground")}>{p.is_active?"Active":"Inactive"}</Badge></button></TableCell><TableCell className="text-right"><Button variant="ghost" size="xs" onClick={()=>openEditPromo(p)}><Pencil className="mr-1 size-3"/>Edit</Button></TableCell></TableRow>)}</TableBody></Table></div>}</CardContent>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Promotions Manager</CardTitle>
+                    <CardDescription>Build, save, and toggle promotions. Active ones appear on the customer rewards page.</CardDescription>
+                  </div>
+                  <Button size="sm" onClick={openCreatePromo}><Plus className="mr-1.5 size-3.5"/>Add Promotion</Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {promosLoading ? (
+                  <div className="space-y-3">{[1,2,3].map(i=><Skeleton key={i} className="h-16"/>)}</div>
+                ) : !promotions?.length ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">No promotions yet. Click &quot;Add Promotion&quot; to build one.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {promotions.map(p => {
+                      const productNames = p.eligible_product_ids && p.eligible_product_ids.length > 0
+                        ? allProducts?.filter(pr => p.eligible_product_ids!.includes(pr.id)).map(pr => pr.name) ?? []
+                        : []
+                      return (
+                        <div key={p.id} className={cn("rounded-xl border px-4 py-3 transition-all", p.is_active ? "border-primary/20 bg-primary/5" : "border-white/5 bg-muted/5 opacity-60")}>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-semibold">{p.name}</p>
+                                <Badge variant="secondary" className="capitalize text-[10px]">{p.season || p.type}</Badge>
+                                <Badge className={cn("border-0 text-[10px]", p.discount_type === "free_freight" ? "bg-sky-400/15 text-sky-400" : p.discount_type === "buy_x_get_y" ? "bg-violet-400/15 text-violet-400" : "bg-primary/15 text-primary")}>
+                                  {p.discount_type === "percentage" ? `${p.discount_value}% off` : p.discount_type === "free_freight" ? "Free freight" : p.discount_type === "bonus_credit" ? `${p.discount_value}% credit` : p.discount_type === "buy_x_get_y" ? "Buy X Get Y" : `$${p.discount_value} off`}
+                                </Badge>
+                                {p.display_style && p.display_style !== "card" && (
+                                  <Badge variant="outline" className="text-[10px] capitalize">{p.display_style}</Badge>
+                                )}
+                              </div>
+                              {p.headline && <p className="mt-0.5 text-sm text-foreground">{p.headline}</p>}
+                              {p.description && <p className="text-xs text-muted-foreground">{p.description}</p>}
+                              <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                                {p.start_date && p.end_date && (
+                                  <span>{new Date(p.start_date).toLocaleDateString()} - {new Date(p.end_date).toLocaleDateString()}</span>
+                                )}
+                                {p.min_order_value > 0 && <span>Min: ${p.min_order_value}</span>}
+                                {productNames.length > 0 && <span>Products: {productNames.join(", ")}</span>}
+                                {!productNames.length && <span>All products</span>}
+                              </div>
+                              {p.fine_print && <p className="mt-1 text-[10px] italic text-muted-foreground/70">{p.fine_print}</p>}
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button onClick={()=>togglePromo.mutate({id:p.id,is_active:!p.is_active})} className="cursor-pointer">
+                                <Badge className={cn("border-0", p.is_active ? "bg-emerald-500/15 text-emerald-500" : "bg-muted text-muted-foreground")}>{p.is_active ? "Active" : "Inactive"}</Badge>
+                              </button>
+                              <Button variant="ghost" size="xs" onClick={()=>openEditPromo(p)}><Pencil className="mr-1 size-3"/>Edit</Button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -257,7 +349,7 @@ export default function AdminRewardsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Stamp Card Records</CardTitle>
-                    <CardDescription>Add, edit, or remove stamps for customers. Every IBC order = 1 stamp. 10 stamps = free IBC.</CardDescription>
+                    <CardDescription>Stamps are auto-added for 1000L IBC orders. 10 stamps = free IBC of TW Standard, TW Premium, or Eco Wash. You can also manually add/edit.</CardDescription>
                   </div>
                   <Button size="sm" onClick={()=>setStampDialog(true)}><Plus className="mr-1.5 size-3.5"/>Add Stamp</Button>
                 </div>
@@ -292,7 +384,7 @@ export default function AdminRewardsPage() {
                             <TableCell>
                               <Badge className="border-0 bg-primary/15 text-primary">+{s.stamps_earned}</Badge>
                             </TableCell>
-                            <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{s.notes || "-"}</TableCell>
+                            <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{(s.notes || "").replace(/\[orders:[^\]]*\]/, "").trim() || "-"}</TableCell>
                             <TableCell className="hidden md:table-cell text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-1">
@@ -402,7 +494,168 @@ export default function AdminRewardsPage() {
         <Dialog open={!!editingTier} onOpenChange={o=>!o&&setEditingTier(null)}><DialogContent><DialogHeader><DialogTitle>Edit {editingTier?.display_name} Tier</DialogTitle><DialogDescription>Changes reflect immediately on customer pages.</DialogDescription></DialogHeader><div className="space-y-4"><div className="space-y-2"><Label>Min Monthly Spend ($)</Label><Input type="number" value={tierForm.min_monthly_spend} onChange={e=>setTierForm({...tierForm,min_monthly_spend:e.target.value})}/></div><div className="space-y-2"><Label>Reward Description</Label><Input value={tierForm.reward_description} onChange={e=>setTierForm({...tierForm,reward_description:e.target.value})}/></div><div className="space-y-2"><Label>Est. Monthly Savings ($)</Label><Input type="number" value={tierForm.estimated_monthly_savings} onChange={e=>setTierForm({...tierForm,estimated_monthly_savings:e.target.value})}/></div></div><DialogFooter><Button variant="outline" onClick={()=>setEditingTier(null)}>Cancel</Button><Button onClick={()=>updateTier.mutate({id:editingTier?.id,min_monthly_spend:parseFloat(tierForm.min_monthly_spend),reward_description:tierForm.reward_description,estimated_monthly_savings:parseFloat(tierForm.estimated_monthly_savings)})} disabled={updateTier.isPending}>{updateTier.isPending?<Loader2 className="mr-2 size-4 animate-spin"/>:<Save className="mr-2 size-4"/>}Save</Button></DialogFooter></DialogContent></Dialog>
 
         {/* Promotion Create/Edit */}
-        <Dialog open={!!promoDialog} onOpenChange={o=>!o&&setPromoDialog(null)}><DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>{promoDialog==="create"?"Create Promotion":"Edit Promotion"}</DialogTitle><DialogDescription>{promoDialog==="create"?"Add a new seasonal or custom promotion.":"Update promotion details."}</DialogDescription></DialogHeader><div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2 sm:col-span-2"><Label>Name</Label><Input required value={pf.name} onChange={e=>setPf({...pf,name:e.target.value})} placeholder="e.g. Summer Wash Deal"/></div><div className="space-y-2 sm:col-span-2"><Label>Description</Label><Input value={pf.description} onChange={e=>setPf({...pf,description:e.target.value})} placeholder="e.g. Buy 3 IBCs, get 4th at half price"/></div><div className="space-y-2"><Label>Type</Label><Select value={pf.type} onValueChange={v=>setPf({...pf,type:v})}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="seasonal">Seasonal</SelectItem><SelectItem value="launch">Launch</SelectItem><SelectItem value="custom">Custom</SelectItem></SelectContent></Select></div><div className="space-y-2"><Label>Season</Label><Select value={pf.season} onValueChange={v=>setPf({...pf,season:v})}><SelectTrigger><SelectValue placeholder="Select"/></SelectTrigger><SelectContent><SelectItem value="summer">Summer</SelectItem><SelectItem value="winter">Winter</SelectItem><SelectItem value="eofy">EOFY</SelectItem></SelectContent></Select></div><div className="space-y-2"><Label>Discount Type</Label><Select value={pf.discount_type} onValueChange={v=>setPf({...pf,discount_type:v})}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="percentage">Percentage</SelectItem><SelectItem value="fixed">Fixed Amount</SelectItem><SelectItem value="free_freight">Free Freight</SelectItem><SelectItem value="bonus_credit">Bonus Credit</SelectItem></SelectContent></Select></div><div className="space-y-2"><Label>Discount Value</Label><Input type="number" value={pf.discount_value} onChange={e=>setPf({...pf,discount_value:e.target.value})} placeholder="e.g. 15"/></div><div className="space-y-2"><Label>Min Order ($)</Label><Input type="number" value={pf.min_order_value} onChange={e=>setPf({...pf,min_order_value:e.target.value})} placeholder="0"/></div><div className="space-y-2"><Label>Start Date</Label><Input type="date" value={pf.start_date} onChange={e=>setPf({...pf,start_date:e.target.value})}/></div><div className="space-y-2"><Label>End Date</Label><Input type="date" value={pf.end_date} onChange={e=>setPf({...pf,end_date:e.target.value})}/></div></div><DialogFooter><Button variant="outline" onClick={()=>setPromoDialog(null)}>Cancel</Button><Button onClick={handleSavePromo} disabled={!pf.name||savePromo.isPending}>{savePromo.isPending?<Loader2 className="mr-2 size-4 animate-spin"/>:<Save className="mr-2 size-4"/>}{promoDialog==="create"?"Create":"Save"}</Button></DialogFooter></DialogContent></Dialog>
+        <Dialog open={!!promoDialog} onOpenChange={o=>!o&&setPromoDialog(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{promoDialog==="create"?"Create Promotion":"Edit Promotion"}</DialogTitle>
+              <DialogDescription>{promoDialog==="create"?"Build a fully customized promotion. Toggle it on when ready.":"Update promotion details. Changes reflect immediately for active promotions."}</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {/* Internal name */}
+              <div className="space-y-2">
+                <Label>Promotion Name (internal)</Label>
+                <Input required value={pf.name} onChange={e=>setPf({...pf,name:e.target.value})} placeholder="e.g. Summer Wash Deal"/>
+              </div>
+              {/* Customer-facing headline */}
+              <div className="space-y-2">
+                <Label>Customer Headline</Label>
+                <Input value={pf.headline} onChange={e=>setPf({...pf,headline:e.target.value})} placeholder="e.g. Summer Special - Half Price Truck Wash!"/>
+              </div>
+              {/* Description */}
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Customer Description</Label>
+                <Input value={pf.description} onChange={e=>setPf({...pf,description:e.target.value})} placeholder="e.g. Buy 3 IBCs of Truck Wash, get the 4th at half price"/>
+              </div>
+              {/* Type + Season */}
+              <div className="space-y-2">
+                <Label>Promotion Type</Label>
+                <Select value={pf.type} onValueChange={v=>setPf({...pf,type:v})}>
+                  <SelectTrigger><SelectValue/></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="seasonal">Seasonal</SelectItem>
+                    <SelectItem value="launch">Product Launch</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Season (if seasonal)</Label>
+                <Select value={pf.season} onValueChange={v=>setPf({...pf,season:v})}>
+                  <SelectTrigger><SelectValue placeholder="Select"/></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="summer">Summer</SelectItem>
+                    <SelectItem value="winter">Winter</SelectItem>
+                    <SelectItem value="eofy">EOFY</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Discount Type + Value */}
+              <div className="space-y-2">
+                <Label>Discount Type</Label>
+                <Select value={pf.discount_type} onValueChange={v=>setPf({...pf,discount_type:v})}>
+                  <SelectTrigger><SelectValue/></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percentage">% Discount</SelectItem>
+                    <SelectItem value="fixed">Flat $ Discount</SelectItem>
+                    <SelectItem value="free_freight">Free Freight</SelectItem>
+                    <SelectItem value="bonus_credit">Bonus Store Credit</SelectItem>
+                    <SelectItem value="buy_x_get_y">Buy X Get Y</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Discount Value</Label>
+                <Input type="number" value={pf.discount_value} onChange={e=>setPf({...pf,discount_value:e.target.value})} placeholder="e.g. 15"/>
+                <p className="text-[10px] text-muted-foreground">
+                  {pf.discount_type==="percentage"?"Percentage off (e.g. 15 = 15%)":pf.discount_type==="fixed"?"Dollar amount off":pf.discount_type==="bonus_credit"?"Credit percentage (e.g. 15 = 15% credit)":"Leave 0 for free freight / buy X get Y"}
+                </p>
+              </div>
+              {/* Buy X Get Y detail */}
+              {pf.discount_type === "buy_x_get_y" && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Buy Quantity (X)</Label>
+                    <Input type="number" min="1" value={pf.buy_quantity} onChange={e=>setPf({...pf,buy_quantity:e.target.value})} placeholder="3"/>
+                    <p className="text-[10px] text-muted-foreground">Customer buys X items, items beyond X get the discount %.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Customer Description</Label>
+                    <Input value={pf.promotion_type_detail || ""} onChange={e=>setPf({...pf,promotion_type_detail:e.target.value})} placeholder="e.g. Buy 3 IBCs, get 4th at half price"/>
+                  </div>
+                </>
+              )}
+              {/* Min order */}
+              <div className="space-y-2">
+                <Label>Min Order Value ($)</Label>
+                <Input type="number" value={pf.min_order_value} onChange={e=>setPf({...pf,min_order_value:e.target.value})} placeholder="0"/>
+              </div>
+              {/* Display Style */}
+              <div className="space-y-2">
+                <Label>Display Style</Label>
+                <Select value={pf.display_style} onValueChange={v=>setPf({...pf,display_style:v})}>
+                  <SelectTrigger><SelectValue/></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="card">Card</SelectItem>
+                    <SelectItem value="banner">Banner</SelectItem>
+                    <SelectItem value="callout">Callout</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Dates */}
+              <div className="space-y-2">
+                <Label>Start Date</Label>
+                <Input type="date" value={pf.start_date} onChange={e=>setPf({...pf,start_date:e.target.value})}/>
+              </div>
+              <div className="space-y-2">
+                <Label>End Date</Label>
+                <Input type="date" value={pf.end_date} onChange={e=>setPf({...pf,end_date:e.target.value})}/>
+              </div>
+              {/* Eligible Products */}
+              <div className="space-y-2 sm:col-span-2">
+                <div className="flex items-center justify-between">
+                  <Label>Eligible Products</Label>
+                  <span className="text-[10px] text-muted-foreground">{promoProductIds.length === 0 ? "All products" : `${promoProductIds.length} selected`}</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Leave empty for all products, or select specific ones.</p>
+                <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-white/5 bg-muted/10 p-2">
+                  {allProducts?.map(product => {
+                    const isSelected = promoProductIds.includes(product.id)
+                    return (
+                      <button key={product.id} type="button" onClick={() => {
+                        if (isSelected) setPromoProductIds(promoProductIds.filter(id => id !== product.id))
+                        else setPromoProductIds([...promoProductIds, product.id])
+                      }} className={cn("flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left text-xs transition-colors", isSelected ? "bg-primary/10 text-foreground" : "hover:bg-muted/50 text-muted-foreground")}>
+                        <div className="flex items-center gap-2">
+                          <div className={cn("flex size-4 items-center justify-center rounded border text-[9px] font-bold", isSelected ? "border-primary bg-primary text-primary-foreground" : "border-white/20")}>
+                            {isSelected && "✓"}
+                          </div>
+                          <span className={isSelected ? "font-medium" : ""}>{product.name}</span>
+                        </div>
+                        <span className="text-[10px]">${product.price.toFixed(2)}/{product.unit}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              {/* Fine Print */}
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Fine Print / Terms</Label>
+                <Input value={pf.fine_print} onChange={e=>setPf({...pf,fine_print:e.target.value})} placeholder="e.g. Cannot be combined with other offers. While stocks last."/>
+              </div>
+              {/* Active toggle for edit */}
+              {promoDialog === "edit" && editingPromo && (
+                <div className="sm:col-span-2 flex items-center justify-between rounded-lg border border-white/5 bg-muted/10 px-4 py-3">
+                  <div>
+                    <Label className="text-sm font-medium">Status</Label>
+                    <p className="text-xs text-muted-foreground">Active promotions are visible to customers.</p>
+                  </div>
+                  <button type="button" role="switch" aria-checked={editingPromo.is_active}
+                    onClick={() => { togglePromo.mutate({ id: editingPromo.id, is_active: !editingPromo.is_active }); setEditingPromo({ ...editingPromo, is_active: !editingPromo.is_active }) }}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${editingPromo.is_active ? "bg-primary" : "bg-muted"}`}>
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-lg transition-transform ${editingPromo.is_active ? "translate-x-5" : "translate-x-0"}`} />
+                  </button>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={()=>setPromoDialog(null)}>Cancel</Button>
+              <Button onClick={handleSavePromo} disabled={!pf.name||savePromo.isPending}>
+                {savePromo.isPending?<Loader2 className="mr-2 size-4 animate-spin"/>:<Save className="mr-2 size-4"/>}
+                {promoDialog==="create"?"Create":"Save"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Bundle Create/Edit */}
         <Dialog open={!!bundleDialog} onOpenChange={o=>!o&&setBundleDialog(null)}>

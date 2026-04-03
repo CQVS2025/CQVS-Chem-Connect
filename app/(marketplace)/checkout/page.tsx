@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCart, type CartItem } from "@/lib/hooks/use-cart"
-import { useBundles } from "@/lib/hooks/use-rewards"
+import { useBundles, usePromotions } from "@/lib/hooks/use-rewards"
 import {
   detectQualifiedBundles,
   buildItemDiscountMap,
@@ -52,13 +52,23 @@ import {
   type QualifiedBundle,
 } from "@/lib/utils/bundle-detection"
 import {
+  detectActivePromotions,
+  calculatePromotionDiscount,
+  hasPromotionFreeFreight,
+  type QualifiedPromotion,
+} from "@/lib/utils/promotion-detection"
+import {
   useCreateOrder,
   useConfirmPayment,
   type Order,
 } from "@/lib/hooks/use-orders"
 import { useProfile } from "@/lib/hooks/use-profile"
+import { useOrders } from "@/lib/hooks/use-orders"
+import { useRewards } from "@/lib/hooks/use-rewards"
 import { getStripe } from "@/lib/stripe-client"
 import { postForm } from "@/lib/api/client"
+import { FirstOrderOffer, type FirstOrderChoice } from "@/components/features/first-order-offer"
+import { useFirstOrderChoice } from "@/lib/hooks/use-first-order-choice"
 
 function uploadOrderDocuments(orderId: string, files: File[]) {
   const formData = new FormData()
@@ -103,6 +113,17 @@ interface CheckoutFormProps {
   gst: number
   total: number
   bundleDiscount: number
+  firstOrderDiscount: number
+  freeFreight: boolean
+  rawShipping: number
+  promoDiscount: number
+  qualifiedPromos: QualifiedPromotion[]
+  isFirstOrder: boolean
+  firstOrderChoice: FirstOrderChoice
+  onFirstOrderChoiceChange: (choice: FirstOrderChoice) => void
+  selectedTruckWash: string | null
+  onSelectedTruckWashChange: (slug: string | null) => void
+  onOrderSuccess: () => void
   qualifiedBundles: QualifiedBundle[]
   clientSecret: string | null
   orderId: string | null
@@ -119,6 +140,17 @@ function CheckoutForm({
   gst,
   total,
   bundleDiscount,
+  firstOrderDiscount,
+  freeFreight,
+  rawShipping,
+  promoDiscount,
+  qualifiedPromos,
+  isFirstOrder,
+  firstOrderChoice,
+  onFirstOrderChoiceChange,
+  selectedTruckWash,
+  onSelectedTruckWashChange,
+  onOrderSuccess,
   qualifiedBundles,
   clientSecret,
   orderId,
@@ -247,6 +279,8 @@ function CheckoutForm({
         const poOrder = await createOrder.mutateAsync({
           payment_method: "purchase_order",
           po_number: poNumber,
+          first_order_choice: firstOrderChoice,
+          first_order_truck_wash: selectedTruckWash,
           items: cartItems.map((item) => ({
             product_id: item.product_id,
             quantity: item.quantity,
@@ -267,6 +301,7 @@ function CheckoutForm({
           })
         }
 
+        onOrderSuccess()
         toast.success("Order placed successfully!")
         router.push("/dashboard/orders")
         return
@@ -293,6 +328,8 @@ function CheckoutForm({
       if (!orderResult) {
         const order = await createOrder.mutateAsync({
           payment_method: "stripe",
+          first_order_choice: firstOrderChoice,
+          first_order_truck_wash: selectedTruckWash,
           items: cartItems.map((item) => ({
             product_id: item.product_id,
             quantity: item.quantity,
@@ -340,6 +377,7 @@ function CheckoutForm({
           id: orderResult.id,
           payment_intent_id: paymentIntent.id,
         })
+        onOrderSuccess()
         toast.success("Payment confirmed - order placed successfully!")
         router.push("/dashboard/orders")
       }
@@ -886,7 +924,15 @@ function CheckoutForm({
         </div>
 
         {/* Order Summary Sidebar */}
-        <div>
+        <div className="space-y-4">
+          {isFirstOrder && (
+            <FirstOrderOffer
+              selectedOption={firstOrderChoice}
+              onSelectOption={onFirstOrderChoiceChange}
+              selectedTruckWash={selectedTruckWash}
+              onSelectTruckWash={onSelectedTruckWashChange}
+            />
+          )}
           <Card className="sticky top-6">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
@@ -923,6 +969,31 @@ function CheckoutForm({
                   <div className="flex justify-between text-sm">
                     <span className="text-primary">Bundle Discount</span>
                     <span className="font-medium text-primary">-{formatCurrency(bundleDiscount)}</span>
+                  </div>
+                )}
+                {firstOrderDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-primary">First Order - 50% Off Truck Wash</span>
+                    <span className="font-medium text-primary">-{formatCurrency(firstOrderDiscount)}</span>
+                  </div>
+                )}
+                {/* Promotion Discounts */}
+                {qualifiedPromos.filter(p => p.discountAmount > 0).map(p => (
+                  <div key={p.promotionId} className="flex justify-between text-sm">
+                    <span className="text-violet-400 truncate max-w-48">{p.label}</span>
+                    <span className="font-medium text-violet-400">-{formatCurrency(p.discountAmount)}</span>
+                  </div>
+                ))}
+                {qualifiedPromos.filter(p => p.bonusCreditPercent > 0).map(p => (
+                  <div key={p.promotionId} className="flex justify-between text-sm">
+                    <span className="text-amber-400 truncate max-w-48">{p.label}</span>
+                    <span className="text-xs text-amber-400">+{p.bonusCreditPercent}% credit</span>
+                  </div>
+                ))}
+                {freeFreight && rawShipping > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-sky-400">Free Freight</span>
+                    <span className="font-medium text-sky-400">-{formatCurrency(rawShipping)}</span>
                   </div>
                 )}
                 <div className="space-y-1.5">
@@ -1034,9 +1105,13 @@ function CheckoutSkeleton() {
 // ----------------------------------------------------------------
 // Outer page component - wraps with Stripe Elements provider
 // ----------------------------------------------------------------
+const TRUCK_WASH_SLUGS = ["truck-wash-standard", "truck-wash-premium"]
+
 export default function CheckoutPage() {
   const { data: cartItems, isLoading } = useCart()
   const { data: bundles } = useBundles()
+  const { data: orders } = useOrders()
+  const { data: rewards } = useRewards()
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
 
@@ -1064,16 +1139,51 @@ export default function CheckoutPage() {
     [discountMap, items]
   )
 
+  // First-order choice
+  const isFirstOrder = !orders?.length && !rewards?.first_order_incentive_used
+  const { option: firstOrderChoice, truckWash: selectedTruckWash, setOption: setFirstOrderChoice, setTruckWash: setSelectedTruckWash, clear: clearFirstOrderChoice } = useFirstOrderChoice()
+
+  const truckWashDiscount = useMemo(() => {
+    if (!isFirstOrder || firstOrderChoice !== "half_price_truck_wash" || !selectedTruckWash) return 0
+    const twItem = items.find((i) => i.product.slug === selectedTruckWash)
+    if (!twItem) return 0
+    return Math.round(twItem.product.price * twItem.quantity * 0.5 * 100) / 100
+  }, [isFirstOrder, firstOrderChoice, selectedTruckWash, items])
+
   const subtotal = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   )
-  const shipping = items.reduce(
+  const rawShipping = items.reduce(
     (sum, item) => sum + (item.product.shipping_fee ?? 0),
     0
   )
-  const gst = Math.round((subtotal - bundleDiscount + shipping) * 0.1 * 100) / 100
-  const total = subtotal - bundleDiscount + shipping + gst
+
+  // Promotion detection
+  const { data: promotions } = usePromotions()
+  const subtotalAfterBundles = subtotal - bundleDiscount - truckWashDiscount
+  const qualifiedPromos = useMemo(
+    () => detectActivePromotions(
+      promotions ?? [],
+      items.map((i) => ({
+        product_id: i.product.id,
+        product_name: i.product.name,
+        quantity: i.quantity,
+        unit_price: i.product.price,
+        shipping_fee: i.product.shipping_fee ?? 0,
+      })),
+      subtotalAfterBundles
+    ),
+    [promotions, items, subtotalAfterBundles]
+  )
+  const promoDiscount = useMemo(() => calculatePromotionDiscount(qualifiedPromos), [qualifiedPromos])
+  const promoFreeFreight = useMemo(() => hasPromotionFreeFreight(qualifiedPromos), [qualifiedPromos])
+
+  const freeFreight = (isFirstOrder && firstOrderChoice === "free_freight") || promoFreeFreight
+  const shipping = freeFreight ? 0 : rawShipping
+  const totalDiscount = bundleDiscount + truckWashDiscount + promoDiscount
+  const gst = Math.round((subtotal - totalDiscount + shipping) * 0.1 * 100) / 100
+  const total = subtotal - totalDiscount + shipping + gst
 
   const handleOrderCreated = useCallback((order: Order) => {
     if (order.id) {
@@ -1171,6 +1281,17 @@ export default function CheckoutPage() {
             gst={gst}
             total={total}
             bundleDiscount={bundleDiscount}
+            firstOrderDiscount={truckWashDiscount}
+            freeFreight={freeFreight}
+            rawShipping={rawShipping}
+            promoDiscount={promoDiscount}
+            qualifiedPromos={qualifiedPromos}
+            isFirstOrder={isFirstOrder}
+            firstOrderChoice={firstOrderChoice}
+            onFirstOrderChoiceChange={setFirstOrderChoice}
+            selectedTruckWash={selectedTruckWash}
+            onSelectedTruckWashChange={setSelectedTruckWash}
+            onOrderSuccess={clearFirstOrderChoice}
             qualifiedBundles={qualifiedBundles}
             clientSecret={clientSecret}
             orderId={orderId}

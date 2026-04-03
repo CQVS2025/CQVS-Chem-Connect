@@ -6,6 +6,8 @@ import {
   sendOrderConfirmationEmail,
 } from "@/lib/email/notifications"
 import { sendReceiptEmail } from "@/lib/email/receipt-email"
+import { sendEmail, getAdminEmail } from "@/lib/email/send"
+import { autoAddStampsForOrder } from "@/lib/utils/auto-stamp"
 
 // POST /api/orders/[id]/confirm - confirm Stripe payment after client-side success
 export async function POST(
@@ -141,6 +143,7 @@ export async function POST(
       )
 
       if (orderItems) {
+        const isFreeShipping = updatedOrder.shipping === 0
         sendOrderConfirmationEmail(profile.email, {
           customerName: profile.contact_name || "Customer",
           orderNumber: updatedOrder.order_number,
@@ -149,7 +152,7 @@ export async function POST(
             qty: item.quantity,
             unitPrice: item.unit_price,
             total: item.total_price,
-            shippingFee: shippingMap.get(item.product_id) ?? 0,
+            shippingFee: isFreeShipping ? 0 : (shippingMap.get(item.product_id) ?? 0),
           })),
           subtotal: updatedOrder.subtotal,
           shipping: updatedOrder.shipping,
@@ -177,7 +180,7 @@ export async function POST(
             packagingSize: item.packaging_size,
             unitPrice: item.unit_price,
             total: item.total_price,
-            shippingFee: shippingMap.get(item.product_id) ?? 0,
+            shippingFee: isFreeShipping ? 0 : (shippingMap.get(item.product_id) ?? 0),
           })),
           subtotal: updatedOrder.subtotal,
           shipping: updatedOrder.shipping,
@@ -188,6 +191,84 @@ export async function POST(
           stripeReceiptUrl,
         })
       }
+    }
+
+    // Auto-add stamps for IBC items (Stripe payment confirmed)
+    try {
+      const stampResult = await autoAddStampsForOrder(id, user.id)
+      if (stampResult.stampsAdded > 0) {
+        console.log(`Auto-stamp: +${stampResult.stampsAdded} stamps for order ${id}`)
+      }
+    } catch (err) {
+      console.error("Auto-stamp failed for confirmed order:", id, err)
+    }
+
+    // --- Bonus Credit Promotion Check (Stripe confirmed) ---
+    try {
+      const { data: activePromos } = await supabase
+        .from("promotions")
+        .select("*")
+        .eq("is_active", true)
+        .eq("discount_type", "bonus_credit")
+
+      const { data: confirmOrderItems } = await supabase
+        .from("order_items")
+        .select("product_id, product_name, quantity, unit_price")
+        .eq("order_id", id)
+
+      if (activePromos && activePromos.length > 0 && confirmOrderItems) {
+        const now = new Date()
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+        const customerName = profile?.contact_name || "Customer"
+        const customerEmail = profile?.email || ""
+
+        for (const promo of activePromos) {
+          if (promo.start_date && new Date(promo.start_date) > now) continue
+          if (promo.end_date) { const end = new Date(promo.end_date); end.setHours(23,59,59,999); if (end < now) continue }
+          // Check min order against the final total (after all discounts) to match what was shown at checkout
+          if (promo.min_order_value > 0 && updatedOrder.total < promo.min_order_value) continue
+
+          const eligibleIds: string[] = promo.eligible_product_ids ?? []
+          const hasFilter = eligibleIds.length > 0
+          const eligible = hasFilter
+            ? confirmOrderItems.filter((i) => eligibleIds.includes(i.product_id))
+            : confirmOrderItems
+
+          if (hasFilter && eligible.length === 0) continue
+
+          const eligibleTotal = eligible.reduce((s, i) => s + i.unit_price * i.quantity, 0)
+          const creditAmount = Math.round(eligibleTotal * (promo.discount_value / 100) * 100) / 100
+
+          if (creditAmount > 0 && customerEmail) {
+            sendEmail({
+              to: customerEmail,
+              subject: `You've Qualified for Store Credit! - Chem Connect`,
+              heading: promo.headline || `${promo.name} - Store Credit Earned!`,
+              preheader: `Your order qualifies for ${promo.discount_value}% store credit ($${creditAmount.toFixed(2)}).`,
+              sections: [
+                { title: "Congratulations!", content: `<p>Hi ${customerName},</p><p>Your order <strong>#${updatedOrder.order_number}</strong> qualifies for our <strong>${promo.name}</strong> promotion!</p><p>You've earned <strong>${promo.discount_value}% store credit</strong> worth <strong>$${creditAmount.toFixed(2)}</strong>.</p>` },
+                { title: "What Happens Next", content: `<p>Our team at Chem Connect will be reaching out to you shortly to apply your store credit. If for any reason our team doesn't reach out within a few business days, please contact us directly.</p><p>You can reach us through your <a href="${appUrl}/dashboard/rewards" style="color: #52c77d;">rewards dashboard</a> or by replying to this email.</p>` },
+              ],
+              ctaButton: { text: "View Your Orders", url: `${appUrl}/dashboard/orders` },
+              footerNote: `You're receiving this because your order qualified for the ${promo.name} promotion on Chem Connect.`,
+            }).catch(() => {})
+
+            const adminEmail = await getAdminEmail()
+            if (adminEmail) {
+              sendEmail({
+                to: adminEmail,
+                subject: `Bonus Credit Earned - Order #${updatedOrder.order_number}`,
+                heading: "Customer Earned Bonus Store Credit",
+                sections: [{ title: "Details", content: `<p><strong>Customer:</strong> ${customerName} (${customerEmail})</p><p><strong>Company:</strong> ${profile?.company_name || "N/A"}</p><p><strong>Order:</strong> #${updatedOrder.order_number} ($${updatedOrder.total})</p><p><strong>Promotion:</strong> ${promo.name} - ${promo.discount_value}% credit = <strong>$${creditAmount.toFixed(2)}</strong></p><p>Please arrange the store credit for this customer.</p>` }],
+                ctaButton: { text: "View Orders", url: `${appUrl}/admin/orders` },
+                footerNote: "Auto-generated when an order qualifies for a bonus credit promotion.",
+              }).catch(() => {})
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Bonus credit check failed:", err)
     }
 
     return NextResponse.json({

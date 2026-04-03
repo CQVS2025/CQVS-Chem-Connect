@@ -23,12 +23,22 @@ import {
   useRemoveCartItem,
   type CartItem,
 } from "@/lib/hooks/use-cart"
-import { useBundles } from "@/lib/hooks/use-rewards"
+import { useBundles, useRewards, usePromotions } from "@/lib/hooks/use-rewards"
+import { useOrders } from "@/lib/hooks/use-orders"
+import { FirstOrderOffer } from "@/components/features/first-order-offer"
+import { useFirstOrderChoice } from "@/lib/hooks/use-first-order-choice"
 import {
   detectQualifiedBundles,
   buildItemDiscountMap,
   calculateBundleDiscount,
 } from "@/lib/utils/bundle-detection"
+import {
+  detectActivePromotions,
+  calculatePromotionDiscount,
+  hasPromotionFreeFreight,
+} from "@/lib/utils/promotion-detection"
+
+const TRUCK_WASH_SLUGS = ["truck-wash-standard", "truck-wash-premium"]
 
 function formatCurrency(amount: number) {
   return `$${amount.toLocaleString("en-AU", {
@@ -200,6 +210,8 @@ function CartItemRow({
 export default function CartPage() {
   const { data: cartItems, isLoading } = useCart()
   const { data: bundles } = useBundles()
+  const { data: orders } = useOrders()
+  const { data: rewards } = useRewards()
 
   const items = cartItems ?? []
 
@@ -226,16 +238,51 @@ export default function CartPage() {
     [discountMap, items]
   )
 
+  // First-order option - persisted in sessionStorage across cart/checkout
+  const isFirstOrder = !orders?.length && !rewards?.first_order_incentive_used
+  const { option: firstOrderChoice, truckWash: selectedTruckWash, setOption: setFirstOrderChoice, setTruckWash: setSelectedTruckWash } = useFirstOrderChoice()
+
+  const truckWashDiscount = useMemo(() => {
+    if (!isFirstOrder || firstOrderChoice !== "half_price_truck_wash" || !selectedTruckWash) return 0
+    const twItem = items.find((i) => i.product.slug === selectedTruckWash)
+    if (!twItem) return 0
+    return Math.round(twItem.product.price * twItem.quantity * 0.5 * 100) / 100
+  }, [isFirstOrder, firstOrderChoice, selectedTruckWash, items])
+
   const subtotal = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   )
-  const shipping = items.reduce(
+  const rawShipping = items.reduce(
     (sum, item) => sum + (item.product.shipping_fee ?? 0),
     0,
   )
-  const gst = (subtotal - bundleDiscount + shipping) * 0.1
-  const total = subtotal - bundleDiscount + shipping + gst
+
+  // Promotion detection
+  const { data: promotions } = usePromotions()
+  const subtotalAfterBundles = subtotal - bundleDiscount - truckWashDiscount
+  const qualifiedPromos = useMemo(
+    () => detectActivePromotions(
+      promotions ?? [],
+      items.map((i) => ({
+        product_id: i.product.id,
+        product_name: i.product.name,
+        quantity: i.quantity,
+        unit_price: i.product.price,
+        shipping_fee: i.product.shipping_fee ?? 0,
+      })),
+      subtotalAfterBundles
+    ),
+    [promotions, items, subtotalAfterBundles]
+  )
+  const promoDiscount = useMemo(() => calculatePromotionDiscount(qualifiedPromos), [qualifiedPromos])
+  const promoFreeFreight = useMemo(() => hasPromotionFreeFreight(qualifiedPromos), [qualifiedPromos])
+
+  const freeFreight = (isFirstOrder && firstOrderChoice === "free_freight") || promoFreeFreight
+  const shipping = freeFreight ? 0 : rawShipping
+  const totalDiscount = bundleDiscount + truckWashDiscount + promoDiscount
+  const gst = Math.round((subtotal - totalDiscount + shipping) * 0.1 * 100) / 100
+  const total = subtotal - totalDiscount + shipping + gst
 
   if (isLoading) {
     return (
@@ -299,6 +346,17 @@ export default function CartPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            {/* First Order Offer */}
+            {isFirstOrder && (
+              <FirstOrderOffer
+                className="mb-4"
+                selectedOption={firstOrderChoice}
+                onSelectOption={setFirstOrderChoice}
+                selectedTruckWash={selectedTruckWash}
+                onSelectTruckWash={setSelectedTruckWash}
+              />
+            )}
+
             {/* Cart Items */}
             <div className="space-y-4 lg:col-span-2">
               <AnimatePresence mode="popLayout">
@@ -338,6 +396,34 @@ export default function CartPage() {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+                  {/* First Order Truck Wash Discount */}
+                  {truckWashDiscount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-primary">First Order - 50% Off Truck Wash</span>
+                      <span className="font-medium text-primary">-{formatCurrency(truckWashDiscount)}</span>
+                    </div>
+                  )}
+                  {/* Promotion Discounts */}
+                  {qualifiedPromos.filter(p => p.discountAmount > 0).map(p => (
+                    <div key={p.promotionId} className="flex justify-between text-sm">
+                      <span className="text-violet-400 truncate max-w-48">{p.label}</span>
+                      <span className="font-medium text-violet-400">-{formatCurrency(p.discountAmount)}</span>
+                    </div>
+                  ))}
+                  {/* Bonus credit info (not deducted) */}
+                  {qualifiedPromos.filter(p => p.bonusCreditPercent > 0).map(p => (
+                    <div key={p.promotionId} className="flex justify-between text-sm">
+                      <span className="text-amber-400 truncate max-w-48">{p.label}</span>
+                      <span className="text-xs text-amber-400">+{p.bonusCreditPercent}% credit after order</span>
+                    </div>
+                  ))}
+                  {/* Free Freight indicator */}
+                  {freeFreight && rawShipping > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-sky-400">{promoFreeFreight ? qualifiedPromos.find(p => p.freeFreight)?.label || "Free Freight" : "First Order - Free Freight"}</span>
+                      <span className="font-medium text-sky-400">-{formatCurrency(rawShipping)}</span>
                     </div>
                   )}
                   <div className="space-y-1.5">

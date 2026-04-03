@@ -54,15 +54,52 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "user_id is required" }, { status: 400 })
   }
 
-  const { data, error: insertError } = await supabase
+  // Upsert: find existing record for this user and increment, or create new
+  const { data: existing } = await supabase
     .from("stamp_records")
-    .insert({
-      user_id,
-      stamps_earned: stamps_earned || 1,
-      notes: notes || null,
-    })
-    .select()
-    .single()
+    .select("id, stamps_earned, notes")
+    .eq("user_id", user_id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  let data
+  let insertError
+
+  if (existing) {
+    const updatedStamps = existing.stamps_earned + (stamps_earned || 1)
+    const existingNotes = (existing.notes || "").replace(/\[orders:[^\]]*\]/, "").trim()
+    const newNote = notes
+      ? existingNotes ? `${existingNotes}, Manual: ${notes}` : `Manual: ${notes}`
+      : existingNotes
+
+    // Preserve the order tracking tag if it exists
+    const orderTag = existing.notes?.match(/\[orders:[^\]]*\]/)?.[0] || ""
+    const finalNotes = `${newNote} ${orderTag}`.trim()
+
+    const result = await supabase
+      .from("stamp_records")
+      .update({ stamps_earned: updatedStamps, notes: finalNotes || null })
+      .eq("id", existing.id)
+      .select()
+      .single()
+
+    data = result.data
+    insertError = result.error
+  } else {
+    const result = await supabase
+      .from("stamp_records")
+      .insert({
+        user_id,
+        stamps_earned: stamps_earned || 1,
+        notes: notes ? `Manual: ${notes}` : null,
+      })
+      .select()
+      .single()
+
+    data = result.data
+    insertError = result.error
+  }
 
   if (insertError) {
     return NextResponse.json({ error: insertError.message }, { status: 500 })

@@ -107,6 +107,28 @@ export function useBundles() {
   })
 }
 
+export function usePromotions() {
+  return useQuery<{
+    id: string
+    name: string
+    headline: string | null
+    description: string | null
+    discount_type: string
+    discount_value: number
+    promotion_type_detail: string | null
+    min_order_value: number
+    eligible_product_ids: string[] | null
+    buy_quantity: number
+    start_date: string | null
+    end_date: string | null
+    is_active: boolean
+  }[]>({
+    queryKey: ["public-promotions"],
+    queryFn: () => get("/admin/rewards/promotions"),
+    staleTime: 60_000,
+  })
+}
+
 export function useEarlyAccessSignup() {
   return useMutation({
     mutationFn: (data: { email: string; productSlug?: string }) =>

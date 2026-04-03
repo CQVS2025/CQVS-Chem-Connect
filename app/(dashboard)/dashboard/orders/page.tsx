@@ -409,6 +409,30 @@ export default function OrdersPage() {
                                     })}
                                   </span>
                                 </div>
+                                {(order.bundle_discount ?? 0) > 0 && (
+                                  <div className="flex justify-between text-primary text-xs">
+                                    <span>Bundle Discount</span>
+                                    <span>-${order.bundle_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
+                                  </div>
+                                )}
+                                {order.first_order_type === "free_freight" && (
+                                  <div className="flex justify-between text-sky-400 text-xs">
+                                    <span>First Order - Free Freight</span>
+                                    <span>Applied</span>
+                                  </div>
+                                )}
+                                {(order.first_order_discount ?? 0) > 0 && order.first_order_type !== "free_freight" && (
+                                  <div className="flex justify-between text-primary text-xs">
+                                    <span>First Order - 50% Off Truck Wash</span>
+                                    <span>-${order.first_order_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
+                                  </div>
+                                )}
+                                {(order.promo_discount ?? 0) > 0 && (
+                                  <div className="flex justify-between text-violet-400 text-xs">
+                                    <span>{order.promo_names || "Promotion Discount"}</span>
+                                    <span>-${order.promo_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
+                                  </div>
+                                )}
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>Shipping</span>
                                   <span>

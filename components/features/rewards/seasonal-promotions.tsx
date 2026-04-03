@@ -12,12 +12,16 @@ import { cn } from "@/lib/utils"
 interface Promotion {
   id: string
   name: string
+  headline: string | null
   description: string | null
   type: string
   season: string | null
   discount_type: string
   discount_value: number
+  promotion_type_detail: string | null
   min_order_value: number
+  display_style: string | null
+  fine_print: string | null
   start_date: string | null
   end_date: string | null
   is_active: boolean
@@ -166,13 +170,26 @@ export function SeasonalPromotions() {
                         <Icon className={cn("size-6", visual.color)} />
                       </div>
 
-                      <p className="mb-3 text-sm font-medium leading-relaxed text-foreground">
+                      {/* Headline or fallback to description */}
+                      {promo.headline && (
+                        <p className="mb-1 text-base font-bold leading-tight text-foreground">
+                          {promo.headline}
+                        </p>
+                      )}
+
+                      <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
                         {promo.description || promo.name}
                       </p>
 
                       {promo.min_order_value > 0 && (
-                        <p className="mt-auto text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           Min. order: ${promo.min_order_value.toLocaleString()}
+                        </p>
+                      )}
+
+                      {promo.fine_print && (
+                        <p className="mt-2 text-[10px] italic text-muted-foreground/60">
+                          {promo.fine_print}
                         </p>
                       )}
 

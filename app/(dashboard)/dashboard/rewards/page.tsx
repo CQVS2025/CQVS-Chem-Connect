@@ -352,7 +352,7 @@ export default function DashboardRewardsPage() {
               Loyalty Stamp Card
             </CardTitle>
             <CardDescription>
-              Every IBC order = 1 stamp. 10 stamps = free IBC.
+              Every 1000L IBC order = 1 stamp. 10 stamps = free IBC of TW Standard, TW Premium, or Eco Wash.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -386,7 +386,7 @@ export default function DashboardRewardsPage() {
               )}
               {currentCardStamps === 0 && freeIBCsEarned > 0
                 ? "New card started - keep ordering!"
-                : `${stampsRemaining} more stamps to free IBC (up to $2,210 value)`}
+                : `${stampsRemaining} more stamps to free IBC (TW Standard, TW Premium, or Eco Wash)`}
             </p>
           </CardContent>
         </Card>
@@ -407,7 +407,7 @@ export default function DashboardRewardsPage() {
               {[
                 {
                   count: 1,
-                  reward: "Free 200L drum",
+                  reward: "Free 200L drum of Truck Wash",
                   achieved: convertedReferrals >= 1,
                 },
                 {

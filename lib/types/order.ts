@@ -42,6 +42,11 @@ export interface Order {
   gst: number
   processing_fee: number
   total: number
+  bundle_discount: number
+  first_order_discount: number
+  first_order_type: string | null
+  promo_discount: number
+  promo_names: string | null
   delivery_address_street: string | null
   delivery_address_city: string | null
   delivery_address_state: string | null

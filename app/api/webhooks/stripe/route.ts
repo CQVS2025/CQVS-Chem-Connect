@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getStripeServer } from "@/lib/stripe"
 import { createClient } from "@supabase/supabase-js"
 import { sendPaymentFailedEmail } from "@/lib/email/notifications"
+import { autoAddStampsForOrder } from "@/lib/utils/auto-stamp"
 
 // Use service role client since webhooks have no user session
 function createServiceRoleClient() {
@@ -55,7 +56,9 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object
-        const { error } = await supabase
+
+        // Update the order status
+        await supabase
           .from("orders")
           .update({
             payment_status: "paid",
@@ -63,11 +66,23 @@ export async function POST(request: NextRequest) {
           })
           .eq("stripe_payment_intent_id", paymentIntent.id)
 
-        if (error) {
-          console.error(
-            "Failed to update order for payment_intent.succeeded:",
-            error.message,
-          )
+        // Find the order to get id and user_id
+        const { data: paidOrder } = await supabase
+          .from("orders")
+          .select("id, user_id")
+          .eq("stripe_payment_intent_id", paymentIntent.id)
+          .maybeSingle()
+
+        // Auto-add stamps for IBC items in this order
+        if (paidOrder) {
+          try {
+            const result = await autoAddStampsForOrder(paidOrder.id, paidOrder.user_id)
+            console.log("Auto-stamp result for order", paidOrder.id, result)
+          } catch (err) {
+            console.error("Auto-stamp failed for order:", paidOrder.id, err)
+          }
+        } else {
+          console.error("Could not find order for payment_intent:", paymentIntent.id)
         }
         break
       }

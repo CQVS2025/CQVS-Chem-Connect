@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 import {
   useProducts,
@@ -94,7 +95,7 @@ export default function AdminProductsPage() {
   const [formSafetyInfo, setFormSafetyInfo] = useState("")
   const [formPackagingSizes, setFormPackagingSizes] = useState("")
   const [formDeliveryInfo, setFormDeliveryInfo] = useState("")
-  const [formRegion, setFormRegion] = useState("NSW")
+  const [formRegions, setFormRegions] = useState<string[]>(["All"])
   const [formStockQty, setFormStockQty] = useState("")
   const [formInStock, setFormInStock] = useState(true)
   const [formShippingFee, setFormShippingFee] = useState("0")
@@ -178,7 +179,7 @@ export default function AdminProductsPage() {
     setFormSafetyInfo("")
     setFormPackagingSizes("")
     setFormDeliveryInfo("Ships from your state. 2-5 business day delivery.")
-    setFormRegion("NSW")
+    setFormRegions(["All"])
     setFormStockQty("1")
     setFormInStock(true)
     setFormShippingFee("0")
@@ -202,7 +203,7 @@ export default function AdminProductsPage() {
     setFormSafetyInfo(product.safetyInfo)
     setFormPackagingSizes(product.packagingSizes.join(", "))
     setFormDeliveryInfo(product.deliveryInfo)
-    setFormRegion(product.region)
+    setFormRegions(product.region === "All" ? ["All"] : product.region ? product.region.split(",").map((r: string) => r.trim()) : ["All"])
     setFormStockQty(product.stockQty.toString())
     setFormInStock(product.inStock)
     setFormShippingFee((product.shippingFee ?? 0).toString())
@@ -289,7 +290,7 @@ export default function AdminProductsPage() {
         .map((s) => s.trim())
         .filter(Boolean),
       delivery_info: formDeliveryInfo,
-      region: formRegion,
+      region: formRegions.includes("All") ? "All" : formRegions.join(","),
       stock_qty: parseInt(formStockQty) || 0,
       in_stock: formInStock,
       shipping_fee: parseFloat(formShippingFee) || 0,
@@ -665,21 +666,43 @@ export default function AdminProductsPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="product-region">Region</Label>
-                  <Select value={formRegion} onValueChange={setFormRegion}>
-                    <SelectTrigger id="product-region">
-                      <SelectValue placeholder="Region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"].map(
-                        (r) => (
-                          <SelectItem key={r} value={r}>
-                            {r}
-                          </SelectItem>
-                        ),
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Label>Region</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["All", "NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"].map((r) => {
+                      const isAll = r === "All"
+                      const isSelected = isAll ? formRegions.includes("All") : formRegions.includes(r)
+                      return (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => {
+                            if (isAll) {
+                              setFormRegions(["All"])
+                            } else {
+                              let next = formRegions.filter(x => x !== "All")
+                              if (next.includes(r)) {
+                                next = next.filter(x => x !== r)
+                              } else {
+                                next = [...next, r]
+                              }
+                              setFormRegions(next.length === 0 ? ["All"] : next)
+                            }
+                          }}
+                          className={cn(
+                            "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                            isSelected
+                              ? "border-primary/40 bg-primary/10 text-primary"
+                              : "border-white/10 bg-muted/20 text-muted-foreground hover:border-primary/20"
+                          )}
+                        >
+                          {r}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {formRegions.includes("All") ? "Available in all regions" : `Available in: ${formRegions.join(", ")}`}
+                  </p>
                 </div>
               </div>
               {/* Shipping Fee */}

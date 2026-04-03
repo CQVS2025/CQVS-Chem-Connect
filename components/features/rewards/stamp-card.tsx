@@ -35,8 +35,9 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
               Physical Loyalty Stamp Card
             </h2>
             <p className="max-w-2xl text-muted-foreground">
-              Old school. Still works. Every IBC order = 1 stamp. 10 stamps =
-              free IBC of any product.
+              Old school. Still works. Every 1000L IBC order = 1 stamp. 10
+              stamps = free IBC of Truck Wash Standard, Truck Wash Premium,
+              or Eco Wash.
             </p>
           </div>
         </FadeIn>
@@ -131,10 +132,10 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
 
               <div className="mt-6! rounded-xl border border-white/5 bg-muted/20 px-4 py-3">
                 <p className="text-xs font-medium text-muted-foreground">
-                  Free IBC value
+                  Eligible free products
                 </p>
-                <p className="text-xl font-bold text-primary">
-                  Up to $2,210
+                <p className="text-sm font-bold text-primary">
+                  TW Standard, TW Premium, or Eco Wash IBC
                 </p>
               </div>
             </div>

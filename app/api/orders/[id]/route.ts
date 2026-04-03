@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/supabase/admin-check"
 import { sendOrderStatusUpdateEmail } from "@/lib/email/notifications"
+import { autoAddStampsForOrder } from "@/lib/utils/auto-stamp"
 
 // GET /api/orders/[id] - return single order with items and status history
 export async function GET(
@@ -141,6 +142,13 @@ export async function PATCH(
       if (historyError) {
         console.error("Failed to insert status history:", historyError.message)
       }
+    }
+
+    // Auto-add stamps when PO order is delivered
+    if (status === "delivered" && order && order.payment_method === "purchase_order") {
+      autoAddStampsForOrder(order.id, order.user_id).catch((err) => {
+        console.error("Auto-stamp failed for PO order:", order.id, err)
+      })
     }
 
     // Send status update email to customer (non-blocking)
