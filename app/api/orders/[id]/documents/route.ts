@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { createXeroInvoiceForOrder } from "@/lib/xero/sync"
 
 // GET /api/orders/[id]/documents - list documents for an order
 export async function GET(
@@ -81,7 +82,7 @@ export async function POST(
     // Verify order belongs to user
     const { data: order } = await supabase
       .from("orders")
-      .select("id, user_id")
+      .select("id, user_id, payment_method, xero_invoice_id")
       .eq("id", id)
       .single()
 
@@ -141,6 +142,19 @@ export async function POST(
       if (!insertError && doc) {
         uploaded.push(doc)
       }
+    }
+
+    // Trigger Xero invoice creation now that docs are uploaded.
+    // Only fires for PO orders that haven't already been synced.
+    // Fire-and-forget so the upload response stays fast.
+    if (
+      order.payment_method === "purchase_order" &&
+      !order.xero_invoice_id &&
+      uploaded.length > 0
+    ) {
+      createXeroInvoiceForOrder(id).catch((err) => {
+        console.error("Xero invoice auto-create failed:", err)
+      })
     }
 
     return NextResponse.json(uploaded, { status: 201 })

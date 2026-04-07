@@ -26,7 +26,6 @@ import {
 } from "@stripe/react-stripe-js"
 
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -69,6 +68,22 @@ import { getStripe } from "@/lib/stripe-client"
 import { postForm } from "@/lib/api/client"
 import { FirstOrderOffer, type FirstOrderChoice } from "@/components/features/first-order-offer"
 import { useFirstOrderChoice } from "@/lib/hooks/use-first-order-choice"
+import { useWarehouses, useContainerCosts } from "@/lib/hooks/use-warehouses"
+import { calculateUnitPrice } from "@/lib/pricing"
+
+function resolveItemUnitPrice(item: CartItem): number {
+  const prices = item.product.packaging_prices
+  if (!prices || prices.length === 0) return Number(item.product.price) || 0
+  const match =
+    prices.find((p) => p.packaging_size_id === item.packaging_size_id) ??
+    prices.find((p) => p.packaging_size?.name === item.packaging_size)
+  if (!match) return Number(item.product.price) || 0
+  return calculateUnitPrice(
+    item.product.price_type,
+    match,
+    match.packaging_size,
+  )
+}
 
 function uploadOrderDocuments(orderId: string, files: File[]) {
   const formData = new FormData()
@@ -104,6 +119,15 @@ interface DeliveryAddress {
   state: string
   postcode: string
   notes: string
+  forkliftAvailable: "yes" | "no" | ""
+}
+
+interface CheckoutContainerLine {
+  packagingSizeId: string
+  packagingName: string
+  unitCost: number
+  quantity: number
+  lineCost: number
 }
 
 interface CheckoutFormProps {
@@ -112,6 +136,8 @@ interface CheckoutFormProps {
   shipping: number
   gst: number
   total: number
+  containerTotal: number
+  containerLines: CheckoutContainerLine[]
   bundleDiscount: number
   firstOrderDiscount: number
   freeFreight: boolean
@@ -128,6 +154,7 @@ interface CheckoutFormProps {
   clientSecret: string | null
   orderId: string | null
   onOrderCreated: (order: Order) => void
+  onDeliveryStateChange: (state: string) => void
 }
 
 // ----------------------------------------------------------------
@@ -139,6 +166,8 @@ function CheckoutForm({
   shipping,
   gst,
   total,
+  containerTotal,
+  containerLines,
   bundleDiscount,
   firstOrderDiscount,
   freeFreight,
@@ -155,6 +184,7 @@ function CheckoutForm({
   clientSecret,
   orderId,
   onOrderCreated,
+  onDeliveryStateChange,
 }: CheckoutFormProps) {
   const router = useRouter()
   const stripe = useStripe()
@@ -180,7 +210,10 @@ function CheckoutForm({
     state: "",
     postcode: "",
     notes: "",
+    forkliftAvailable: "",
   })
+
+  const [invoiceEmail, setInvoiceEmail] = useState("")
 
   // Pre-fill from profile
   useEffect(() => {
@@ -191,16 +224,33 @@ function CheckoutForm({
         state: profile.address_state || prev.state,
         postcode: profile.address_postcode || prev.postcode,
         notes: prev.notes,
+        forkliftAvailable: prev.forkliftAvailable,
       }))
+      const profileWithExtras = profile as typeof profile & {
+        invoice_email?: string | null
+      }
+      setInvoiceEmail(
+        profileWithExtras.invoice_email || profile.email || "",
+      )
     }
   }, [profile])
 
   const updateAddress = useCallback(
-    (field: keyof DeliveryAddress, value: string) => {
+    <K extends keyof DeliveryAddress>(field: K, value: DeliveryAddress[K]) => {
       setAddress((prev) => ({ ...prev, [field]: value }))
+      if (field === "state" && typeof value === "string") {
+        onDeliveryStateChange(value)
+      }
     },
-    []
+    [onDeliveryStateChange]
   )
+
+  // Bubble up state on initial profile load
+  useEffect(() => {
+    if (address.state) {
+      onDeliveryStateChange(address.state)
+    }
+  }, [address.state, onDeliveryStateChange])
 
   // ------- Validation -------
   const isDeliveryValid = useMemo(
@@ -208,25 +258,33 @@ function CheckoutForm({
       address.street.trim() !== "" &&
       address.city.trim() !== "" &&
       address.state !== "" &&
-      address.postcode.trim() !== "",
+      address.postcode.trim() !== "" &&
+      address.forkliftAvailable !== "",
     [address]
   )
 
   const isPaymentValid = useMemo(() => {
-    if (paymentMethod === "purchase_order") return poNumber.trim() !== ""
+    if (paymentMethod === "purchase_order") {
+      // PO requires both a number AND at least one uploaded document
+      return (
+        poNumber.trim() !== "" &&
+        poDocuments.length > 0 &&
+        invoiceEmail.trim() !== ""
+      )
+    }
     // Card must be fully filled in (not just rendered)
     return stripeReady && cardComplete
-  }, [paymentMethod, poNumber, stripeReady, cardComplete])
+  }, [paymentMethod, poNumber, poDocuments, invoiceEmail, stripeReady, cardComplete])
 
   // ------- Processing fee (card payments only) -------
   // Stripe fee: 1.75% + $0.30 + 10% GST on the fee
   const processingFee = useMemo(() => {
     if (paymentMethod !== "stripe") return 0
-    const beforeFee = subtotal + shipping + gst
+    const beforeFee = subtotal + containerTotal + shipping + gst
     const stripeFee = beforeFee * 0.0175 + 0.30
     const feeGst = stripeFee * 0.10
     return Math.round((stripeFee + feeGst) * 100) / 100
-  }, [paymentMethod, subtotal, shipping, gst])
+  }, [paymentMethod, subtotal, containerTotal, shipping, gst])
 
   const totalWithFee = Math.round((total + processingFee) * 100) / 100
 
@@ -279,13 +337,16 @@ function CheckoutForm({
         const poOrder = await createOrder.mutateAsync({
           payment_method: "purchase_order",
           po_number: poNumber,
+          invoice_email: invoiceEmail,
+          forklift_available: address.forkliftAvailable === "yes",
           first_order_choice: firstOrderChoice,
           first_order_truck_wash: selectedTruckWash,
           items: cartItems.map((item) => ({
             product_id: item.product_id,
             quantity: item.quantity,
             packaging_size: item.packaging_size,
-            unit_price: item.product.price,
+            packaging_size_id: item.packaging_size_id,
+            unit_price: resolveItemUnitPrice(item),
           })),
           delivery_address_street: address.street,
           delivery_address_city: address.city,
@@ -328,13 +389,16 @@ function CheckoutForm({
       if (!orderResult) {
         const order = await createOrder.mutateAsync({
           payment_method: "stripe",
+          invoice_email: invoiceEmail,
+          forklift_available: address.forkliftAvailable === "yes",
           first_order_choice: firstOrderChoice,
           first_order_truck_wash: selectedTruckWash,
           items: cartItems.map((item) => ({
             product_id: item.product_id,
             quantity: item.quantity,
             packaging_size: item.packaging_size,
-            unit_price: item.product.price,
+            packaging_size_id: item.packaging_size_id,
+            unit_price: resolveItemUnitPrice(item),
           })),
           delivery_address_street: address.street,
           delivery_address_city: address.city,
@@ -544,12 +608,44 @@ function CheckoutForm({
                       </div>
                     </div>
                     <div className="space-y-2">
+                      <Label htmlFor="forklift">
+                        Forklift on site{" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Select
+                        value={address.forkliftAvailable}
+                        onValueChange={(v) =>
+                          updateAddress(
+                            "forkliftAvailable",
+                            v as "yes" | "no",
+                          )
+                        }
+                      >
+                        <SelectTrigger id="forklift" className="h-10 w-full">
+                          <SelectValue placeholder="Select forklift availability" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">
+                            Forklift available on site
+                          </SelectItem>
+                          <SelectItem value="no">
+                            No forklift on site (tailgate truck required)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Selecting &quot;No forklift&quot; requires a tailgate
+                        truck which costs more to ship.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
                       <Label htmlFor="notes">Delivery Notes</Label>
                       <textarea
                         id="notes"
                         rows={3}
                         className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                        placeholder="Call on arrival, forklift available, etc."
+                        placeholder="Call on arrival, gate code, special instructions, etc."
                         value={address.notes}
                         onChange={(e) =>
                           updateAddress("notes", e.target.value)
@@ -676,14 +772,36 @@ function CheckoutForm({
                         />
                       </div>
 
-                      {/* PO Document attachments */}
+                      {/* Invoice email - editable at checkout */}
+                      <div className="space-y-2">
+                        <Label htmlFor="invoice-email">
+                          Send invoice to{" "}
+                          <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="invoice-email"
+                          type="email"
+                          placeholder="accounts@company.com"
+                          className="h-10"
+                          value={invoiceEmail}
+                          onChange={(e) => setInvoiceEmail(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Your invoice will be sent here. Defaults to the email
+                          on your account.
+                        </p>
+                      </div>
+
+                      {/* PO Document attachments - now mandatory */}
                       <div className="space-y-2">
                         <Label>
-                          Attach Documents{" "}
-                          <span className="text-xs text-muted-foreground">(optional)</span>
+                          Attach Purchase Order{" "}
+                          <span className="text-destructive">*</span>
                         </Label>
                         <p className="text-xs text-muted-foreground">
-                          Upload purchase order documents, approvals, or other supporting files. PDF, Word, Excel, or images accepted.
+                          Upload your signed PO document. PDF, Word, Excel, or
+                          images accepted. This will be attached to the Xero
+                          invoice.
                         </p>
 
                         {poDocuments.length > 0 && (
@@ -854,40 +972,40 @@ function CheckoutForm({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {cartItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-3 text-sm"
-                      >
-                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-muted">
-                          <Image
-                            src={
-                              item.product.image_url ||
-                              "/images/cqvs-logo.png"
-                            }
-                            alt={item.product.name}
-                            fill
-                            className="object-cover"
-                            sizes="40px"
-                          />
+                    {cartItems.map((item) => {
+                      const unitPrice = resolveItemUnitPrice(item)
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-3 text-sm"
+                        >
+                          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-muted">
+                            <Image
+                              src={
+                                item.product.image_url ||
+                                "/images/cqvs-logo.png"
+                              }
+                              alt={item.product.name}
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">
+                              {item.product.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {item.quantity} x {item.packaging_size} @{" "}
+                              {formatCurrency(unitPrice)}
+                            </p>
+                          </div>
+                          <span className="font-medium">
+                            {formatCurrency(unitPrice * item.quantity)}
+                          </span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
-                            {item.product.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.quantity} x {item.packaging_size} @{" "}
-                            {formatCurrency(item.product.price)}/
-                            {item.product.unit}
-                          </p>
-                        </div>
-                        <span className="font-medium">
-                          {formatCurrency(
-                            item.product.price * item.quantity
-                          )}
-                        </span>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </CardContent>
                 </Card>
 
@@ -940,24 +1058,27 @@ function CheckoutForm({
             <CardContent className="space-y-4">
               {/* Line Items */}
               <div className="space-y-3">
-                {cartItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-start justify-between text-sm"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">
-                        {item.product.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.quantity} x {item.packaging_size}
-                      </p>
+                {cartItems.map((item) => {
+                  const unitPrice = resolveItemUnitPrice(item)
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-start justify-between text-sm"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">
+                          {item.product.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.quantity} x {item.packaging_size}
+                        </p>
+                      </div>
+                      <span className="ml-3 shrink-0 font-medium">
+                        {formatCurrency(unitPrice * item.quantity)}
+                      </span>
                     </div>
-                    <span className="ml-3 shrink-0 font-medium">
-                      {formatCurrency(item.product.price * item.quantity)}
-                    </span>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
 
               <div className="border-t pt-3 space-y-2">
@@ -990,39 +1111,28 @@ function CheckoutForm({
                     <span className="text-xs text-amber-400">+{p.bonusCreditPercent}% credit</span>
                   </div>
                 ))}
-                {freeFreight && rawShipping > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-sky-400">Free Freight</span>
-                    <span className="font-medium text-sky-400">-{formatCurrency(rawShipping)}</span>
+                {/* Container Costs */}
+                {containerLines.length > 0 && (
+                  <div className="space-y-1.5">
+                    {containerLines.map((line) => (
+                      <div
+                        key={line.packagingSizeId}
+                        className="flex justify-between text-sm"
+                      >
+                        <span className="text-muted-foreground">
+                          {line.packagingName} Container
+                          {line.quantity > 1 ? ` x ${line.quantity}` : ""}
+                        </span>
+                        <span>{formatCurrency(line.lineCost)}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span>
-                      {shipping === 0 ? (
-                        <Badge variant="secondary" className="text-xs">
-                          Free
-                        </Badge>
-                      ) : (
-                        formatCurrency(shipping)
-                      )}
-                    </span>
-                  </div>
-                  {shipping > 0 && (
-                    <div className="space-y-1 pl-2 border-l-2 border-border">
-                      {cartItems.map((item) => (
-                        <div key={item.id} className="flex justify-between text-xs text-muted-foreground">
-                          <span className="truncate max-w-32">{item.product.name}</span>
-                          <span className="shrink-0">
-                            {(item.product.shipping_fee ?? 0) > 0
-                              ? formatCurrency(item.product.shipping_fee)
-                              : "Free"}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Shipping</span>
+                  <span className="text-xs italic text-muted-foreground">
+                    Calculated after order
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">GST (10%)</span>
@@ -1105,17 +1215,80 @@ function CheckoutSkeleton() {
 // ----------------------------------------------------------------
 // Outer page component - wraps with Stripe Elements provider
 // ----------------------------------------------------------------
-const TRUCK_WASH_SLUGS = ["truck-wash-standard", "truck-wash-premium"]
 
 export default function CheckoutPage() {
   const { data: cartItems, isLoading } = useCart()
   const { data: bundles } = useBundles()
   const { data: orders } = useOrders()
   const { data: rewards } = useRewards()
+  const { data: warehouses = [] } = useWarehouses()
+  const { data: containerCosts = [] } = useContainerCosts()
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [deliveryState, setDeliveryState] = useState<string>("")
 
   const items = cartItems ?? []
+
+  // Pick the warehouse the order will likely ship from. Mirrors the
+  // server-side logic in /api/orders so the customer sees the correct
+  // container costs in the sidebar before placing the order.
+  const previewWarehouse = useMemo(() => {
+    const active = warehouses.filter((w) => w.is_active)
+    if (active.length === 0) return null
+    return (
+      active.find((w) => w.address_state === deliveryState) ?? active[0]
+    )
+  }, [warehouses, deliveryState])
+
+  // Build container line items from cart + container_costs for the
+  // preview warehouse. Spec: "Customer sees: 'IBC Container - $200.00' as a
+  // separate line in their order summary".
+  const containerLines = useMemo(() => {
+    if (!previewWarehouse) return []
+    const lines: Array<{
+      packagingSizeId: string
+      packagingName: string
+      unitCost: number
+      quantity: number
+      lineCost: number
+    }> = []
+    for (const item of items) {
+      if (!item.packaging_size_id) continue
+      const cc = containerCosts.find(
+        (c) =>
+          c.warehouse_id === previewWarehouse.id &&
+          c.packaging_size_id === item.packaging_size_id,
+      )
+      const unitCost = Number(cc?.cost ?? 0)
+      if (unitCost <= 0) continue
+      lines.push({
+        packagingSizeId: item.packaging_size_id,
+        packagingName: item.packaging_size,
+        unitCost,
+        quantity: item.quantity,
+        lineCost: Math.round(unitCost * item.quantity * 100) / 100,
+      })
+    }
+    return lines
+  }, [items, containerCosts, previewWarehouse])
+
+  const containerTotal = useMemo(
+    () =>
+      Math.round(
+        containerLines.reduce((sum, l) => sum + l.lineCost, 0) * 100,
+      ) / 100,
+    [containerLines],
+  )
+
+  // Resolve unit prices for all items using new packaging-prices model
+  const itemsWithPricing = useMemo(
+    () =>
+      items.map((item) => ({
+        ...item,
+        resolvedUnitPrice: resolveItemUnitPrice(item),
+      })),
+    [items],
+  )
 
   const cartProductIds = items.map((i) => i.product.id)
   const qualifiedBundles = useMemo(
@@ -1130,13 +1303,13 @@ export default function CheckoutPage() {
     () =>
       calculateBundleDiscount(
         discountMap,
-        items.map((i) => ({
+        itemsWithPricing.map((i) => ({
           product_id: i.product.id,
           quantity: i.quantity,
-          unit_price: i.product.price,
+          unit_price: i.resolvedUnitPrice,
         }))
       ),
-    [discountMap, items]
+    [discountMap, itemsWithPricing]
   )
 
   // First-order choice
@@ -1145,19 +1318,21 @@ export default function CheckoutPage() {
 
   const truckWashDiscount = useMemo(() => {
     if (!isFirstOrder || firstOrderChoice !== "half_price_truck_wash" || !selectedTruckWash) return 0
-    const twItem = items.find((i) => i.product.slug === selectedTruckWash)
+    const twItem = itemsWithPricing.find((i) => i.product.slug === selectedTruckWash)
     if (!twItem) return 0
-    return Math.round(twItem.product.price * twItem.quantity * 0.5 * 100) / 100
-  }, [isFirstOrder, firstOrderChoice, selectedTruckWash, items])
+    return Math.round(twItem.resolvedUnitPrice * twItem.quantity * 0.5 * 100) / 100
+  }, [isFirstOrder, firstOrderChoice, selectedTruckWash, itemsWithPricing])
 
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
+  const subtotal = itemsWithPricing.reduce(
+    (sum, item) => sum + item.resolvedUnitPrice * item.quantity,
+    0,
   )
-  const rawShipping = items.reduce(
-    (sum, item) => sum + (item.product.shipping_fee ?? 0),
-    0
-  )
+
+  // Shipping is calculated server-side via MacShip in a future phase.
+  // For now we keep it as 0 at the cart level - the order API will calculate
+  // and the customer sees a placeholder until MacShip is wired up.
+  const shipping = 0
+  const rawShipping = 0
 
   // Promotion detection
   const { data: promotions } = usePromotions()
@@ -1165,25 +1340,26 @@ export default function CheckoutPage() {
   const qualifiedPromos = useMemo(
     () => detectActivePromotions(
       promotions ?? [],
-      items.map((i) => ({
+      itemsWithPricing.map((i) => ({
         product_id: i.product.id,
         product_name: i.product.name,
         quantity: i.quantity,
-        unit_price: i.product.price,
-        shipping_fee: i.product.shipping_fee ?? 0,
+        unit_price: i.resolvedUnitPrice,
+        shipping_fee: 0,
       })),
       subtotalAfterBundles
     ),
-    [promotions, items, subtotalAfterBundles]
+    [promotions, itemsWithPricing, subtotalAfterBundles]
   )
   const promoDiscount = useMemo(() => calculatePromotionDiscount(qualifiedPromos), [qualifiedPromos])
   const promoFreeFreight = useMemo(() => hasPromotionFreeFreight(qualifiedPromos), [qualifiedPromos])
 
   const freeFreight = (isFirstOrder && firstOrderChoice === "free_freight") || promoFreeFreight
-  const shipping = freeFreight ? 0 : rawShipping
   const totalDiscount = bundleDiscount + truckWashDiscount + promoDiscount
-  const gst = Math.round((subtotal - totalDiscount + shipping) * 0.1 * 100) / 100
-  const total = subtotal - totalDiscount + shipping + gst
+  const gst = Math.round(
+    (subtotal - totalDiscount + containerTotal + shipping) * 0.1 * 100,
+  ) / 100
+  const total = subtotal - totalDiscount + containerTotal + shipping + gst
 
   const handleOrderCreated = useCallback((order: Order) => {
     if (order.id) {
@@ -1280,6 +1456,8 @@ export default function CheckoutPage() {
             shipping={shipping}
             gst={gst}
             total={total}
+            containerTotal={containerTotal}
+            containerLines={containerLines}
             bundleDiscount={bundleDiscount}
             firstOrderDiscount={truckWashDiscount}
             freeFreight={freeFreight}
@@ -1296,6 +1474,7 @@ export default function CheckoutPage() {
             clientSecret={clientSecret}
             orderId={orderId}
             onOrderCreated={handleOrderCreated}
+            onDeliveryStateChange={setDeliveryState}
           />
         </Elements>
       </m.div>

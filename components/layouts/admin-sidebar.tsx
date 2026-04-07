@@ -10,11 +10,13 @@ import {
   FileText,
   Gift,
   Home,
+  Link as LinkIcon,
   Users,
   Package,
   ShoppingCart,
   TrendingUp,
   Settings,
+  Warehouse,
   LogOut,
 } from "lucide-react"
 
@@ -47,6 +49,8 @@ const navItems = [
   { label: "Quotes", href: "/admin/quotes", icon: FileText },
   { label: "Rewards", href: "/admin/rewards", icon: Gift },
   { label: "Analytics", href: "/admin/analytics", icon: TrendingUp },
+  { label: "Warehouses", href: "/admin/warehouses", icon: Warehouse },
+  { label: "Xero", href: "/admin/xero", icon: LinkIcon },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ]
 

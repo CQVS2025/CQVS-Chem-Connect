@@ -133,6 +133,8 @@ export async function POST(request: NextRequest) {
     const {
       payment_method,
       po_number,
+      invoice_email,
+      forklift_available,
       items,
       delivery_address_street,
       delivery_address_city,
@@ -159,12 +161,50 @@ export async function POST(request: NextRequest) {
     const productIds = items.map((item: { product_id: string }) => item.product_id)
     const { data: productsData } = await supabase
       .from("products")
-      .select("id, name, image_url, unit, shipping_fee, price")
+      .select("id, name, image_url, unit, shipping_fee, price, price_type")
       .in("id", productIds)
 
     const productMap = new Map(
-      (productsData ?? []).map((p: { id: string; name: string; image_url: string | null; unit: string; shipping_fee?: number; price: number }) => [p.id, p]),
+      (productsData ?? []).map((p: { id: string; name: string; image_url: string | null; unit: string; shipping_fee?: number; price: number; price_type?: string }) => [p.id, p]),
     )
+
+    // Compute container costs server-side
+    // Pull all container costs once - small table, OK to fetch all
+    const { data: allContainerCosts } = await supabase
+      .from("container_costs")
+      .select("warehouse_id, packaging_size_id, cost")
+
+    // Determine the warehouse for this order. For now, pick the first active
+    // warehouse matching the delivery state, or fall back to the first active one.
+    // A more sophisticated closest-warehouse algorithm will land with MacShip.
+    const { data: warehousesData } = await supabase
+      .from("warehouses")
+      .select("id, address_state")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+
+    const selectedWarehouse =
+      warehousesData?.find(
+        (w) => w.address_state === delivery_address_state,
+      ) ?? warehousesData?.[0] ?? null
+
+    const containerCostMap = new Map<string, number>()
+    if (selectedWarehouse) {
+      for (const cc of allContainerCosts ?? []) {
+        if (cc.warehouse_id === selectedWarehouse.id) {
+          containerCostMap.set(cc.packaging_size_id, Number(cc.cost) || 0)
+        }
+      }
+    }
+
+    let containerTotal = 0
+    for (const item of items as Array<{ packaging_size_id?: string; quantity: number }>) {
+      if (item.packaging_size_id) {
+        const cost = containerCostMap.get(item.packaging_size_id) ?? 0
+        containerTotal += cost * item.quantity
+      }
+    }
+    containerTotal = Math.round(containerTotal * 100) / 100
 
     // Calculate subtotal
     const subtotal = items.reduce(
@@ -380,15 +420,19 @@ export async function POST(request: NextRequest) {
 
     const effectiveShipping = (firstOrderFreeFreight || promoFreeFreight) ? 0 : shipping
     const totalDiscount = bundleDiscount + firstOrderDiscount + promoDiscount
-    const gst = Math.round((subtotal - totalDiscount + effectiveShipping) * GST_RATE * 100) / 100
+    const gst = Math.round(
+      (subtotal - totalDiscount + containerTotal + effectiveShipping) * GST_RATE * 100,
+    ) / 100
     // Processing fee only for card payments
     let processingFee = 0
     if (payment_method === "stripe") {
-      const stripeFee = (subtotal - totalDiscount + effectiveShipping + gst) * STRIPE_FEE_PERCENT + STRIPE_FEE_FIXED
+      const stripeFee = (subtotal - totalDiscount + containerTotal + effectiveShipping + gst) * STRIPE_FEE_PERCENT + STRIPE_FEE_FIXED
       const feeGst = stripeFee * STRIPE_FEE_GST
       processingFee = Math.round((stripeFee + feeGst) * 100) / 100
     }
-    const total = Math.round((subtotal - totalDiscount + effectiveShipping + gst + processingFee) * 100) / 100
+    const total = Math.round(
+      (subtotal - totalDiscount + containerTotal + effectiveShipping + gst + processingFee) * 100,
+    ) / 100
 
     let clientSecret: string | null = null
     let stripePaymentIntentId: string | null = null
@@ -420,12 +464,17 @@ export async function POST(request: NextRequest) {
         shipping: effectiveShipping,
         gst,
         processing_fee: processingFee,
+        container_total: containerTotal,
         total,
         bundle_discount: bundleDiscount || 0,
         first_order_discount: firstOrderDiscount || 0,
         first_order_type: firstOrderChoice || null,
         promo_discount: promoDiscount || 0,
         promo_names: appliedPromoNames,
+        invoice_email: invoice_email || null,
+        forklift_available:
+          typeof forklift_available === "boolean" ? forklift_available : null,
+        warehouse_id: selectedWarehouse?.id ?? null,
         delivery_address_street: delivery_address_street || null,
         delivery_address_city: delivery_address_city || null,
         delivery_address_state: delivery_address_state || null,
@@ -445,9 +494,13 @@ export async function POST(request: NextRequest) {
         product_id: string
         quantity: number
         packaging_size: string
+        packaging_size_id?: string
         unit_price: number
       }) => {
         const product = productMap.get(item.product_id)
+        const containerCost = item.packaging_size_id
+          ? containerCostMap.get(item.packaging_size_id) ?? 0
+          : 0
         return {
           order_id: order.id,
           product_id: item.product_id,
@@ -456,9 +509,12 @@ export async function POST(request: NextRequest) {
           unit: product?.unit ?? "L",
           quantity: item.quantity,
           packaging_size: item.packaging_size,
+          packaging_size_id: item.packaging_size_id ?? null,
+          price_type: product?.price_type ?? null,
           unit_price: item.unit_price,
           total_price: Math.round(item.quantity * item.unit_price * 100) / 100,
           shipping_fee: product?.shipping_fee ?? 0,
+          container_cost: containerCost,
         }
       },
     )

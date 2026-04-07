@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Final Integration & Feature Plan</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 850px; margin: 40px auto; padding: 0 20px; color: #1a1a2e; line-height: 1.65; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 45px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #16a34a; margin-top: 18px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 12px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .api { font-family: 'Courier New', monospace; background: #1f2937; color: #10b981; padding: 6px 12px; border-radius: 5px; display: block; margin: 6px 0; font-size: 11px; }
+  .step { display: flex; gap: 10px; margin: 8px 0; }
+  .step-n { background: #16a34a; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .step-c { flex: 1; font-size: 13px; }
+  ul, ol { font-size: 13px; }
+  li { margin: 3px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 40px 0; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .b-new { background: #dbeafe; color: #1e40af; }
+  .b-change { background: #fef3c7; color: #92400e; }
+  .b-confirm { background: #f0fdf4; color: #166534; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Final Integration & Feature Plan</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib | April 2026 | Post-Discussion Update</p>
+</div>
+
+<div class="box">
+  <strong>Document Purpose:</strong> This document consolidates everything we discussed across both meetings and the initial plan. It lists every feature, change, and integration we will implement. Please confirm that this covers everything before we begin.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">1.</span> MacShip Integration (Live Shipping)</h2>
+
+<h3>1.1 Customer-Facing Changes</h3>
+
+<h4>Product Pages</h4>
+<ul>
+  <li>Remove "Shipping: $X / Free" display</li>
+  <li>Remove "Available in [Region]" section</li>
+  <li>Keep "Ships from your state" delivery info text</li>
+</ul>
+
+<h4>Cart Page</h4>
+<ul>
+  <li>Remove per-product shipping fee breakdown</li>
+  <li>Show: <strong>"Shipping calculated at checkout"</strong></li>
+</ul>
+
+<h4>Checkout Page</h4>
+<ul>
+  <li>Customer enters delivery address including <strong>postcode</strong></li>
+  <li>New <strong>required</strong> dropdown: "Forklift available on site" / "No forklift on site"</li>
+  <li>Once postcode is entered, system calls MacShip API for a <strong>live shipping quote</strong></li>
+  <li>Shipping cost + container cost appear in the order summary</li>
+  <li>If postcode not serviceable: show "We can't calculate shipping for your area" with a submit button that emails admin</li>
+</ul>
+
+<h3>1.2 How Shipping Works (4-Step Flow)</h3>
+
+<div class="step"><div class="step-n">1</div><div class="step-c"><strong>Customer Enters Postcode</strong> - System calls MacShip Get Routes API. Sends: pickup warehouse (closest to customer), delivery postcode, item details (packaging size, weight, dimensions), DG classification, tailgate requirement (YES if no forklift). Returns carrier options with prices. We always <strong>pick the cheapest carrier</strong>.<div class="api">POST /apiv2/routes/returnRoutes</div></div></div>
+
+<div class="step"><div class="step-n">2</div><div class="step-c"><strong>Customer Places Order</strong> - System calls MacShip Create Consignment API to book the shipment. Gets back: MacShip consignment ID, carrier ID, tracking info. All stored on the order.<div class="api">POST /apiv2/consignments/createConsignment</div></div></div>
+
+<div class="step"><div class="step-n">3</div><div class="step-c"><strong>Admin Dispatches</strong> - When admin updates order status, system calls MacShip Manifest API. Carrier is notified to pick up goods. Labels auto-generated and printable from admin dashboard.<div class="api">POST /apiv2/manifests/manifest</div></div></div>
+
+<div class="step"><div class="step-n">4</div><div class="step-c"><strong>Live Tracking</strong> - System periodically syncs tracking updates and POD (Proof of Delivery) from MacShip. Visible to both customer and admin.<div class="api">GET /apiv2/consignments/getConsignment?id={id}</div></div></div>
+
+<h3>1.3 Warehouse Selection Logic</h3>
+<ol>
+  <li>Check which warehouses carry the ordered product (based on product's region setting)</li>
+  <li>Pick the <strong>closest warehouse</strong> to the customer's postcode</li>
+  <li>Use that warehouse as the pickup location</li>
+  <li><strong>If order has products from different warehouses:</strong> ship everything from <strong>one warehouse</strong> (the closest that has all products), even if further away</li>
+</ol>
+
+<table>
+  <tr><th>Warehouse</th><th>Location</th><th>State</th></tr>
+  <tr><td>ChemBuild Industries</td><td>Dandenong South</td><td>VIC</td></tr>
+  <tr><td>Environex</td><td>Crestmead (Platinum St)</td><td>QLD</td></tr>
+  <tr><td>Chemology</td><td>Lonsdale</td><td>SA</td></tr>
+  <tr><td>Environex</td><td>(WA location)</td><td>WA</td></tr>
+  <tr><td>Formula Chemicals</td><td>West Ryde</td><td>NSW</td></tr>
+</table>
+
+<div class="box"><strong>Confirmed:</strong> Warehouse addresses will be configurable in the admin dashboard. You can add, edit, or remove warehouses without code changes.</div>
+
+<h3>1.4 Forklift / Tailgate Logic</h3>
+<table>
+  <tr><th>Customer Selection</th><th>MacShip Setting</th><th>Effect</th></tr>
+  <tr><td>"Forklift available on site"</td><td>Tailgate delivery = NO</td><td>Standard delivery rate</td></tr>
+  <tr><td>"No forklift on site"</td><td>Tailgate delivery = YES</td><td>Higher rate (tailgate truck required)</td></tr>
+  <tr><td>Pickup (all warehouses)</td><td>Tailgate pickup = always NO</td><td>All warehouses have forklifts</td></tr>
+</table>
+
+<h3>1.5 DG (Dangerous Goods) Handling</h3>
+<p>Each product already has a DG classification (Non-DG, DG Class 3, 5, 6, 8). This is included in every MacShip quote request so carrier pricing accounts for DG transport and documentation requirements. DG products cost more to ship.</p>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">2.</span> Xero Integration (Accounting)</h2>
+
+<h3>2.1 Automatic Invoicing (Purchase Order Customers)</h3>
+
+<h4>Current Flow (Manual)</h4>
+<ol>
+  <li>Customer pays by Purchase Order on our platform</li>
+  <li>You manually create an invoice in Xero, add PO number, send to customer</li>
+</ol>
+
+<h4>New Flow (Automated)</h4>
+<ol>
+  <li>Customer pays by Purchase Order on our platform</li>
+  <li>System checks if customer exists as a Xero Contact (by email)</li>
+  <li>If not, creates them as a new Xero Contact automatically</li>
+  <li>Creates an Invoice in Xero with:
+    <ul>
+      <li>Customer's PO number as reference</li>
+      <li>All line items (product name, qty, unit price, packaging size)</li>
+      <li>Container costs (IBC/drum) as separate line items</li>
+      <li>Shipping cost (from MacShip)</li>
+      <li>GST (10%)</li>
+      <li>Due date: <strong>30 days net</strong></li>
+    </ul>
+  </li>
+  <li><span class="badge b-new">NEW</span> The uploaded PO document is <strong>attached to the Xero invoice</strong></li>
+  <li><span class="badge b-new">NEW</span> Invoice is sent to the customer's <strong>invoice email address</strong> (may differ from their login email - e.g., accounts team)</li>
+  <li>Invoice is <strong>auto-sent</strong> (no manual review needed)</li>
+</ol>
+
+<div class="api">PUT https://api.xero.com/api.xro/2.0/Invoices (Type: ACCREC, Status: AUTHORISED)</div>
+
+<h3>2.2 Automatic Purchase Orders (to Warehouses)</h3>
+
+<h4>New Flow (Automated)</h4>
+<ol>
+  <li>Customer places order on our platform</li>
+  <li>System determines the closest warehouse (based on product region + postcode)</li>
+  <li>Creates a Purchase Order in Xero to that warehouse with:
+    <ul>
+      <li>Warehouse as the Xero Contact (supplier)</li>
+      <li>Product details (name, qty, packaging size)</li>
+      <li>Warehouse-specific pricing (configured in admin)</li>
+      <li>Container costs (warehouse-specific)</li>
+      <li>Customer's delivery address</li>
+      <li>Reference to our platform order number</li>
+    </ul>
+  </li>
+  <li>Purchase Order is sent to the warehouse via Xero</li>
+</ol>
+
+<div class="api">PUT https://api.xero.com/api.xro/2.0/PurchaseOrders</div>
+
+<h3>2.3 Customer Contact Sync</h3>
+<p>When a new customer signs up, we automatically create them as a Xero Contact using the registration data (company name, contact name, email, phone, ABN, address). No extra data needed - we already collect everything required.</p>
+
+<div class="api">PUT https://api.xero.com/api.xro/2.0/Contacts</div>
+
+<h3>2.4 Xero Authentication</h3>
+<p>OAuth 2.0 flow. "Connect to Xero" button in admin dashboard. One-click authorization. We handle token refresh automatically so the connection stays active.</p>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">3.</span> Pricing & Packaging Size Rework</h2>
+
+<div class="box-amber box"><strong>Major Change:</strong> The pricing model is being updated from a single price per product to pricing per packaging size, with per-litre calculation and warehouse-specific costs.</div>
+
+<h3>3.1 Packaging Size Pricing <span class="badge b-new">NEW</span></h3>
+<ul>
+  <li>Each product can have multiple packaging sizes (20L Drum, 200L Drum, 1000L IBC, etc.)</li>
+  <li>Each packaging size has its <strong>own price per litre</strong></li>
+  <li>Example: Green Acid Replacement
+    <ul>
+      <li>20L Drum: $2.80/L - total = $56.00</li>
+      <li>200L Drum: $2.45/L - total = $490.00</li>
+      <li>1000L IBC: $2.10/L - total = $2,100.00</li>
+    </ul>
+  </li>
+  <li>Packaging sizes are managed as a <strong>dropdown selector</strong> (not free text) in admin</li>
+  <li>Admin can configure which packaging sizes are available per product</li>
+</ul>
+
+<h3>3.2 Price Calculation <span class="badge b-change">CHANGE</span></h3>
+<table>
+  <tr><th>Scenario</th><th>Calculation</th><th>Example</th></tr>
+  <tr><td>Per-litre product</td><td>Price/L x Packaging Size Litres x Qty</td><td>$2.45/L x 20L x 1 = $49.00</td></tr>
+  <tr><td>Fixed-price product</td><td>Fixed Price x Qty</td><td>$200.00 x 1 = $200.00</td></tr>
+</table>
+<p>Each product will have a <strong>price type</strong> flag: "Per Litre" or "Fixed Price". Admin sets this when creating/editing products.</p>
+
+<h3>3.3 Container Costs <span class="badge b-new">NEW</span></h3>
+<ul>
+  <li>When customer orders a product in 1000L IBC or 200L Drum, there is a <strong>container cost</strong> (the physical container itself)</li>
+  <li>Container cost is a <strong>separate line item</strong> added automatically at checkout (after postcode is entered and warehouse is determined)</li>
+  <li>Container costs <strong>vary by warehouse</strong> (e.g., VIC warehouse: IBC = $200, QLD warehouse: IBC = $250)</li>
+  <li>Admin configures container costs per warehouse per packaging size</li>
+  <li>Customer sees: "IBC Container - $200.00" as a separate line in their order summary</li>
+</ul>
+
+<h3>3.4 Warehouse-Specific Pricing <span class="badge b-new">NEW</span></h3>
+<ul>
+  <li>Each warehouse may charge different prices for the same product</li>
+  <li>Admin configures this in the warehouse management section</li>
+  <li>These prices are used for Xero Purchase Orders (what you pay the warehouse)</li>
+  <li>Customer always sees the customer-facing price (what they pay you)</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">4.</span> Signup & Checkout Changes</h2>
+
+<h3>4.1 Signup Page Changes <span class="badge b-new">NEW</span></h3>
+<ul>
+  <li><strong>Invoice Email Field:</strong> "Where would you like invoices sent to?" - separate email field for accounts/billing team (may differ from the user's login email)</li>
+  <li><strong>Terms Checkbox:</strong> "I agree to 30 days net payment terms" - required checkbox alongside the existing Terms & Conditions checkbox</li>
+</ul>
+
+<h3>4.2 Checkout Page Changes</h3>
+<ul>
+  <li><strong>Forklift Dropdown</strong> (required): "Forklift available on site" / "No forklift on site"</li>
+  <li><strong>PO Document Upload</strong>: Changed from optional to <strong>mandatory</strong> (asterisk) for Purchase Order payments</li>
+  <li><strong>Invoice Email</strong>: Auto-filled from signup, but customer can change it at checkout</li>
+  <li><strong>Shipping</strong>: Calculated live via MacShip after postcode is entered</li>
+  <li><strong>Container Cost</strong>: Auto-added as line item based on packaging sizes and warehouse</li>
+  <li><strong>Order Summary</strong> shows: Subtotal + Container Costs + Shipping + GST + Processing Fee (Stripe) = Total</li>
+</ul>
+
+<h3>4.3 PO Invoice Attachment <span class="badge b-new">NEW</span></h3>
+<p>When a customer uploads their PO document during checkout, that file is:</p>
+<ol>
+  <li>Stored in our system (existing)</li>
+  <li><strong>Attached to the Xero invoice</strong> that is auto-sent to the customer's accounts team</li>
+  <li>The PO number is included as a reference on the invoice</li>
+</ol>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">5.</span> Admin Dashboard Changes</h2>
+
+<h3>5.1 New Page: Shipping & Warehouses</h3>
+<table>
+  <tr><th>Feature</th><th>What It Does</th></tr>
+  <tr><td>Warehouse Management</td><td>Add/edit warehouse names, full addresses, state, contact details</td></tr>
+  <tr><td>Product-Warehouse Mapping</td><td>Configure which products ship from which warehouses</td></tr>
+  <tr><td>Container Costs</td><td>Set IBC/drum container costs per warehouse</td></tr>
+  <tr><td>Warehouse Product Pricing</td><td>Set what each warehouse charges you per product (for Xero POs)</td></tr>
+  <tr><td>MacShip Settings</td><td>API token, test/production mode toggle</td></tr>
+</table>
+
+<h3>5.2 New Page: Xero Integration</h3>
+<table>
+  <tr><th>Feature</th><th>What It Does</th></tr>
+  <tr><td>Connect to Xero</td><td>One-click OAuth button to authorize the connection</td></tr>
+  <tr><td>Connection Status</td><td>Shows if connected, last sync time</td></tr>
+  <tr><td>Invoice Settings</td><td>Payment terms (30 days net), revenue account code</td></tr>
+</table>
+
+<h3>5.3 Product Management Updates</h3>
+<table>
+  <tr><th>Change</th><th>Details</th></tr>
+  <tr><td>Packaging Sizes</td><td>Changed from free text to dropdown selector with pricing per size</td></tr>
+  <tr><td>Price Type</td><td>New field: "Per Litre" or "Fixed Price"</td></tr>
+  <tr><td>Region Selector</td><td>Multi-select with "All" option (already implemented)</td></tr>
+</table>
+
+<h3>5.4 Order Page Updates</h3>
+<table>
+  <tr><th>Feature</th><th>What It Does</th></tr>
+  <tr><td>MacShip Tracking</td><td>Consignment ID, carrier name, tracking URL, ETA</td></tr>
+  <tr><td>Print Labels</td><td>Button to download/print shipping labels</td></tr>
+  <tr><td>Xero Invoice Link</td><td>Direct link to the invoice in Xero</td></tr>
+  <tr><td>Xero PO Link</td><td>Direct link to the Purchase Order in Xero</td></tr>
+  <tr><td>Container Costs</td><td>Shown as separate line items in order details</td></tr>
+  <tr><td>Discount Breakdown</td><td>Bundle, first-order, and promotion discounts shown (already implemented)</td></tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">6.</span> Homepage UI Changes</h2>
+
+<ul>
+  <li><strong>Title:</strong> Stack "Bulk Chemicals" and "Unbeatable Prices" vertically, both in green, centered</li>
+  <li><strong>Logo:</strong> Put "Chem Connect by CQVS" text where the logo currently is, relocate or resize the logo image</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">7.</span> Confirmed Decisions Summary</h2>
+
+<table>
+  <tr><th>Decision</th><th>Answer</th></tr>
+  <tr><td>Warehouse configuration</td><td>Admin dashboard (configurable)</td></tr>
+  <tr><td>Carrier selection</td><td>Always pick the cheapest</td></tr>
+  <tr><td>Payment terms</td><td>30 days net</td></tr>
+  <tr><td>Warehouse pricing management</td><td>Admin dashboard (not from Xero)</td></tr>
+  <tr><td>Xero invoice sending</td><td>Auto-send (no manual review)</td></tr>
+  <tr><td>Orders from multiple warehouses</td><td>Ship from one warehouse (closest with all products)</td></tr>
+  <tr><td>PO document upload</td><td>Mandatory (not optional)</td></tr>
+  <tr><td>PO document on invoice</td><td>Attach to Xero invoice</td></tr>
+  <tr><td>Invoice recipient</td><td>Separate "invoice email" field (accounts team), editable at checkout</td></tr>
+  <tr><td>Terms agreement</td><td>Required checkbox at signup for 30 days net</td></tr>
+  <tr><td>Container costs</td><td>Separate line item, varies by warehouse</td></tr>
+  <tr><td>Price per packaging size</td><td>Different price per litre for each size</td></tr>
+  <tr><td>Price type</td><td>Per litre OR fixed price per product</td></tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">8.</span> Implementation Phases</h2>
+
+<div class="box-blue box">
+  <strong>Phase 1: Pricing & UI Foundation</strong>
+  <ul>
+    <li>Packaging size pricing rework (per-size pricing, per-litre calculation)</li>
+    <li>Price type flag (per litre vs fixed)</li>
+    <li>Container cost system (per warehouse per size)</li>
+    <li>Signup changes (invoice email, terms checkbox)</li>
+    <li>Checkout changes (forklift dropdown, mandatory PO upload, invoice email)</li>
+    <li>Homepage UI updates</li>
+    <li>Remove old shipping display from product pages and cart</li>
+  </ul>
+</div>
+
+<div class="box-blue box">
+  <strong>Phase 2: MacShip Shipping Integration</strong>
+  <ul>
+    <li>Admin warehouse management page</li>
+    <li>MacShip quote API integration (live pricing at checkout)</li>
+    <li>MacShip consignment creation (book shipment on order)</li>
+    <li>Warehouse selection logic (closest warehouse)</li>
+    <li>Manifest/dispatch integration</li>
+    <li>Tracking sync and label printing</li>
+    <li>Unserviceable postcode handling (email to admin)</li>
+  </ul>
+</div>
+
+<div class="box-blue box">
+  <strong>Phase 3: Xero Invoicing</strong>
+  <ul>
+    <li>OAuth 2.0 flow with "Connect to Xero" button</li>
+    <li>Auto-create Xero Contacts on customer signup</li>
+    <li>Auto-create and auto-send Invoices for PO customers</li>
+    <li>Attach PO document to Xero invoice</li>
+    <li>Send invoice to customer's accounts email</li>
+    <li>Admin Xero settings page</li>
+  </ul>
+</div>
+
+<div class="box-blue box">
+  <strong>Phase 4: Xero Purchase Orders</strong>
+  <ul>
+    <li>Warehouse pricing management in admin</li>
+    <li>Auto-create Purchase Orders to warehouses</li>
+    <li>Link Xero POs to orders in admin dashboard</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<div class="footer">
+  <p><strong>Chem Connect by CQVS</strong> - Final Integration & Feature Plan</p>
+  <p>This document reflects everything discussed in both meetings and includes all confirmed decisions. Please review and confirm so we can proceed with implementation.</p>
+  <p style="color: #16a34a; font-weight: 600;">- Sohaib</p>
+</div>
+
+</body>
+</html>

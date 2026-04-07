@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/supabase/admin-check"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
-// GET /api/products/[id] - get single product (public)
+// GET /api/products/[id] - get single product (public, includes packaging prices)
 export async function GET(_request: NextRequest, context: RouteContext) {
   const { id } = await context.params
   const supabase = await createServerSupabaseClient()
@@ -12,9 +12,11 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   const isUuid =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
 
+  const select = `*, packaging_prices:product_packaging_prices(*, packaging_size:packaging_sizes(*))`
+
   const { data, error } = isUuid
-    ? await supabase.from("products").select("*").eq("id", id).single()
-    : await supabase.from("products").select("*").eq("slug", id).single()
+    ? await supabase.from("products").select(select).eq("id", id).single()
+    : await supabase.from("products").select(select).eq("slug", id).single()
 
   if (error || !data) {
     return NextResponse.json({ error: "Product not found" }, { status: 404 })
@@ -31,8 +33,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
   const body = await request.json()
 
-  if (body.name) {
-    body.slug = body.name
+  // Strip out packaging_prices to update separately
+  const { packaging_prices: packagingPrices, ...productData } = body
+
+  if (productData.name) {
+    productData.slug = productData.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "")
@@ -40,13 +45,42 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
   const { data, error } = await supabase
     .from("products")
-    .update(body)
+    .update(productData)
     .eq("id", id)
     .select()
     .single()
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Replace packaging prices if provided (delete + insert for simplicity)
+  if (Array.isArray(packagingPrices)) {
+    await supabase
+      .from("product_packaging_prices")
+      .delete()
+      .eq("product_id", id)
+
+    if (packagingPrices.length > 0) {
+      const rows = packagingPrices.map((pp: {
+        packaging_size_id: string
+        price_per_litre?: number | null
+        fixed_price?: number | null
+      }) => ({
+        product_id: id,
+        packaging_size_id: pp.packaging_size_id,
+        price_per_litre: pp.price_per_litre ?? null,
+        fixed_price: pp.fixed_price ?? null,
+      }))
+
+      const { error: ppError } = await supabase
+        .from("product_packaging_prices")
+        .insert(rows)
+
+      if (ppError) {
+        console.error("Failed to update packaging prices:", ppError.message)
+      }
+    }
   }
 
   return NextResponse.json(data)

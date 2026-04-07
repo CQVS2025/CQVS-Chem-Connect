@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - MacShip & Xero Integration Plan</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1a1a2e; line-height: 1.6; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 28px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 40px; font-size: 22px; }
+  h3 { color: #374151; margin-top: 30px; font-size: 18px; }
+  h4 { color: #16a34a; margin-top: 20px; font-size: 15px; }
+  table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+  th, td { border: 1px solid #d1d5db; padding: 10px 14px; text-align: left; font-size: 13px; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .highlight { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 16px; margin: 15px 0; border-radius: 4px; }
+  .question { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 15px 0; border-radius: 4px; }
+  .question strong { color: #92400e; }
+  .need { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; margin: 15px 0; border-radius: 4px; }
+  .need strong { color: #991b1b; }
+  .phase { background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 16px; margin: 15px 0; border-radius: 4px; }
+  code { background: #f3f4f6; padding: 2px 6px; border-radius: 3px; font-size: 12px; color: #111827; }
+  .api-url { font-family: 'Courier New', monospace; background: #1f2937; color: #10b981; padding: 8px 14px; border-radius: 6px; display: block; margin: 8px 0; font-size: 12px; }
+  .step { display: flex; gap: 12px; margin: 10px 0; }
+  .step-num { background: #16a34a; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0; }
+  .step-content { flex: 1; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 32px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 14px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 13px; }
+  .toc { background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { padding: 4px 0; }
+  .toc li::before { content: "- "; color: #16a34a; font-weight: bold; }
+  ul li { margin: 4px 0; }
+  .section-divider { border: none; border-top: 3px solid #16a34a; margin: 40px 0; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-high { background: #fef2f2; color: #991b1b; }
+  .badge-med { background: #fef3c7; color: #92400e; }
+  @media print { body { margin: 20px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 18px; color: #374151; margin-top: 20px; font-weight: 600;">MacShip & Xero Integration Plan</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib | April 2026</p>
+</div>
+
+<div class="toc">
+  <strong>Table of Contents</strong>
+  <ul>
+    <li>Part 1: MacShip Integration (Live Shipping Rates)</li>
+    <li>Part 2: Xero Integration (Automated Invoicing & Purchase Orders)</li>
+    <li>Part 3: Admin Dashboard Changes</li>
+    <li>Part 4: Implementation Timeline</li>
+    <li>Part 5: What We Need From You</li>
+    <li>Part 6: Questions That Need Your Input</li>
+  </ul>
+</div>
+
+<hr class="section-divider">
+
+<h2>Part 1: MacShip Integration (Live Shipping Rates)</h2>
+
+<h3>What Changes for Customers</h3>
+
+<h4>Product Pages</h4>
+<ul>
+  <li>Remove "Shipping: $X / Free" display</li>
+  <li>Remove "Available in [Region]" section</li>
+  <li>Keep "Ships from your state" delivery info text</li>
+</ul>
+
+<h4>Cart Page</h4>
+<ul>
+  <li>Remove per-product shipping fee breakdown</li>
+  <li>Show: <strong>"Shipping calculated at checkout"</strong></li>
+</ul>
+
+<h4>Checkout Page</h4>
+<ul>
+  <li>Customer enters delivery address including <strong>postcode</strong></li>
+  <li>New required dropdown: <strong>"Forklift available on site"</strong> or <strong>"No forklift on site"</strong></li>
+  <li>System calls MacShip API to get a <strong>live shipping quote</strong></li>
+  <li>Shipping cost appears in the order summary in real time</li>
+  <li>If postcode is not serviceable: show <em>"We can't calculate shipping for your area"</em> with a submit button that emails admin</li>
+</ul>
+
+<h3>How It Works (4-Step Flow)</h3>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-content">
+    <strong>Customer Enters Postcode at Checkout</strong><br>
+    Our system calls the MacShip <strong>Get Routes API</strong> to get live carrier pricing.
+    <div class="api-url">POST https://live.machship.com/apiv2/routes/returnRoutes</div>
+    <p>We send: pickup warehouse (closest to customer), delivery postcode, item details (packaging size, weight, dimensions), DG classification, tailgate requirement (based on forklift selection).</p>
+    <p>MacShip returns multiple carrier options with prices. We display the shipping cost to the customer.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-content">
+    <strong>Customer Places Order (Stripe or PO)</strong><br>
+    Our system calls the MacShip <strong>Create Consignment API</strong> to book the actual shipment.
+    <div class="api-url">POST https://live.machship.com/apiv2/consignments/createConsignment</div>
+    <p>We get back: MacShip consignment ID, carrier consignment ID, and tracking information. These are stored on the order in our database and visible in both admin and customer dashboards.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-content">
+    <strong>Admin Dispatches the Order</strong><br>
+    When you update the order status, we call the MacShip <strong>Manifest API</strong> to dispatch.
+    <div class="api-url">POST https://live.machship.com/apiv2/manifests/manifest</div>
+    <p>This notifies the carrier to pick up the goods from the warehouse. Shipping labels are auto-generated and can be printed directly from the admin dashboard.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-content">
+    <strong>Live Tracking</strong><br>
+    We periodically sync tracking updates from MacShip.
+    <div class="api-url">GET https://live.machship.com/apiv2/consignments/getConsignment?id={id}</div>
+    <p>Tracking status and Proof of Delivery (POD) are synced to our order tracking system. Customers see real-time updates on their dashboard, and you see them in admin.</p>
+  </div>
+</div>
+
+<h3>Warehouse Selection Logic</h3>
+<p>When a customer places an order, the system automatically selects the best warehouse:</p>
+<ol>
+  <li>Check which warehouses carry the ordered product (based on product's region setting)</li>
+  <li>From available warehouses, pick the <strong>closest one to the customer's postcode</strong></li>
+  <li>Use that warehouse as the pickup location for the MacShip quote</li>
+</ol>
+
+<table>
+  <tr><th>Warehouse</th><th>Location</th><th>State</th></tr>
+  <tr><td>ChemBuild Industries</td><td>Dandenong South</td><td>VIC</td></tr>
+  <tr><td>Environex</td><td>Crestmead (Platinum St)</td><td>QLD</td></tr>
+  <tr><td>Chemology</td><td>Lonsdale</td><td>SA</td></tr>
+  <tr><td>Environex</td><td>WA Location</td><td>WA</td></tr>
+  <tr><td>Formula Chemicals</td><td>West Ryde</td><td>NSW</td></tr>
+</table>
+
+<h3>Forklift / Tailgate Logic</h3>
+<table>
+  <tr><th>Customer Selection</th><th>MacShip Setting</th><th>Effect</th></tr>
+  <tr><td>"Forklift available on site"</td><td>Tailgate delivery = NO</td><td>Standard delivery rate</td></tr>
+  <tr><td>"No forklift on site"</td><td>Tailgate delivery = YES</td><td>Higher rate (tailgate truck needed)</td></tr>
+  <tr><td>Pickup (all warehouses)</td><td>Tailgate pickup = always NO</td><td>All warehouses have forklifts</td></tr>
+</table>
+
+<h3>DG (Dangerous Goods) Handling</h3>
+<p>Each product in our system already has a DG classification (Non-DG, DG Class 3, DG Class 5, DG Class 6, DG Class 8). When requesting a MacShip quote, we include this classification so the carrier pricing accounts for DG transport requirements and documentation.</p>
+
+<hr class="section-divider">
+
+<h2>Part 2: Xero Integration (Accounting)</h2>
+
+<h3>A. Automatic Invoicing (for Purchase Order Customers)</h3>
+
+<h4>Current Flow (Manual)</h4>
+<ol>
+  <li>Customer pays by Purchase Order on our platform</li>
+  <li>Jonny manually goes to Xero, creates an invoice, adds the PO number</li>
+  <li>Sends the invoice to the customer</li>
+</ol>
+
+<h4>New Flow (Automated)</h4>
+<ol>
+  <li>Customer pays by Purchase Order on our platform</li>
+  <li>System automatically checks if customer exists as a Xero Contact (by email)</li>
+  <li>If not, creates them as a new Xero Contact</li>
+  <li>Creates an Invoice in Xero with:
+    <ul>
+      <li>Customer's PO number as reference</li>
+      <li>All line items (product name, qty, unit price)</li>
+      <li>Shipping cost (from MacShip)</li>
+      <li>GST (10%)</li>
+      <li>Due date (based on your standard payment terms)</li>
+    </ul>
+  </li>
+  <li>Invoice set to AUTHORISED status (ready to send)</li>
+  <li>You can review in Xero and send, or we can auto-send</li>
+</ol>
+
+<div class="highlight">
+  <strong>API Used:</strong><br>
+  <code>PUT https://api.xero.com/api.xro/2.0/Invoices</code> (Create Invoice, Type: ACCREC)<br>
+  <code>PUT https://api.xero.com/api.xro/2.0/Contacts</code> (Create Contact if new customer)
+</div>
+
+<h3>B. Automatic Purchase Orders (to Warehouses)</h3>
+
+<h4>Current Flow (Manual)</h4>
+<ol>
+  <li>Customer places order on our platform</li>
+  <li>Jonny manually goes to Xero, creates a Purchase Order to the warehouse</li>
+  <li>Warehouse receives PO and makes/prepares the product</li>
+</ol>
+
+<h4>New Flow (Automated)</h4>
+<ol>
+  <li>Customer places order on our platform</li>
+  <li>System determines which warehouse to order from (based on product region + closest to customer)</li>
+  <li>Creates a Purchase Order in Xero to that warehouse with:
+    <ul>
+      <li>Warehouse as the Xero Contact (supplier)</li>
+      <li>Product details (name, qty, packaging size)</li>
+      <li>Warehouse-specific pricing (each warehouse may charge differently)</li>
+      <li>Customer delivery address</li>
+      <li>Reference to our platform order number</li>
+    </ul>
+  </li>
+  <li>Purchase Order is sent to the warehouse via Xero</li>
+</ol>
+
+<div class="highlight">
+  <strong>API Used:</strong><br>
+  <code>PUT https://api.xero.com/api.xro/2.0/PurchaseOrders</code> (Create PO)<br>
+  Warehouse contacts are already set up in your Xero account - we fetch them via the Contacts API.
+</div>
+
+<h3>C. Customer Contact Sync</h3>
+<p>When a new customer signs up on Chem Connect, we automatically create them as a Contact in Xero. This means invoices can be issued immediately without manual setup.</p>
+
+<p><strong>Data we already collect at registration (no changes needed):</strong></p>
+<ul>
+  <li>Company name, Contact name, Email, Phone, ABN, Business address</li>
+</ul>
+
+<div class="highlight">
+  <strong>API Used:</strong><br>
+  <code>PUT https://api.xero.com/api.xro/2.0/Contacts</code> (Create Contact on signup)<br>
+  <code>GET https://api.xero.com/api.xro/2.0/Contacts</code> (Check if contact exists before creating)
+</div>
+
+<h3>Xero Authentication</h3>
+<p>Xero uses OAuth 2.0. We'll build a "Connect to Xero" button in the admin dashboard. You click it once, authorize the connection, and it stays connected (we handle token refresh automatically).</p>
+
+<hr class="section-divider">
+
+<h2>Part 3: Admin Dashboard Changes</h2>
+
+<h3>New Page: Shipping & Warehouses</h3>
+<table>
+  <tr><th>Feature</th><th>What It Does</th></tr>
+  <tr><td>Warehouse Management</td><td>Add/edit warehouse names, full addresses, state, contact details</td></tr>
+  <tr><td>Product-Warehouse Mapping</td><td>Configure which products ship from which warehouses</td></tr>
+  <tr><td>MacShip Settings</td><td>API token, default carrier preferences, test/production mode toggle</td></tr>
+  <tr><td>Shipping Labels</td><td>Print shipping labels directly from the admin order view</td></tr>
+</table>
+
+<h3>New Page: Xero Integration</h3>
+<table>
+  <tr><th>Feature</th><th>What It Does</th></tr>
+  <tr><td>Connect to Xero</td><td>One-click OAuth button to authorize the Xero connection</td></tr>
+  <tr><td>Connection Status</td><td>Shows if Xero is connected and when it was last synced</td></tr>
+  <tr><td>Invoice Settings</td><td>Default payment terms, revenue account code</td></tr>
+  <tr><td>Warehouse Pricing</td><td>Set product prices per warehouse (for Xero Purchase Orders)</td></tr>
+</table>
+
+<h3>Order Page Updates</h3>
+<table>
+  <tr><th>Feature</th><th>What It Does</th></tr>
+  <tr><td>MacShip Tracking</td><td>Show consignment ID, carrier name, tracking URL, delivery ETA</td></tr>
+  <tr><td>Print Labels</td><td>Button to download/print shipping labels from MacShip</td></tr>
+  <tr><td>Xero Invoice Link</td><td>Shows if invoice was created in Xero, with direct link</td></tr>
+  <tr><td>Xero PO Link</td><td>Shows if Purchase Order was sent to warehouse, with direct link</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>Part 4: Implementation Timeline</h2>
+
+<div class="phase">
+  <strong>Phase 1: MacShip Shipping (Priority)</strong>
+  <ul>
+    <li>Remove old per-product shipping from UI (product pages, cart)</li>
+    <li>Build checkout flow: postcode input + forklift dropdown</li>
+    <li>Integrate MacShip quote API (live pricing at checkout)</li>
+    <li>Integrate MacShip consignment creation (book shipment on order)</li>
+    <li>Build warehouse selection logic (closest warehouse)</li>
+    <li>Add tracking sync and label printing</li>
+    <li>Admin warehouse management page</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <strong>Phase 2: Xero Invoicing</strong>
+  <ul>
+    <li>Set up OAuth 2.0 flow with "Connect to Xero" button</li>
+    <li>Auto-create Xero Contacts on customer signup</li>
+    <li>Auto-create Invoices for Purchase Order customers</li>
+    <li>Admin Xero settings page</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <strong>Phase 3: Xero Purchase Orders</strong>
+  <ul>
+    <li>Build warehouse pricing management in admin</li>
+    <li>Auto-create Purchase Orders to warehouses when orders come in</li>
+    <li>Link POs to orders in admin dashboard</li>
+  </ul>
+</div>
+
+<hr class="section-divider">
+
+<h2>Part 5: What We Need From You</h2>
+
+<table>
+  <tr><th>Item</th><th>Details</th><th>Priority</th></tr>
+  <tr>
+    <td><strong>MacShip API Token</strong></td>
+    <td>Create a test-mode user in MacShip and generate an API token for us. We need both a test token and a production token.</td>
+    <td><span class="badge badge-high">ASAP</span></td>
+  </tr>
+  <tr>
+    <td><strong>Item Dimensions</strong></td>
+    <td>Dimensions (length, width, height in cm) and weight (kg) for: 20L Drum, 200L Drum, 1000L IBC. Or confirm the MacShip saved item IDs if already set up.</td>
+    <td><span class="badge badge-high">ASAP</span></td>
+  </tr>
+  <tr>
+    <td><strong>Full Warehouse Addresses</strong></td>
+    <td>Complete street addresses with postcodes for all 5 warehouses.</td>
+    <td><span class="badge badge-high">ASAP</span></td>
+  </tr>
+  <tr>
+    <td><strong>Carrier Preference</strong></td>
+    <td>When MacShip returns multiple carriers, should we: always pick cheapest, pick a specific carrier, or show customer options?</td>
+    <td><span class="badge badge-high">Before Phase 1</span></td>
+  </tr>
+  <tr>
+    <td><strong>Xero OAuth Credentials</strong></td>
+    <td>Create an app at developer.xero.com - we need the Client ID and Client Secret.</td>
+    <td><span class="badge badge-med">Before Phase 2</span></td>
+  </tr>
+  <tr>
+    <td><strong>Payment Terms</strong></td>
+    <td>Default due days for PO invoices (e.g., 14 days, 30 days).</td>
+    <td><span class="badge badge-med">Before Phase 2</span></td>
+  </tr>
+  <tr>
+    <td><strong>Warehouse Xero Contacts</strong></td>
+    <td>Names or IDs of each warehouse in your Xero contacts list.</td>
+    <td><span class="badge badge-med">Before Phase 3</span></td>
+  </tr>
+  <tr>
+    <td><strong>Warehouse Product Pricing</strong></td>
+    <td>Price each warehouse charges per product (or confirm if you want to manage this in admin).</td>
+    <td><span class="badge badge-med">Before Phase 3</span></td>
+  </tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>Part 6: Questions That Need Your Input</h2>
+
+<div class="question">
+  <strong>Q1: Warehouse Configuration</strong><br>
+  Should warehouse addresses be configurable in the admin dashboard (recommended), or are they fixed and we can hardcode them?
+</div>
+
+<div class="question">
+  <strong>Q2: Carrier Selection</strong><br>
+  When MacShip returns multiple carrier options with different prices, should we: (a) always pick the cheapest, (b) always use a specific carrier, or (c) show the customer options to choose from?
+</div>
+
+<div class="question">
+  <strong>Q3: Payment Terms</strong><br>
+  What are your standard payment terms for Purchase Order customers? Due in 14 days? 30 days? Other?
+</div>
+
+<div class="question">
+  <strong>Q4: Warehouse Pricing</strong><br>
+  You mentioned each warehouse has slightly different prices per product. Should we: (a) create a pricing management section in admin where you enter prices, or (b) fetch pricing from Xero if it's already stored there?
+</div>
+
+<div class="question">
+  <strong>Q5: Xero Invoice Sending</strong><br>
+  When we create an invoice in Xero for a PO customer, should we: (a) set it to AUTHORISED so you can review and send manually from Xero, or (b) auto-send it directly to the customer?
+</div>
+
+<div class="question">
+  <strong>Q6: Orders with Multiple Warehouses</strong><br>
+  If a customer orders products that come from different warehouses (e.g., one product from VIC, another from QLD), should we: (a) split into separate shipments (separate MacShip consignments), or (b) ship everything from one warehouse even if it's further away?
+</div>
+
+<hr class="section-divider">
+
+<div class="footer">
+  <p><strong>Chem Connect by CQVS</strong> - Integration Plan Document</p>
+  <p>Please review all sections and respond to the questions in Part 6. Once confirmed, we'll begin implementation starting with Phase 1 (MacShip Shipping).</p>
+  <p>If you have any questions or need clarification on any section, please don't hesitate to reach out.</p>
+  <p style="color: #16a34a; font-weight: 600;">- Sohaib</p>
+</div>
+
+</body>
+</html>

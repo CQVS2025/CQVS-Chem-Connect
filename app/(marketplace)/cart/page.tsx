@@ -37,14 +37,35 @@ import {
   calculatePromotionDiscount,
   hasPromotionFreeFreight,
 } from "@/lib/utils/promotion-detection"
-
-const TRUCK_WASH_SLUGS = ["truck-wash-standard", "truck-wash-premium"]
+import { calculateUnitPrice } from "@/lib/pricing"
 
 function formatCurrency(amount: number) {
   return `$${amount.toLocaleString("en-AU", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`
+}
+
+/**
+ * Resolve the unit price for a cart item using the new packaging-prices model
+ * if available, otherwise fall back to the legacy product.price.
+ */
+function resolveCartUnitPrice(item: CartItem): number {
+  const prices = item.product.packaging_prices
+  if (!prices || prices.length === 0) return Number(item.product.price) || 0
+
+  // Match by id first, then by name
+  const match =
+    prices.find((p) => p.packaging_size_id === item.packaging_size_id) ??
+    prices.find((p) => p.packaging_size?.name === item.packaging_size)
+
+  if (!match) return Number(item.product.price) || 0
+
+  return calculateUnitPrice(
+    item.product.price_type,
+    match,
+    match.packaging_size,
+  )
 }
 
 function CartSkeleton() {
@@ -105,7 +126,8 @@ function CartItemRow({
   const updateCartItem = useUpdateCartItem()
   const removeCartItem = useRemoveCartItem()
 
-  const lineTotal = item.product.price * item.quantity
+  const unitPrice = resolveCartUnitPrice(item)
+  const lineTotal = unitPrice * item.quantity
 
   const handleQuantityChange = useCallback(
     (delta: number) => {
@@ -152,7 +174,7 @@ function CartItemRow({
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <Badge variant="secondary">{item.packaging_size}</Badge>
                 <span className="text-sm text-muted-foreground">
-                  {formatCurrency(item.product.price)}/{item.product.unit}
+                  {formatCurrency(unitPrice)} each
                 </span>
               </div>
             </div>
@@ -232,7 +254,7 @@ export default function CartPage() {
         items.map((i) => ({
           product_id: i.product.id,
           quantity: i.quantity,
-          unit_price: i.product.price,
+          unit_price: resolveCartUnitPrice(i),
         }))
       ),
     [discountMap, items]
@@ -242,19 +264,25 @@ export default function CartPage() {
   const isFirstOrder = !orders?.length && !rewards?.first_order_incentive_used
   const { option: firstOrderChoice, truckWash: selectedTruckWash, setOption: setFirstOrderChoice, setTruckWash: setSelectedTruckWash } = useFirstOrderChoice()
 
+  // Resolve unit prices for all items using new pricing model
+  const itemsWithPricing = useMemo(
+    () =>
+      items.map((item) => ({
+        ...item,
+        resolvedUnitPrice: resolveCartUnitPrice(item),
+      })),
+    [items],
+  )
+
   const truckWashDiscount = useMemo(() => {
     if (!isFirstOrder || firstOrderChoice !== "half_price_truck_wash" || !selectedTruckWash) return 0
-    const twItem = items.find((i) => i.product.slug === selectedTruckWash)
+    const twItem = itemsWithPricing.find((i) => i.product.slug === selectedTruckWash)
     if (!twItem) return 0
-    return Math.round(twItem.product.price * twItem.quantity * 0.5 * 100) / 100
-  }, [isFirstOrder, firstOrderChoice, selectedTruckWash, items])
+    return Math.round(twItem.resolvedUnitPrice * twItem.quantity * 0.5 * 100) / 100
+  }, [isFirstOrder, firstOrderChoice, selectedTruckWash, itemsWithPricing])
 
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  )
-  const rawShipping = items.reduce(
-    (sum, item) => sum + (item.product.shipping_fee ?? 0),
+  const subtotal = itemsWithPricing.reduce(
+    (sum, item) => sum + item.resolvedUnitPrice * item.quantity,
     0,
   )
 
@@ -264,25 +292,24 @@ export default function CartPage() {
   const qualifiedPromos = useMemo(
     () => detectActivePromotions(
       promotions ?? [],
-      items.map((i) => ({
+      itemsWithPricing.map((i) => ({
         product_id: i.product.id,
         product_name: i.product.name,
         quantity: i.quantity,
-        unit_price: i.product.price,
-        shipping_fee: i.product.shipping_fee ?? 0,
+        unit_price: i.resolvedUnitPrice,
+        shipping_fee: 0,
       })),
       subtotalAfterBundles
     ),
-    [promotions, items, subtotalAfterBundles]
+    [promotions, itemsWithPricing, subtotalAfterBundles]
   )
   const promoDiscount = useMemo(() => calculatePromotionDiscount(qualifiedPromos), [qualifiedPromos])
   const promoFreeFreight = useMemo(() => hasPromotionFreeFreight(qualifiedPromos), [qualifiedPromos])
 
-  const freeFreight = (isFirstOrder && firstOrderChoice === "free_freight") || promoFreeFreight
-  const shipping = freeFreight ? 0 : rawShipping
+  // Shipping is now calculated at checkout via MacShip - cart shows placeholder
   const totalDiscount = bundleDiscount + truckWashDiscount + promoDiscount
-  const gst = Math.round((subtotal - totalDiscount + shipping) * 0.1 * 100) / 100
-  const total = subtotal - totalDiscount + shipping + gst
+  const gst = Math.round((subtotal - totalDiscount) * 0.1 * 100) / 100
+  const total = subtotal - totalDiscount + gst
 
   if (isLoading) {
     return (
@@ -419,40 +446,11 @@ export default function CartPage() {
                       <span className="text-xs text-amber-400">+{p.bonusCreditPercent}% credit after order</span>
                     </div>
                   ))}
-                  {/* Free Freight indicator */}
-                  {freeFreight && rawShipping > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-sky-400">{promoFreeFreight ? qualifiedPromos.find(p => p.freeFreight)?.label || "Free Freight" : "First Order - Free Freight"}</span>
-                      <span className="font-medium text-sky-400">-{formatCurrency(rawShipping)}</span>
-                    </div>
-                  )}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Shipping</span>
-                      <span>
-                        {shipping === 0 ? (
-                          <Badge variant="secondary" className="text-xs">
-                            Free
-                          </Badge>
-                        ) : (
-                          formatCurrency(shipping)
-                        )}
-                      </span>
-                    </div>
-                    {shipping > 0 && (
-                      <div className="space-y-1 pl-2 border-l-2 border-border">
-                        {items.map((item) => (
-                          <div key={item.id} className="flex justify-between text-xs text-muted-foreground">
-                            <span className="truncate max-w-32">{item.product.name}</span>
-                            <span className="shrink-0">
-                              {(item.product.shipping_fee ?? 0) > 0
-                                ? formatCurrency(item.product.shipping_fee)
-                                : "Free"}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span className="text-xs italic text-muted-foreground">
+                      Calculated at checkout
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">GST (10%)</span>

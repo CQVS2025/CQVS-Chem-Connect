@@ -12,8 +12,13 @@ export async function GET(request: NextRequest) {
   const inStock = searchParams.get("inStock")
   const search = searchParams.get("search")
   const sort = searchParams.get("sort")
+  const includePricing = searchParams.get("includePricing") === "true"
 
-  let query = supabase.from("products").select("*")
+  const selectClause = includePricing
+    ? `*, packaging_prices:product_packaging_prices(*, packaging_size:packaging_sizes(*))`
+    : "*"
+
+  let query = supabase.from("products").select(selectClause)
 
   if (category && category !== "All") {
     query = query.eq("category", category)
@@ -61,14 +66,17 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json()
 
-  const slug = body.name
+  // Strip out packaging_prices to insert separately
+  const { packaging_prices: packagingPrices, ...productData } = body
+
+  const slug = productData.name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "")
 
-  const { data, error } = await supabase
+  const { data: product, error } = await supabase
     .from("products")
-    .insert({ ...body, slug })
+    .insert({ ...productData, slug })
     .select()
     .single()
 
@@ -76,5 +84,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json(data, { status: 201 })
+  // Insert packaging prices if provided
+  if (Array.isArray(packagingPrices) && packagingPrices.length > 0) {
+    const rows = packagingPrices.map((pp: {
+      packaging_size_id: string
+      price_per_litre?: number | null
+      fixed_price?: number | null
+    }) => ({
+      product_id: product.id,
+      packaging_size_id: pp.packaging_size_id,
+      price_per_litre: pp.price_per_litre ?? null,
+      fixed_price: pp.fixed_price ?? null,
+    }))
+
+    const { error: ppError } = await supabase
+      .from("product_packaging_prices")
+      .insert(rows)
+
+    if (ppError) {
+      console.error("Failed to insert packaging prices:", ppError.message)
+    }
+  }
+
+  return NextResponse.json(product, { status: 201 })
 }

@@ -1,6 +1,35 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 
+const cartProductSelect = `
+  id,
+  product_id,
+  quantity,
+  packaging_size,
+  packaging_size_id,
+  created_at,
+  updated_at,
+  products (
+    id,
+    name,
+    slug,
+    price,
+    unit,
+    image_url,
+    in_stock,
+    stock_qty,
+    shipping_fee,
+    price_type,
+    packaging_prices:product_packaging_prices(
+      id,
+      packaging_size_id,
+      price_per_litre,
+      fixed_price,
+      packaging_size:packaging_sizes(id, name, volume_litres)
+    )
+  )
+`
+
 // GET /api/cart - return user's cart items with product data
 export async function GET() {
   try {
@@ -20,27 +49,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("cart_items")
-      .select(
-        `
-        id,
-        product_id,
-        quantity,
-        packaging_size,
-        created_at,
-        updated_at,
-        products (
-          id,
-          name,
-          slug,
-          price,
-          unit,
-          image_url,
-          in_stock,
-          stock_qty,
-          shipping_fee
-        )
-      `,
-      )
+      .select(cartProductSelect)
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
 
@@ -82,7 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { product_id, quantity, packaging_size } = body
+    const { product_id, quantity, packaging_size, packaging_size_id } = body
 
     if (!product_id || !quantity || !packaging_size) {
       return NextResponse.json(
@@ -110,26 +119,11 @@ export async function POST(request: NextRequest) {
         .from("cart_items")
         .update({
           quantity: existing.quantity + quantity,
+          packaging_size_id: packaging_size_id ?? null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id)
-        .select(
-          `
-          id,
-          product_id,
-          quantity,
-          packaging_size,
-          created_at,
-          updated_at,
-          products (
-            name,
-            price,
-            unit,
-            image_url,
-            in_stock
-          )
-        `,
-        )
+        .select(cartProductSelect)
         .single()
 
       if (error) {
@@ -147,28 +141,9 @@ export async function POST(request: NextRequest) {
         product_id,
         quantity,
         packaging_size,
+        packaging_size_id: packaging_size_id ?? null,
       })
-      .select(
-        `
-        id,
-        product_id,
-        quantity,
-        packaging_size,
-        created_at,
-        updated_at,
-        products (
-          id,
-          name,
-          slug,
-          price,
-          unit,
-          image_url,
-          in_stock,
-          stock_qty,
-          shipping_fee
-        )
-      `,
-      )
+      .select(cartProductSelect)
       .single()
 
     if (error) {

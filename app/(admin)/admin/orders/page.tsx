@@ -667,6 +667,43 @@ export default function AdminOrdersPage() {
                                               <span>-${order.promo_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
                                             </div>
                                           )}
+                                          {(order.container_total ?? 0) > 0 && (
+                                            <>
+                                              <div className="flex justify-between text-muted-foreground">
+                                                <span>Container Costs</span>
+                                                <span>
+                                                  $
+                                                  {order.container_total.toLocaleString(
+                                                    "en-AU",
+                                                    { minimumFractionDigits: 2 },
+                                                  )}
+                                                </span>
+                                              </div>
+                                              <div className="space-y-0.5 ml-4 pl-3 border-l-2 border-border">
+                                                {order.items
+                                                  .filter((i) => (i.container_cost ?? 0) > 0)
+                                                  .map((item) => (
+                                                    <div
+                                                      key={item.id}
+                                                      className="flex justify-between text-xs text-muted-foreground"
+                                                    >
+                                                      <span className="truncate max-w-40">
+                                                        {item.packaging_size} Container
+                                                        {item.quantity > 1
+                                                          ? ` x ${item.quantity}`
+                                                          : ""}
+                                                      </span>
+                                                      <span className="shrink-0 ml-2">
+                                                        $
+                                                        {(
+                                                          item.container_cost * item.quantity
+                                                        ).toFixed(2)}
+                                                      </span>
+                                                    </div>
+                                                  ))}
+                                              </div>
+                                            </>
+                                          )}
                                           <div className="flex justify-between text-muted-foreground">
                                             <span>Shipping</span>
                                             <span>
@@ -675,20 +712,6 @@ export default function AdminOrdersPage() {
                                                 : "Free"}
                                             </span>
                                           </div>
-                                          {order.shipping > 0 && (
-                                            <div className="space-y-0.5 ml-4 pl-3 border-l-2 border-border">
-                                              {order.items.map((item) => (
-                                                <div key={item.id} className="flex justify-between text-xs text-muted-foreground">
-                                                  <span className="truncate max-w-40">{item.product_name}</span>
-                                                  <span className="shrink-0 ml-2">
-                                                    {(item.shipping_fee ?? 0) > 0
-                                                      ? `$${item.shipping_fee.toFixed(2)}`
-                                                      : "Free"}
-                                                  </span>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
                                           <div className="flex justify-between text-muted-foreground">
                                             <span>GST</span>
                                             <span>
@@ -744,6 +767,63 @@ export default function AdminOrdersPage() {
                                       {/* PO Documents */}
                                       {order.payment_method === "purchase_order" && (
                                         <OrderDocuments orderId={order.id} />
+                                      )}
+
+                                      {/* Forklift / delivery flag */}
+                                      {order.forklift_available != null && (
+                                        <div className="text-sm">
+                                          <span className="text-muted-foreground">Forklift on site: </span>
+                                          <span className="font-medium">
+                                            {order.forklift_available ? "Yes" : "No (tailgate required)"}
+                                          </span>
+                                        </div>
+                                      )}
+
+                                      {/* Invoice email */}
+                                      {order.invoice_email && (
+                                        <div className="text-sm">
+                                          <span className="text-muted-foreground">Invoice sent to: </span>
+                                          <span className="font-medium">{order.invoice_email}</span>
+                                        </div>
+                                      )}
+
+                                      {/* Xero invoice status */}
+                                      {order.payment_method === "purchase_order" && (
+                                        <div className="rounded-md border border-border bg-background p-3 text-sm">
+                                          <div className="mb-1 font-medium">Xero Invoice</div>
+                                          {order.xero_invoice_id ? (
+                                            <div className="space-y-1 text-xs text-muted-foreground">
+                                              <div>
+                                                Invoice number:{" "}
+                                                <a
+                                                  href={`https://go.xero.com/AccountsReceivable/Edit.aspx?InvoiceID=${order.xero_invoice_id}`}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="font-medium text-primary hover:underline"
+                                                >
+                                                  {order.xero_invoice_number}
+                                                </a>
+                                              </div>
+                                              {order.xero_invoice_status && (
+                                                <div>Status: {order.xero_invoice_status}</div>
+                                              )}
+                                              {order.xero_synced_at && (
+                                                <div>
+                                                  Synced: {formatDateTime(order.xero_synced_at)}
+                                                </div>
+                                              )}
+                                            </div>
+                                          ) : (
+                                            <p className="text-xs text-amber-500">
+                                              Not yet synced. Will be created automatically once
+                                              the PO document is uploaded, or check the{" "}
+                                              <a href="/admin/xero" className="underline">
+                                                Xero sync log
+                                              </a>{" "}
+                                              for errors.
+                                            </p>
+                                          )}
+                                        </div>
                                       )}
 
                                       {/* Tracking */}

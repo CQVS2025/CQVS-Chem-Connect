@@ -183,13 +183,26 @@ export default async function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden px-4 pt-32 pb-24 sm:px-6 sm:pt-40 sm:pb-32 lg:px-8">
+        {/* Background atmosphere */}
         <div className="absolute inset-0 bg-linear-to-b from-primary/5 via-primary/2 to-transparent" />
-        <div className="absolute -top-40 left-1/2 h-125 w-200 -translate-x-1/2 rounded-full bg-primary/8 blur-3xl" />
+        <div className="absolute -top-40 left-1/2 h-125 w-200 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute top-20 right-0 h-75 w-75 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute bottom-0 left-0 h-75 w-75 rounded-full bg-emerald-500/5 blur-3xl" />
 
-        <div className="relative z-10 mx-auto max-w-4xl text-center">
+        {/* Subtle grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+
+        <div className="relative z-10 mx-auto max-w-5xl text-center">
+          {/* Top pill */}
           <FadeIn delay={0.1} direction="none">
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary backdrop-blur-sm">
+            <div className="mb-10 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary backdrop-blur-sm">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
@@ -198,38 +211,67 @@ export default async function HomePage() {
             </div>
           </FadeIn>
 
+          {/* Brand wordmark - bold CHEM CONNECT card */}
           <FadeIn delay={0.2} direction="none">
-            <FloatingElement duration={4} distance={6}>
-              <div className="mb-8 flex justify-center">
-                <Image
-                  src="/images/cqvs-logo.png"
-                  alt="CQVS Logo"
-                  width={120}
-                  height={40}
-                  className="object-contain"
-                  priority
-                />
-              </div>
-            </FloatingElement>
+            <div className="mb-12 flex justify-center">
+              <FloatingElement duration={5} distance={4}>
+                <div className="group relative">
+                  {/* Glow halo behind the card */}
+                  <div className="absolute -inset-1 rounded-3xl bg-linear-to-r from-primary/40 via-emerald-400/40 to-primary/40 opacity-50 blur-2xl transition-opacity duration-500 group-hover:opacity-75" />
+
+                  <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-card/80 px-12 py-8 shadow-2xl shadow-primary/10 backdrop-blur-md sm:px-16 sm:py-10">
+                    {/* Inner shimmer */}
+                    <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-emerald-400/5" />
+
+                    <div className="relative flex items-center gap-5">
+                      {/* CQVS logo mark */}
+                      <div className="hidden shrink-0 rounded-xl border border-primary/20 bg-background/60 p-2 sm:block">
+                        <Image
+                          src="/images/cqvs-logo.png"
+                          alt="CQVS"
+                          width={56}
+                          height={56}
+                          className="h-14 w-14 object-contain"
+                          priority
+                        />
+                      </div>
+
+                      {/* Wordmark */}
+                      <div className="flex flex-col items-start text-left">
+                        <span className="text-3xl font-black uppercase tracking-tight text-foreground sm:text-4xl md:text-5xl">
+                          Chem Connect
+                        </span>
+                        <span className="mt-1 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground sm:text-sm">
+                          by CQVS
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </FloatingElement>
+            </div>
           </FadeIn>
 
-          <BlurIn delay={0.3}>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-              Bulk Chemicals.{" "}
-              <span className="bg-linear-to-r from-primary to-emerald-400 bg-clip-text text-transparent">
+          {/* Main headline - stacked, both lines green */}
+          <BlurIn delay={0.35}>
+            <h1 className="text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
+              <span className="block bg-linear-to-br from-primary via-emerald-400 to-primary bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.15)]">
+                Bulk Chemicals.
+              </span>
+              <span className="mt-2 block bg-linear-to-br from-emerald-400 via-primary to-emerald-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.15)]">
                 Unbeatable Prices.
               </span>
             </h1>
           </BlurIn>
 
-          <FadeIn delay={0.5} distance={16}>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
+          <FadeIn delay={0.55} distance={16}>
+            <p className="mx-auto mt-8 max-w-2xl text-lg text-muted-foreground sm:text-xl">
               A manufacturing-direct marketplace for concrete plants and quarries.
               Skip the middleman and order straight from the source.
             </p>
           </FadeIn>
 
-          <FadeIn delay={0.65} distance={16}>
+          <FadeIn delay={0.7} distance={16}>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               <Button
                 size="lg"
@@ -245,7 +287,7 @@ export default async function HomePage() {
             </div>
           </FadeIn>
 
-          <FadeIn delay={0.8} distance={12}>
+          <FadeIn delay={0.85} distance={12}>
             <div className="mt-14 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
               {trustPoints.map((point) => (
                 <div key={point.label} className="flex items-center gap-2">
