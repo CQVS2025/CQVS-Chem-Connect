@@ -75,7 +75,7 @@ const quickActions = [
 ]
 
 function formatCurrency(value: number) {
-  return "$" + value.toLocaleString("en-AU", {
+  return "AUD " + value.toLocaleString("en-AU", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })
@@ -265,8 +265,7 @@ export default function DashboardPage() {
                       {order.items.length === 1 ? "item" : "items"}
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      $
-                      {order.total.toLocaleString("en-AU", {
+                      AUD {order.total.toLocaleString("en-AU", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}

@@ -66,7 +66,7 @@ export async function sendReceiptEmail(
       heading: isPO ? "Purchase Order Submitted" : "Your Payment Receipt",
       preheader: isPO
         ? `Your PO order ${data.orderNumber} has been submitted for review.`
-        : `Receipt for order ${data.orderNumber} - $${data.total.toFixed(2)}`,
+        : `Receipt for order ${data.orderNumber} - AUD ${data.total.toFixed(2)}`,
       sections: [
         {
           content: isPO

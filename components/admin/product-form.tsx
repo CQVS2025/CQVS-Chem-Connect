@@ -225,7 +225,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
     if (!formName.trim()) return toast.error("Please enter a product name.")
     const price = parseFloat(formPrice)
     if (!price || price <= 0)
-      return toast.error("Please set a valid price greater than $0.")
+      return toast.error("Please set a valid price greater than AUD 0.")
     if (!formCategory.trim()) return toast.error("Please select a category.")
     if (!formDescription.trim())
       return toast.error("Please add a product description.")
@@ -586,7 +586,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
                         </button>
                         {isSelected && row && (
                           <div className="flex flex-1 items-center gap-2">
-                            <span className="text-xs text-muted-foreground">$</span>
+                            <span className="text-xs text-muted-foreground">AUD </span>
                             {formPriceType === "per_litre" ? (
                               <Input
                                 type="number"
@@ -622,7 +622,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
                             )}
                             {formPriceType === "per_litre" && ps.volume_litres && (
                               <span className="whitespace-nowrap text-xs text-muted-foreground">
-                                = $
+                                = AUD 
                                 {(
                                   (parseFloat(row.price_per_litre) || 0) *
                                   Number(ps.volume_litres)

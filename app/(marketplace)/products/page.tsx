@@ -287,7 +287,7 @@ export default function ProductsPage() {
                         <div>
                           <h3 className="font-semibold leading-tight">{product.name}</h3>
                           <p className="mt-1 text-lg font-bold text-primary">
-                            ${product.price.toFixed(2)}
+                            AUD {product.price.toFixed(2)}
                             <span className="text-sm font-normal text-muted-foreground">
                               {" "}/ {product.unit}
                             </span>

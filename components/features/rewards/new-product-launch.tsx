@@ -99,7 +99,7 @@ export function NewProductLaunch() {
             </h2>
             <p className="max-w-2xl text-muted-foreground">
               Be first. Get free product. First {earlyAccessLimit} customers get a
-              free 200L drum with any order over $1,000.
+              free 200L drum with any order over AUD 1,000.
             </p>
           </div>
         </FadeIn>

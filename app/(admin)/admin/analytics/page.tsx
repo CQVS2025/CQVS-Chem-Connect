@@ -49,8 +49,8 @@ import {
 } from "@/components/ui/chart"
 
 function formatCurrency(amount: number): string {
-  if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}k`
-  return `$${amount.toFixed(2)}`
+  if (amount >= 1000) return `AUD ${(amount / 1000).toFixed(1)}k`
+  return `AUD ${amount.toFixed(2)}`
 }
 
 function formatStatus(status: string): string {
@@ -80,6 +80,28 @@ const paymentColors: Record<string, string> = {
 
 export default function AdminAnalyticsPage() {
   const { data, isLoading } = useAnalytics()
+
+  // All hooks must be called before any conditional returns
+  const { data: customerRewards } = useQuery<
+    {
+      user_id: string
+      current_tier: string
+      current_month_spend: number
+      annual_spend: number
+      total_stamps: number
+      referral_count: number
+      contact_name: string
+      company_name: string
+    }[]
+  >({
+    queryKey: ["admin-customer-rewards-analytics"],
+    queryFn: () => get("/admin/rewards/customers"),
+  })
+
+  const { data: referrals } = useQuery<{ status: string }[]>({
+    queryKey: ["admin-referrals-analytics"],
+    queryFn: () => get("/admin/rewards/referrals"),
+  })
 
   if (isLoading) {
     return (
@@ -128,28 +150,6 @@ export default function AdminAnalyticsPage() {
   const paymentChartConfig = Object.fromEntries(
     paymentChartData.map((d) => [d.method, { label: d.method, color: d.fill }]),
   ) satisfies ChartConfig
-
-  // Rewards data
-  const { data: customerRewards } = useQuery<
-    {
-      user_id: string
-      current_tier: string
-      current_month_spend: number
-      annual_spend: number
-      total_stamps: number
-      referral_count: number
-      contact_name: string
-      company_name: string
-    }[]
-  >({
-    queryKey: ["admin-customer-rewards-analytics"],
-    queryFn: () => get("/admin/rewards/customers"),
-  })
-
-  const { data: referrals } = useQuery<{ status: string }[]>({
-    queryKey: ["admin-referrals-analytics"],
-    queryFn: () => get("/admin/rewards/referrals"),
-  })
 
   const tierCounts = {
     gold: customerRewards?.filter((c) => c.current_tier === "gold").length ?? 0,
@@ -490,7 +490,7 @@ export default function AdminAnalyticsPage() {
                             </div>
                           </div>
                           <span className="shrink-0 text-sm font-semibold text-primary">
-                            ${product.revenue.toFixed(2)}
+                            AUD {product.revenue.toFixed(2)}
                           </span>
                         </div>
                         <div className="mt-2 h-1.5 rounded-full bg-muted">
@@ -658,7 +658,7 @@ export default function AdminAnalyticsPage() {
                           </div>
                         </div>
                         <span className="shrink-0 text-sm font-semibold text-primary">
-                          ${(customer.annual_spend ?? 0).toLocaleString()}
+                          AUD {(customer.annual_spend ?? 0).toLocaleString()}
                         </span>
                       </div>
                     ))}

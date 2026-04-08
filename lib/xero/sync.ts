@@ -250,6 +250,11 @@ export async function createXeroInvoiceForOrder(
   // Build line items
   const lineItems: XeroLineItem[] = []
 
+  // Australian GST tax type for sales invoices.
+  // OUTPUT2 = "GST on Income" (10%) in Australian Xero orgs.
+  // This is explicit so Xero doesn't fall back to a US/global default.
+  const GST_TAX_TYPE = "OUTPUT2"
+
   for (const item of order.order_items as Array<{
     product_name: string
     quantity: number
@@ -262,7 +267,7 @@ export async function createXeroInvoiceForOrder(
       Quantity: item.quantity,
       UnitAmount: Number(item.unit_price),
       AccountCode: process.env.XERO_REVENUE_ACCOUNT_CODE || "200",
-      TaxType: "OUTPUT",
+      TaxType: GST_TAX_TYPE,
     })
 
     // Container cost as a separate line item if present
@@ -272,7 +277,7 @@ export async function createXeroInvoiceForOrder(
         Quantity: item.quantity,
         UnitAmount: Number(item.container_cost),
         AccountCode: process.env.XERO_REVENUE_ACCOUNT_CODE || "200",
-        TaxType: "OUTPUT",
+        TaxType: GST_TAX_TYPE,
       })
     }
   }
@@ -284,7 +289,7 @@ export async function createXeroInvoiceForOrder(
       Quantity: 1,
       UnitAmount: Number(order.shipping),
       AccountCode: process.env.XERO_SHIPPING_ACCOUNT_CODE || "200",
-      TaxType: "OUTPUT",
+      TaxType: GST_TAX_TYPE,
     })
   }
 
@@ -304,6 +309,8 @@ export async function createXeroInvoiceForOrder(
     Reference: order.po_number || order.order_number,
     Status: "AUTHORISED" as const,
     LineAmountTypes: "Exclusive" as const,
+    // Always explicit AUD — prevents silent mismatch if org currency changes
+    CurrencyCode: "AUD",
   }
 
   try {

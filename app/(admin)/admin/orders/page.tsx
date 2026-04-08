@@ -473,8 +473,7 @@ export default function AdminOrdersPage() {
                                   {order.items.length}
                                 </TableCell>
                                 <TableCell className="text-right font-medium">
-                                  $
-                                  {order.total.toLocaleString("en-AU", {
+                                  AUD {order.total.toLocaleString("en-AU", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
                                   })}
@@ -621,8 +620,7 @@ export default function AdminOrdersPage() {
                                                 </span>
                                               </span>
                                               <span className="font-medium">
-                                                $
-                                                {item.total_price.toLocaleString(
+                                                AUD {item.total_price.toLocaleString(
                                                   "en-AU",
                                                   {
                                                     minimumFractionDigits: 2,
@@ -636,8 +634,7 @@ export default function AdminOrdersPage() {
                                           <div className="flex justify-between text-muted-foreground">
                                             <span>Subtotal</span>
                                             <span>
-                                              $
-                                              {order.subtotal.toLocaleString(
+                                              AUD {order.subtotal.toLocaleString(
                                                 "en-AU",
                                                 { minimumFractionDigits: 2 }
                                               )}
@@ -646,7 +643,7 @@ export default function AdminOrdersPage() {
                                           {(order.bundle_discount ?? 0) > 0 && (
                                             <div className="flex justify-between text-primary text-xs">
                                               <span>Bundle Discount</span>
-                                              <span>-${order.bundle_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
+                                              <span>-AUD {order.bundle_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
                                             </div>
                                           )}
                                           {order.first_order_type === "free_freight" && (
@@ -658,13 +655,13 @@ export default function AdminOrdersPage() {
                                           {(order.first_order_discount ?? 0) > 0 && order.first_order_type !== "free_freight" && (
                                             <div className="flex justify-between text-primary text-xs">
                                               <span>First Order - 50% Off Truck Wash</span>
-                                              <span>-${order.first_order_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
+                                              <span>-AUD {order.first_order_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
                                             </div>
                                           )}
                                           {(order.promo_discount ?? 0) > 0 && (
                                             <div className="flex justify-between text-violet-400 text-xs">
                                               <span>{order.promo_names || "Promotion Discount"}</span>
-                                              <span>-${order.promo_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
+                                              <span>-AUD {order.promo_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
                                             </div>
                                           )}
                                           {(order.container_total ?? 0) > 0 && (
@@ -672,8 +669,7 @@ export default function AdminOrdersPage() {
                                               <div className="flex justify-between text-muted-foreground">
                                                 <span>Container Costs</span>
                                                 <span>
-                                                  $
-                                                  {order.container_total.toLocaleString(
+                                                  AUD {order.container_total.toLocaleString(
                                                     "en-AU",
                                                     { minimumFractionDigits: 2 },
                                                   )}
@@ -694,8 +690,7 @@ export default function AdminOrdersPage() {
                                                           : ""}
                                                       </span>
                                                       <span className="shrink-0 ml-2">
-                                                        $
-                                                        {(
+                                                        AUD {(
                                                           item.container_cost * item.quantity
                                                         ).toFixed(2)}
                                                       </span>
@@ -708,15 +703,14 @@ export default function AdminOrdersPage() {
                                             <span>Shipping</span>
                                             <span>
                                               {order.shipping > 0
-                                                ? `$${order.shipping.toLocaleString("en-AU", { minimumFractionDigits: 2 })}`
+                                                ? `AUD ${order.shipping.toLocaleString("en-AU", { minimumFractionDigits: 2 })}`
                                                 : "Free"}
                                             </span>
                                           </div>
                                           <div className="flex justify-between text-muted-foreground">
                                             <span>GST</span>
                                             <span>
-                                              $
-                                              {order.gst.toLocaleString(
+                                              AUD {order.gst.toLocaleString(
                                                 "en-AU",
                                                 { minimumFractionDigits: 2 }
                                               )}
@@ -726,8 +720,7 @@ export default function AdminOrdersPage() {
                                             <div className="flex justify-between text-muted-foreground">
                                               <span>Card Processing Fee</span>
                                               <span>
-                                                $
-                                                {order.processing_fee.toLocaleString(
+                                                AUD {order.processing_fee.toLocaleString(
                                                   "en-AU",
                                                   { minimumFractionDigits: 2 }
                                                 )}
@@ -737,8 +730,7 @@ export default function AdminOrdersPage() {
                                           <div className="flex justify-between font-semibold">
                                             <span>Total</span>
                                             <span>
-                                              $
-                                              {order.total.toLocaleString(
+                                              AUD {order.total.toLocaleString(
                                                 "en-AU",
                                                 { minimumFractionDigits: 2 }
                                               )}

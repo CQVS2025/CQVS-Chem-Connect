@@ -41,8 +41,8 @@ export function buildReceiptHtml(data: ReceiptData): string {
           <span style="color: #94A3B8; font-size: 11px;">${item.packagingSize}</span>
         </td>
         <td style="padding: 10px 12px; font-size: 13px; color: #E5E7EB; font-family: Arial, Helvetica, sans-serif; text-align: center; border-bottom: 1px solid #1E3A4C;">${item.qty}</td>
-        <td style="padding: 10px 12px; font-size: 13px; color: #E5E7EB; font-family: Arial, Helvetica, sans-serif; text-align: right; border-bottom: 1px solid #1E3A4C;">$${item.unitPrice.toFixed(2)}/${item.unit}</td>
-        <td style="padding: 10px 12px; font-size: 13px; color: #E5E7EB; font-family: Arial, Helvetica, sans-serif; text-align: right; border-bottom: 1px solid #1E3A4C;">$${item.total.toFixed(2)}</td>
+        <td style="padding: 10px 12px; font-size: 13px; color: #E5E7EB; font-family: Arial, Helvetica, sans-serif; text-align: right; border-bottom: 1px solid #1E3A4C;">AUD ${item.unitPrice.toFixed(2)}/${item.unit}</td>
+        <td style="padding: 10px 12px; font-size: 13px; color: #E5E7EB; font-family: Arial, Helvetica, sans-serif; text-align: right; border-bottom: 1px solid #1E3A4C;">AUD ${item.total.toFixed(2)}</td>
       </tr>`,
     )
     .join("")
@@ -154,30 +154,30 @@ export function buildReceiptHtml(data: ReceiptData): string {
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
                 <tr>
                   <td style="padding: 4px 12px; font-size: 13px; color: #94A3B8; text-align: right; font-family: Arial, Helvetica, sans-serif;">Subtotal</td>
-                  <td style="padding: 4px 12px; font-size: 13px; color: #E5E7EB; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">$${data.subtotal.toFixed(2)}</td>
+                  <td style="padding: 4px 12px; font-size: 13px; color: #E5E7EB; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">AUD ${data.subtotal.toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td style="padding: 4px 12px; font-size: 13px; color: #94A3B8; text-align: right; font-family: Arial, Helvetica, sans-serif;">Shipping</td>
-                  <td style="padding: 4px 12px; font-size: 13px; color: #E5E7EB; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">${data.shipping === 0 ? "Free" : "$" + data.shipping.toFixed(2)}</td>
+                  <td style="padding: 4px 12px; font-size: 13px; color: #E5E7EB; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">${data.shipping === 0 ? "Free" : "AUD " + data.shipping.toFixed(2)}</td>
                 </tr>
                 ${data.shipping > 0 ? data.items.map((item) => `<tr>
                   <td style="padding: 1px 12px; font-size: 11px; color: #64748B; text-align: right; font-family: Arial, Helvetica, sans-serif;">${item.name}</td>
-                  <td style="padding: 1px 12px; font-size: 11px; color: #64748B; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">${(item.shippingFee ?? 0) > 0 ? "$" + item.shippingFee!.toFixed(2) : "Free"}</td>
+                  <td style="padding: 1px 12px; font-size: 11px; color: #64748B; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">${(item.shippingFee ?? 0) > 0 ? "AUD " + item.shippingFee!.toFixed(2) : "Free"}</td>
                 </tr>`).join("") : ""}
                 <tr>
                   <td style="padding: 4px 12px; font-size: 13px; color: #94A3B8; text-align: right; font-family: Arial, Helvetica, sans-serif;">GST (10%)</td>
-                  <td style="padding: 4px 12px; font-size: 13px; color: #E5E7EB; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">$${data.gst.toFixed(2)}</td>
+                  <td style="padding: 4px 12px; font-size: 13px; color: #E5E7EB; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">AUD ${data.gst.toFixed(2)}</td>
                 </tr>
                 ${data.processingFee && data.processingFee > 0 ? `<tr>
                   <td style="padding: 4px 12px; font-size: 13px; color: #94A3B8; text-align: right; font-family: Arial, Helvetica, sans-serif;">Card Processing Fee</td>
-                  <td style="padding: 4px 12px; font-size: 13px; color: #E5E7EB; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">$${data.processingFee.toFixed(2)}</td>
+                  <td style="padding: 4px 12px; font-size: 13px; color: #E5E7EB; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">AUD ${data.processingFee.toFixed(2)}</td>
                 </tr>` : ""}
                 <tr>
                   <td colspan="2" style="padding-top: 8px;"><hr style="border: none; border-top: 2px solid #1E3A4C; margin: 0;"/></td>
                 </tr>
                 <tr>
                   <td style="padding: 8px 12px; font-size: 18px; font-weight: 700; color: #FFFFFF; text-align: right; font-family: Arial, Helvetica, sans-serif;">Total</td>
-                  <td style="padding: 8px 12px; font-size: 18px; font-weight: 700; color: #4ADE80; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">$${data.total.toFixed(2)}</td>
+                  <td style="padding: 8px 12px; font-size: 18px; font-weight: 700; color: #4ADE80; text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;">AUD ${data.total.toFixed(2)}</td>
                 </tr>
               </table>
 

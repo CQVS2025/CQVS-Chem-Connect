@@ -628,14 +628,14 @@ export async function POST(request: NextRequest) {
           to: customerEmail,
           subject: `You've Qualified for Store Credit! - Chem Connect`,
           heading: bc.headline || `${bc.promoName} - Store Credit Earned!`,
-          preheader: `Your order qualifies for ${bc.creditPercent}% store credit ($${bc.creditAmount.toFixed(2)}).`,
+          preheader: `Your order qualifies for ${bc.creditPercent}% store credit (AUD ${bc.creditAmount.toFixed(2)}).`,
           sections: [
             {
               title: "Congratulations!",
               content: `
                 <p>Hi ${customerName},</p>
                 <p>Your order <strong>#${order.order_number}</strong> qualifies for our <strong>${bc.promoName}</strong> promotion!</p>
-                <p>You've earned <strong>${bc.creditPercent}% store credit</strong> worth <strong>$${bc.creditAmount.toFixed(2)}</strong> on eligible products in this order.</p>
+                <p>You've earned <strong>${bc.creditPercent}% store credit</strong> worth <strong>AUD ${bc.creditAmount.toFixed(2)}</strong> on eligible products in this order.</p>
               `,
             },
             {
@@ -656,7 +656,7 @@ export async function POST(request: NextRequest) {
       const adminEmail = await getAdminEmail()
       if (adminEmail) {
         const creditSummary = qualifiedBonusCredits.map(bc =>
-          `<li><strong>${bc.promoName}</strong>: ${bc.creditPercent}% credit on $${bc.eligibleTotal.toFixed(2)} eligible products = <strong>$${bc.creditAmount.toFixed(2)} credit</strong></li>`
+          `<li><strong>${bc.promoName}</strong>: ${bc.creditPercent}% credit on AUD ${bc.eligibleTotal.toFixed(2)} eligible products = <strong>AUD ${bc.creditAmount.toFixed(2)} credit</strong></li>`
         ).join("")
 
         sendEmail({
@@ -672,7 +672,7 @@ export async function POST(request: NextRequest) {
                 <p><strong>Email:</strong> ${customerEmail}</p>
                 <p><strong>Company:</strong> ${userProfile?.company_name || "N/A"}</p>
                 <p><strong>Order:</strong> #${order.order_number}</p>
-                <p><strong>Order total:</strong> $${total.toFixed(2)}</p>
+                <p><strong>Order total:</strong> AUD ${total.toFixed(2)}</p>
                 <ul style="padding-left: 20px; margin: 10px 0;">${creditSummary}</ul>
                 <p>Please arrange the store credit for this customer. The customer has been notified and is expecting to hear from you.</p>
               `,

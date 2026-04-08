@@ -119,7 +119,7 @@ export default function DashboardRewardsPage() {
   // Build "no tier" description dynamically
   const lowestTier = tierThresholds[0]
   const noTierDescription = lowestTier
-    ? `Spend $${lowestTier.threshold.toLocaleString()}/mo to unlock ${lowestTier.name.charAt(0).toUpperCase() + lowestTier.name.slice(1)}`
+    ? `Spend AUD ${lowestTier.threshold.toLocaleString()}/mo to unlock ${lowestTier.name.charAt(0).toUpperCase() + lowestTier.name.slice(1)}`
     : "Start ordering to unlock rewards"
 
   // Get current tier's reward description from API
@@ -231,10 +231,10 @@ export default function DashboardRewardsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
-                      Monthly spend: ${monthlySpend.toLocaleString()}
+                      Monthly spend: AUD {monthlySpend.toLocaleString()}
                     </span>
                     <span className="text-muted-foreground">
-                      ${nextTierThreshold.toLocaleString()} for{" "}
+                      AUD {nextTierThreshold.toLocaleString()} for{" "}
                       <span className="capitalize font-medium text-foreground">
                         {nextTier.name}
                       </span>
@@ -247,7 +247,7 @@ export default function DashboardRewardsPage() {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    ${Math.max(nextTierThreshold - monthlySpend, 0).toLocaleString()}{" "}
+                    AUD {Math.max(nextTierThreshold - monthlySpend, 0).toLocaleString()}{" "}
                     away from {nextTier.name}
                   </p>
                 </div>
@@ -273,7 +273,7 @@ export default function DashboardRewardsPage() {
               </div>
               <div>
                 <p className="text-xl font-bold">
-                  ${annualSpend.toLocaleString()}
+                  AUD {annualSpend.toLocaleString()}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Annual spend
@@ -333,7 +333,7 @@ export default function DashboardRewardsPage() {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {rebatePercent > 0
-                    ? `~$${estimatedCredit.toLocaleString()} credit`
+                    ? `~AUD ${estimatedCredit.toLocaleString()} credit`
                     : "Annual rebate"}
                 </p>
               </div>
@@ -498,14 +498,14 @@ export default function DashboardRewardsPage() {
                     {rt.percent}%
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    ${rt.min.toLocaleString()} -{" "}
+                    AUD {rt.min.toLocaleString()} -{" "}
                     {rt.max === Infinity
-                      ? "$100k+"
-                      : `$${rt.max.toLocaleString()}`}
+                      ? "AUD 100k+"
+                      : `AUD ${rt.max.toLocaleString()}`}
                   </p>
                   {isActive && (
                     <p className="mt-1 text-xs font-medium text-primary">
-                      ~${estimatedCredit.toLocaleString()} credit
+                      ~AUD {estimatedCredit.toLocaleString()} credit
                     </p>
                   )}
                 </div>
@@ -514,7 +514,7 @@ export default function DashboardRewardsPage() {
           </div>
           {nextRebate && (
             <p className="mt-4 text-center text-sm text-muted-foreground">
-              You&apos;re ${Math.max(nextRebate.min - annualSpend, 0).toLocaleString()}{" "}
+              You&apos;re AUD {Math.max(nextRebate.min - annualSpend, 0).toLocaleString()}{" "}
               away from the {nextRebate.percent}% tier.
             </p>
           )}

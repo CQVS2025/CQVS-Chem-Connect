@@ -101,6 +101,8 @@ export interface XeroInvoiceInput {
   InvoiceNumber?: string
   Status?: "DRAFT" | "SUBMITTED" | "AUTHORISED"
   LineAmountTypes?: "Exclusive" | "Inclusive" | "NoTax"
+  // Explicit AUD — prevents silent currency mismatch if org settings change
+  CurrencyCode?: string
   Url?: string
 }
 

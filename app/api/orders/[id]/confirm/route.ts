@@ -244,9 +244,9 @@ export async function POST(
               to: customerEmail,
               subject: `You've Qualified for Store Credit! - Chem Connect`,
               heading: promo.headline || `${promo.name} - Store Credit Earned!`,
-              preheader: `Your order qualifies for ${promo.discount_value}% store credit ($${creditAmount.toFixed(2)}).`,
+              preheader: `Your order qualifies for ${promo.discount_value}% store credit (AUD ${creditAmount.toFixed(2)}).`,
               sections: [
-                { title: "Congratulations!", content: `<p>Hi ${customerName},</p><p>Your order <strong>#${updatedOrder.order_number}</strong> qualifies for our <strong>${promo.name}</strong> promotion!</p><p>You've earned <strong>${promo.discount_value}% store credit</strong> worth <strong>$${creditAmount.toFixed(2)}</strong>.</p>` },
+                { title: "Congratulations!", content: `<p>Hi ${customerName},</p><p>Your order <strong>#${updatedOrder.order_number}</strong> qualifies for our <strong>${promo.name}</strong> promotion!</p><p>You've earned <strong>${promo.discount_value}% store credit</strong> worth <strong>AUD ${creditAmount.toFixed(2)}</strong>.</p>` },
                 { title: "What Happens Next", content: `<p>Our team at Chem Connect will be reaching out to you shortly to apply your store credit. If for any reason our team doesn't reach out within a few business days, please contact us directly.</p><p>You can reach us through your <a href="${appUrl}/dashboard/rewards" style="color: #52c77d;">rewards dashboard</a> or by replying to this email.</p>` },
               ],
               ctaButton: { text: "View Your Orders", url: `${appUrl}/dashboard/orders` },
@@ -259,7 +259,7 @@ export async function POST(
                 to: adminEmail,
                 subject: `Bonus Credit Earned - Order #${updatedOrder.order_number}`,
                 heading: "Customer Earned Bonus Store Credit",
-                sections: [{ title: "Details", content: `<p><strong>Customer:</strong> ${customerName} (${customerEmail})</p><p><strong>Company:</strong> ${profile?.company_name || "N/A"}</p><p><strong>Order:</strong> #${updatedOrder.order_number} ($${updatedOrder.total})</p><p><strong>Promotion:</strong> ${promo.name} - ${promo.discount_value}% credit = <strong>$${creditAmount.toFixed(2)}</strong></p><p>Please arrange the store credit for this customer.</p>` }],
+                sections: [{ title: "Details", content: `<p><strong>Customer:</strong> ${customerName} (${customerEmail})</p><p><strong>Company:</strong> ${profile?.company_name || "N/A"}</p><p><strong>Order:</strong> #${updatedOrder.order_number} (AUD ${updatedOrder.total})</p><p><strong>Promotion:</strong> ${promo.name} - ${promo.discount_value}% credit = <strong>AUD ${creditAmount.toFixed(2)}</strong></p><p>Please arrange the store credit for this customer.</p>` }],
                 ctaButton: { text: "View Orders", url: `${appUrl}/admin/orders` },
                 footerNote: "Auto-generated when an order qualifies for a bonus credit promotion.",
               }).catch(() => {})

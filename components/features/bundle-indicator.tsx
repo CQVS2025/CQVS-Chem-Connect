@@ -258,7 +258,7 @@ function BundleRow({
                         <span className="text-[10px] text-primary/70">(this product)</span>
                       </div>
                       <span className="font-bold text-primary shrink-0 ml-2">
-                        ${(p.price * (1 - bundle.discount_percent / 100)).toFixed(2)}/{p.unit}
+                        AUD {(p.price * (1 - bundle.discount_percent / 100)).toFixed(2)}/{p.unit}
                       </span>
                     </div>
                   ) : (
@@ -270,10 +270,10 @@ function BundleRow({
                       <span className="truncate font-medium">{p.name}</span>
                       <div className="ml-2 flex items-center gap-1.5 shrink-0">
                         <span className="text-muted-foreground line-through">
-                          ${p.price.toFixed(2)}
+                          AUD {p.price.toFixed(2)}
                         </span>
                         <span className="font-bold text-primary">
-                          ${(p.price * (1 - bundle.discount_percent / 100)).toFixed(2)}
+                          AUD {(p.price * (1 - bundle.discount_percent / 100)).toFixed(2)}
                         </span>
                         <ArrowRight className="size-2.5 text-muted-foreground/50" />
                       </div>

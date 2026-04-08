@@ -107,7 +107,7 @@ const AU_STATES = [
 const STEP_LABELS = ["Delivery Details", "Payment", "Review & Place Order"]
 
 function formatCurrency(amount: number) {
-  return `$${amount.toLocaleString("en-AU", {
+  return `AUD ${amount.toLocaleString("en-AU", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`

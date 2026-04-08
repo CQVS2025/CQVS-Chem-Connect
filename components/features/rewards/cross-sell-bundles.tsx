@@ -206,10 +206,10 @@ export function CrossSellBundles() {
                                   </div>
                                   <div className="ml-3 flex items-center gap-2 shrink-0">
                                     <span className="text-xs text-muted-foreground line-through">
-                                      ${product.price.toFixed(2)}
+                                      AUD {product.price.toFixed(2)}
                                     </span>
                                     <span className="text-sm font-bold text-primary">
-                                      ${discounted.toFixed(2)}
+                                      AUD {discounted.toFixed(2)}
                                     </span>
                                     <span className="text-[10px] text-muted-foreground">
                                       /{product.unit}
@@ -250,7 +250,7 @@ export function CrossSellBundles() {
                             <div className="text-xs text-muted-foreground">
                               You save{" "}
                               <span className="font-semibold text-primary">
-                                ${totalSaved.toFixed(2)}
+                                AUD {totalSaved.toFixed(2)}
                               </span>
                               /{products[0]?.unit ?? "L"} combined
                             </div>

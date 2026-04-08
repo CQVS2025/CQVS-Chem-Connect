@@ -387,8 +387,7 @@ export default function OrdersPage() {
                                       </span>
                                     </span>
                                     <span className="font-medium">
-                                      $
-                                      {item.total_price.toLocaleString(
+                                      AUD {item.total_price.toLocaleString(
                                         "en-AU",
                                         {
                                           minimumFractionDigits: 2,
@@ -403,8 +402,7 @@ export default function OrdersPage() {
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>Subtotal</span>
                                   <span>
-                                    $
-                                    {order.subtotal.toLocaleString("en-AU", {
+                                    AUD {order.subtotal.toLocaleString("en-AU", {
                                       minimumFractionDigits: 2,
                                     })}
                                   </span>
@@ -412,7 +410,7 @@ export default function OrdersPage() {
                                 {(order.bundle_discount ?? 0) > 0 && (
                                   <div className="flex justify-between text-primary text-xs">
                                     <span>Bundle Discount</span>
-                                    <span>-${order.bundle_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
+                                    <span>-AUD {order.bundle_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
                                   </div>
                                 )}
                                 {order.first_order_type === "free_freight" && (
@@ -424,20 +422,20 @@ export default function OrdersPage() {
                                 {(order.first_order_discount ?? 0) > 0 && order.first_order_type !== "free_freight" && (
                                   <div className="flex justify-between text-primary text-xs">
                                     <span>First Order - 50% Off Truck Wash</span>
-                                    <span>-${order.first_order_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
+                                    <span>-AUD {order.first_order_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
                                   </div>
                                 )}
                                 {(order.promo_discount ?? 0) > 0 && (
                                   <div className="flex justify-between text-violet-400 text-xs">
                                     <span>{order.promo_names || "Promotion Discount"}</span>
-                                    <span>-${order.promo_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
+                                    <span>-AUD {order.promo_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
                                   </div>
                                 )}
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>Shipping</span>
                                   <span>
                                     {order.shipping > 0
-                                      ? `$${order.shipping.toLocaleString("en-AU", { minimumFractionDigits: 2 })}`
+                                      ? `AUD ${order.shipping.toLocaleString("en-AU", { minimumFractionDigits: 2 })}`
                                       : "Free"}
                                   </span>
                                 </div>
@@ -448,7 +446,7 @@ export default function OrdersPage() {
                                         <span className="truncate max-w-40">{item.product_name}</span>
                                         <span className="shrink-0 ml-2">
                                           {(item.shipping_fee ?? 0) > 0
-                                            ? `$${item.shipping_fee.toFixed(2)}`
+                                            ? `AUD ${item.shipping_fee.toFixed(2)}`
                                             : "Free"}
                                         </span>
                                       </div>
@@ -458,8 +456,7 @@ export default function OrdersPage() {
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>GST</span>
                                   <span>
-                                    $
-                                    {order.gst.toLocaleString("en-AU", {
+                                    AUD {order.gst.toLocaleString("en-AU", {
                                       minimumFractionDigits: 2,
                                     })}
                                   </span>
@@ -468,8 +465,7 @@ export default function OrdersPage() {
                                   <div className="flex justify-between text-muted-foreground">
                                     <span>Card Processing Fee</span>
                                     <span>
-                                      $
-                                      {order.processing_fee.toLocaleString("en-AU", {
+                                      AUD {order.processing_fee.toLocaleString("en-AU", {
                                         minimumFractionDigits: 2,
                                       })}
                                     </span>
@@ -478,8 +474,7 @@ export default function OrdersPage() {
                                 <div className="flex justify-between font-semibold">
                                   <span>Total</span>
                                   <span>
-                                    $
-                                    {order.total.toLocaleString("en-AU", {
+                                    AUD {order.total.toLocaleString("en-AU", {
                                       minimumFractionDigits: 2,
                                     })}
                                   </span>

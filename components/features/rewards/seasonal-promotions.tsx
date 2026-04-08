@@ -183,7 +183,7 @@ export function SeasonalPromotions() {
 
                       {promo.min_order_value > 0 && (
                         <p className="text-xs text-muted-foreground">
-                          Min. order: ${promo.min_order_value.toLocaleString()}
+                          Min. order: AUD {promo.min_order_value.toLocaleString()}
                         </p>
                       )}
 

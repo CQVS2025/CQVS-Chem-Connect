@@ -18,8 +18,8 @@ const stackedRewards = [
     emoji: "crown",
     icon: Crown,
     label: "Silver tier",
-    detail: "$5,200/mo - free IBC monthly",
-    value: "$1,200/mo",
+    detail: "AUD 5,200/mo - free IBC monthly",
+    value: "AUD 1,200/mo",
     color: "text-slate-300",
     bgColor: "bg-slate-300/10",
   },
@@ -36,8 +36,8 @@ const stackedRewards = [
     emoji: "dollar",
     icon: DollarSign,
     label: "Annual rebate",
-    detail: "7.5% tier - $4,680 credit",
-    value: "$4,680/yr",
+    detail: "7.5% tier - AUD 4,680 credit",
+    value: "AUD 4,680/yr",
     color: "text-yellow-400",
     bgColor: "bg-yellow-400/10",
   },
@@ -46,7 +46,7 @@ const stackedRewards = [
     icon: CreditCard,
     label: "Stamp card",
     detail: "7 stamps - 3 to free IBC",
-    value: "~$2,210",
+    value: "~AUD 2,210",
     color: "text-violet-400",
     bgColor: "bg-violet-400/10",
   },
@@ -55,7 +55,7 @@ const stackedRewards = [
     icon: Megaphone,
     label: "Referrals",
     detail: "2 mates - 2 free drums",
-    value: "~$700",
+    value: "~AUD 700",
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
   },
@@ -149,7 +149,7 @@ export function StackRewards() {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-primary sm:text-3xl">
-                      $8,000-$12,000+
+                      AUD 8,000-12,000+
                     </p>
                     <p className="text-xs text-muted-foreground">/year</p>
                   </div>

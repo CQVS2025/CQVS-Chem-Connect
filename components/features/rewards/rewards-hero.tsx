@@ -24,7 +24,7 @@ const stats = [
   },
   {
     label: "To join",
-    value: "$0",
+    value: "AUD 0",
     prefix: "Cost",
     icon: DollarSign,
   },

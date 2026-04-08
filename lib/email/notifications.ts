@@ -4,7 +4,7 @@ const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
 function formatCurrency(amount: number): string {
-  return `$${amount.toFixed(2)}`
+  return `AUD ${amount.toFixed(2)}`
 }
 
 // Status color maps for emails (inline styles)

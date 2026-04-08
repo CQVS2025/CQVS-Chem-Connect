@@ -187,7 +187,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                       <div className="mt-3 flex items-end justify-between border-t border-border/30 pt-3">
                         <div>
                           <span className="text-lg font-bold text-primary">
-                            ${product.price.toFixed(2)}
+                            AUD {product.price.toFixed(2)}
                           </span>
                           <span className="text-xs text-muted-foreground">
                             /{product.unit}

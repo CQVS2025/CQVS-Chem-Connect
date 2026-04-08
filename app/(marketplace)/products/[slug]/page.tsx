@@ -364,11 +364,11 @@ export default async function ProductDetailPage({
                           <div className="flex items-baseline gap-2">
                             {product.priceType === "per_litre" && (
                               <span className="text-xs text-muted-foreground">
-                                ${Number(pp.price_per_litre ?? 0).toFixed(2)}/L
+                                AUD {Number(pp.price_per_litre ?? 0).toFixed(2)}/L
                               </span>
                             )}
                             <span className="text-lg font-bold text-primary">
-                              ${total.toFixed(2)}
+                              AUD {total.toFixed(2)}
                             </span>
                           </div>
                         </div>
@@ -378,7 +378,7 @@ export default async function ProductDetailPage({
                 </div>
               ) : (
                 <p className="mt-4 text-4xl font-bold text-primary">
-                  ${product.price.toFixed(2)}
+                  AUD {product.price.toFixed(2)}
                   <span className="text-lg font-normal text-muted-foreground">
                     {" "}/ {product.unit}
                   </span>

@@ -43,8 +43,8 @@ const statusColors: Record<string, string> = {
 }
 
 function formatCurrency(amount: number): string {
-  if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}k`
-  return `$${amount.toFixed(2)}`
+  if (amount >= 1000) return `AUD ${(amount / 1000).toFixed(1)}k`
+  return `AUD ${amount.toFixed(2)}`
 }
 
 function formatStatus(status: string): string {
@@ -189,7 +189,7 @@ export default function AdminDashboardPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          ${Number(order.total).toFixed(2)}
+                          AUD {Number(order.total).toFixed(2)}
                         </TableCell>
                       </TableRow>
                     ))}

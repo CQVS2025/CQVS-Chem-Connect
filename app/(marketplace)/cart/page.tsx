@@ -40,7 +40,7 @@ import {
 import { calculateUnitPrice } from "@/lib/pricing"
 
 function formatCurrency(amount: number) {
-  return `$${amount.toLocaleString("en-AU", {
+  return `AUD ${amount.toLocaleString("en-AU", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`

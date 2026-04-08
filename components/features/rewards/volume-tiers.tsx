@@ -66,8 +66,8 @@ export function VolumeTiers({ userSpend = 0 }: VolumeTiersProps) {
   // Subtitle text for lowest tier
   const lowestTier = sortedTiers[0]
   const subtitleSpend = lowestTier
-    ? `$${lowestTier.min_monthly_spend.toLocaleString()}`
-    : "$2,000"
+    ? `AUD ${lowestTier.min_monthly_spend.toLocaleString()}`
+    : "AUD 2,000"
 
   return (
     <section id="volume-tiers" className="scroll-mt-36 px-4 py-16 sm:py-20">
@@ -131,7 +131,7 @@ export function VolumeTiers({ userSpend = 0 }: VolumeTiersProps) {
                       {/* Spend amount */}
                       <div className="mb-4">
                         <span className="text-3xl font-bold text-foreground">
-                          ${tier.min_monthly_spend.toLocaleString()}+
+                          AUD {tier.min_monthly_spend.toLocaleString()}+
                         </span>
                         <span className="ml-1 text-sm text-muted-foreground">
                           /mo
@@ -149,7 +149,7 @@ export function VolumeTiers({ userSpend = 0 }: VolumeTiersProps) {
                           You Save
                         </p>
                         <p className="text-xl font-bold text-primary">
-                          ~${tier.estimated_monthly_savings.toLocaleString()}
+                          ~AUD {tier.estimated_monthly_savings.toLocaleString()}
                           <span className="text-sm font-normal text-muted-foreground">
                             /month
                           </span>
@@ -173,8 +173,7 @@ export function VolumeTiers({ userSpend = 0 }: VolumeTiersProps) {
                     Your progress to {nextTier.display_name}
                   </h3>
                   <span className="text-sm text-muted-foreground">
-                    ${userSpend.toLocaleString()} / $
-                    {nextTierThreshold.toLocaleString()}
+                    AUD {userSpend.toLocaleString()} / AUD {nextTierThreshold.toLocaleString()}
                   </span>
                 </div>
 
@@ -189,7 +188,7 @@ export function VolumeTiers({ userSpend = 0 }: VolumeTiersProps) {
                 <p className="text-sm text-muted-foreground">
                   You&apos;re{" "}
                   <span className="font-semibold text-primary">
-                    ${remaining.toLocaleString()}
+                    AUD {remaining.toLocaleString()}
                   </span>{" "}
                   away from {nextTier.display_name} - {nextTier.reward_description.toLowerCase()}.
                 </p>

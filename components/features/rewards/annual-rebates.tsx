@@ -117,14 +117,14 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
                           </span>
                         </div>
                         <p className="mb-2 text-sm font-medium text-foreground">
-                          ${tier.min_annual_spend.toLocaleString()} -{" "}
+                          AUD {tier.min_annual_spend.toLocaleString()} -{" "}
                           {tier.max_annual_spend
-                            ? `$${tier.max_annual_spend.toLocaleString()}`
-                            : "$100k+"}{" "}
+                            ? `AUD ${tier.max_annual_spend.toLocaleString()}`
+                            : "AUD 100k+"}{" "}
                           annual spend
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Spend ${exampleSpend.toLocaleString()} -{">"} $
+                          Spend AUD {exampleSpend.toLocaleString()} -{">"} AUD 
                           {exampleCredit.toLocaleString()} credit
                         </p>
                       </CardContent>
@@ -171,14 +171,13 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
                     <p className="text-sm text-muted-foreground">
                       You&apos;ve spent{" "}
                       <span className="font-semibold text-foreground">
-                        ${annualSpend.toLocaleString()}
+                        AUD {annualSpend.toLocaleString()}
                       </span>{" "}
                       this year. You&apos;re{" "}
                       <span className="font-semibold text-primary">
-                        ${remaining.toLocaleString()}
+                        AUD {remaining.toLocaleString()}
                       </span>{" "}
-                      away from the {nextTier.rebate_percent}% tier - that&apos;s $
-                      {potentialCredit.toLocaleString()} in credit.
+                      away from the {nextTier.rebate_percent}% tier - that&apos;s AUD {potentialCredit.toLocaleString()} in credit.
                     </p>
                   </CardContent>
                 </Card>

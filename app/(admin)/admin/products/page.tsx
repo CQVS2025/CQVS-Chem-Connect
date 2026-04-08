@@ -182,7 +182,7 @@ export default function AdminProductsPage() {
                         <Badge variant="outline">{product.category}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        ${product.price.toFixed(2)}/{product.unit}
+                        AUD {product.price.toFixed(2)}/{product.unit}
                       </TableCell>
                       <TableCell className="text-right">
                         {product.stockQty}

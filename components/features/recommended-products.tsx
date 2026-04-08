@@ -212,7 +212,7 @@ export function RecommendedProducts() {
                       <div className="mt-2 flex items-end justify-between">
                         <div>
                           <span className="text-base font-bold text-primary">
-                            ${product.price.toFixed(2)}
+                            AUD {product.price.toFixed(2)}
                           </span>
                           <span className="text-[10px] text-muted-foreground">
                             /{product.unit}

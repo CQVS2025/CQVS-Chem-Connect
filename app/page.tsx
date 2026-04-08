@@ -362,7 +362,7 @@ export default async function HomePage() {
                     <CardFooter className="flex items-end justify-between border-t border-border/30 px-5 py-4">
                       <div>
                         <span className="text-xl font-bold text-primary">
-                          ${product.price.toFixed(2)}
+                          AUD {product.price.toFixed(2)}
                         </span>
                         <span className="text-sm text-muted-foreground">
                           /{product.unit}

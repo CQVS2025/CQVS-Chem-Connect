@@ -13,7 +13,7 @@ const options = [
     subtitle: "Best for: Remote sites",
     icon: Truck,
     description:
-      "First order delivered freight-free. We absorb $200-$500 in freight so you can trial risk-free.",
+      "First order delivered freight-free. We absorb AUD 200-500 in freight so you can trial risk-free.",
     color: "text-sky-400",
     bgColor: "bg-sky-400/10",
     borderColor: "hover:ring-sky-400/30",

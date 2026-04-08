@@ -95,5 +95,5 @@ export function round2(n: number): number {
  * Format a price for display in AUD.
  */
 export function formatPrice(n: number): string {
-  return `$${round2(n).toFixed(2)}`
+  return `AUD ${round2(n).toFixed(2)}`
 }
