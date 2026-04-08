@@ -100,12 +100,24 @@ export default function RegisterPage() {
           address_state: selectedState || null,
           address_postcode: (form.get("postcode") as string) || null,
           delivery_address: (form.get("delivery-address") as string) || null,
+          invoice_email:
+            (form.get("invoice-email") as string) || (email as string),
+          accepted_payment_terms_at: new Date().toISOString(),
         })
         .eq("id", data.user.id)
 
       if (profileError) {
         console.error("Profile update error:", profileError)
       }
+
+      // Fire-and-forget Xero contact sync (non-blocking)
+      fetch("/api/xero/contacts/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile_id: data.user.id }),
+      }).catch(() => {
+        // Silent fail - admin can resync later
+      })
 
       // Upload logo if selected (now user is authenticated)
       if (logoFile) {
@@ -253,6 +265,29 @@ export default function RegisterPage() {
               required
               className="h-10"
             />
+            <p className="text-xs text-muted-foreground">
+              Used to sign in to your account.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="invoice-email">
+              Invoice Email{" "}
+              <span className="text-xs text-muted-foreground">
+                (where invoices should be sent)
+              </span>
+            </Label>
+            <Input
+              id="invoice-email"
+              name="invoice-email"
+              type="email"
+              placeholder="accounts@company.com"
+              className="h-10"
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave blank to use your login email. You can change this at
+              checkout.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -406,6 +441,25 @@ export default function RegisterPage() {
               >
                 Privacy Policy
               </Link>
+            </Label>
+          </div>
+
+          <div className="flex items-start gap-2.5">
+            <input
+              id="payment-terms"
+              type="checkbox"
+              required
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border border-input accent-primary"
+            />
+            <Label
+              htmlFor="payment-terms"
+              className="text-sm font-normal leading-snug text-muted-foreground"
+            >
+              I agree to{" "}
+              <span className="font-medium text-foreground">
+                30 days net payment terms
+              </span>{" "}
+              for purchase order invoices.
             </Label>
           </div>
 

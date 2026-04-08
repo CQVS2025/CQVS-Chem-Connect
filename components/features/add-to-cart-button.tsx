@@ -12,11 +12,27 @@ import { useFeatureFlags } from "@/lib/hooks/use-feature-flags"
 import { Button } from "@/components/ui/button"
 import { RequestQuoteDialog } from "@/components/features/request-quote-dialog"
 import { AuthPromptDialog } from "@/components/shared/auth-prompt-dialog"
+import type { ProductPriceType } from "@/lib/supabase/types"
+import { calculateUnitPrice, formatPrice } from "@/lib/pricing"
+
+export interface AddToCartPackagingOption {
+  id: string
+  packaging_size_id: string
+  price_per_litre: number | null
+  fixed_price: number | null
+  packaging_size: {
+    id: string
+    name: string
+    volume_litres: number | null
+  }
+}
 
 interface AddToCartButtonProps {
   productId: string
   productName: string
   packagingSizes: string[]
+  packagingPrices?: AddToCartPackagingOption[]
+  priceType?: ProductPriceType
   inStock: boolean
   stockQty: number
 }
@@ -25,10 +41,19 @@ export function AddToCartButton({
   productId,
   productName,
   packagingSizes,
+  packagingPrices = [],
+  priceType = "per_litre",
   inStock,
   stockQty,
 }: AddToCartButtonProps) {
-  const [selectedSize, setSelectedSize] = useState(packagingSizes[0] || "")
+  // Prefer the new packaging_prices model when available; fall back to legacy strings
+  const hasPricedOptions = packagingPrices.length > 0
+
+  const initialSelection = hasPricedOptions
+    ? packagingPrices[0].packaging_size.name
+    : packagingSizes[0] || ""
+
+  const [selectedSize, setSelectedSize] = useState(initialSelection)
   const [quantity, setQuantity] = useState(1)
   const [authDialogOpen, setAuthDialogOpen] = useState(false)
   const { user, loading: authLoading } = useUser()
@@ -39,6 +64,18 @@ export function AddToCartButton({
 
   const isAdmin = profile?.role === "admin"
   const isLoggedIn = !!user
+
+  const selectedOption = hasPricedOptions
+    ? packagingPrices.find((p) => p.packaging_size.name === selectedSize)
+    : null
+
+  const selectedUnitPrice = selectedOption
+    ? calculateUnitPrice(
+        priceType,
+        selectedOption,
+        selectedOption.packaging_size,
+      )
+    : null
 
   // Admin users see a message instead of order actions
   if (!authLoading && isLoggedIn && isAdmin) {
@@ -96,6 +133,7 @@ export function AddToCartButton({
         product_id: productId,
         quantity,
         packaging_size: selectedSize,
+        packaging_size_id: selectedOption?.packaging_size_id,
       },
       {
         onSuccess: () => {
@@ -118,29 +156,64 @@ export function AddToCartButton({
     )
   }
 
+  // Render packaging options - use priced options if available, otherwise legacy strings
+  const optionsToRender: Array<{ key: string; label: string; total: number | null }> =
+    hasPricedOptions
+      ? packagingPrices.map((p) => ({
+          key: p.id,
+          label: p.packaging_size.name,
+          total: calculateUnitPrice(priceType, p, p.packaging_size),
+        }))
+      : packagingSizes.map((s) => ({ key: s, label: s, total: null }))
+
   return (
     <div className="space-y-4">
       {/* Packaging size selector */}
-      {packagingSizes.length > 0 && (
+      {optionsToRender.length > 0 && (
         <div>
           <p className="mb-2 text-sm font-medium text-muted-foreground">
             Packaging Size
           </p>
           <div className="flex flex-wrap gap-2">
-            {packagingSizes.map((size) => (
+            {optionsToRender.map((opt) => (
               <button
-                key={size}
+                key={opt.key}
                 type="button"
-                onClick={() => setSelectedSize(size)}
-                className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                  selectedSize === size
+                onClick={() => setSelectedSize(opt.label)}
+                className={`flex flex-col items-start rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                  selectedSize === opt.label
                     ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
                     : "border-border hover:border-primary/50 hover:bg-muted"
                 }`}
               >
-                {size}
+                <span>{opt.label}</span>
+                {opt.total != null && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {formatPrice(opt.total)}
+                  </span>
+                )}
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Selected price summary */}
+      {selectedUnitPrice != null && (
+        <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm text-muted-foreground">Unit price</span>
+            <span className="text-2xl font-bold text-primary">
+              {formatPrice(selectedUnitPrice)}
+            </span>
+          </div>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="text-xs text-muted-foreground">
+              Subtotal ({quantity} x)
+            </span>
+            <span className="text-sm font-semibold">
+              {formatPrice(selectedUnitPrice * quantity)}
+            </span>
           </div>
         </div>
       )}

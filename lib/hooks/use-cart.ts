@@ -2,6 +2,19 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { get, post, patch, del } from "@/lib/api/client"
+import type { ProductPriceType } from "@/lib/supabase/types"
+
+export interface CartPackagingPrice {
+  id: string
+  packaging_size_id: string
+  price_per_litre: number | null
+  fixed_price: number | null
+  packaging_size: {
+    id: string
+    name: string
+    volume_litres: number | null
+  }
+}
 
 export interface CartItemProduct {
   id: string
@@ -13,6 +26,8 @@ export interface CartItemProduct {
   in_stock: boolean
   stock_qty: number
   shipping_fee: number
+  price_type: ProductPriceType
+  packaging_prices?: CartPackagingPrice[]
 }
 
 export interface CartItem {
@@ -20,6 +35,7 @@ export interface CartItem {
   product_id: string
   quantity: number
   packaging_size: string
+  packaging_size_id: string | null
   created_at: string
   product: CartItemProduct
 }
@@ -28,6 +44,7 @@ interface AddToCartInput {
   product_id: string
   quantity: number
   packaging_size: string
+  packaging_size_id?: string
 }
 
 interface UpdateCartItemInput {

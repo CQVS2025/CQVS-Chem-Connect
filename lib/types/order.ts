@@ -6,9 +6,12 @@ export interface OrderItem {
   quantity: number
   unit: string
   packaging_size: string
+  packaging_size_id: string | null
+  price_type: "per_litre" | "fixed" | null
   unit_price: number
   total_price: number
   shipping_fee: number
+  container_cost: number
 }
 
 export interface OrderStatusHistory {
@@ -37,10 +40,14 @@ export interface Order {
   payment_method: PaymentMethod
   payment_status: PaymentStatus
   po_number: string | null
+  invoice_email: string | null
+  forklift_available: boolean | null
+  warehouse_id: string | null
   subtotal: number
   shipping: number
   gst: number
   processing_fee: number
+  container_total: number
   total: number
   bundle_discount: number
   first_order_discount: number
@@ -54,6 +61,10 @@ export interface Order {
   stripe_payment_intent_id: string | null
   tracking_number: string | null
   estimated_delivery: string | null
+  xero_invoice_id: string | null
+  xero_invoice_number: string | null
+  xero_invoice_status: string | null
+  xero_synced_at: string | null
   created_at: string
   updated_at: string
   items: OrderItem[]

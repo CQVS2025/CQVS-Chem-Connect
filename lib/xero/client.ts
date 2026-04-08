@@ -1,0 +1,657 @@
+/**
+ * Xero API client.
+ *
+ * Handles OAuth 2.0 token management (with auto-refresh), tenant ID,
+ * and provides typed wrappers for Contacts, Invoices, Purchase Orders,
+ * and Attachments.
+ *
+ * Tokens are stored in the `xero_credentials` table. Access tokens expire
+ * in 30 minutes - we refresh them automatically when within 60s of expiry.
+ *
+ * Usage:
+ *   const xero = await getXeroClient()
+ *   if (!xero) throw new Error("Xero not connected")
+ *   const contact = await xero.createContact({ ... })
+ */
+
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const XERO_API_BASE = "https://api.xero.com/api.xro/2.0"
+const XERO_TOKEN_URL = "https://identity.xero.com/connect/token"
+const XERO_AUTH_URL = "https://login.xero.com/identity/connect/authorize"
+const XERO_CONNECTIONS_URL = "https://api.xero.com/connections"
+
+// Xero is migrating from broad scopes to granular scopes.
+// Apps created from 2 March 2026 ONLY have the new granular scopes.
+// We use the granular scopes since this app was created in 2026.
+//
+//   Old (deprecated):  accounting.transactions
+//   New (granular):    accounting.invoices  (covers Invoices, CreditNotes,
+//                                            PurchaseOrders, Quotes, etc.)
+//
+// `accounting.attachments` is required to upload the customer's PO PDF
+// onto the Xero invoice. Without it, invoices are still created and
+// emailed but the PDF won't be attached.
+export const XERO_SCOPES = [
+  "openid",
+  "profile",
+  "email",
+  "offline_access",
+  "accounting.invoices",
+  "accounting.contacts",
+  "accounting.attachments",
+].join(" ")
+
+export interface XeroCredentialsRow {
+  id: string
+  tenant_id: string
+  tenant_name: string | null
+  access_token: string
+  refresh_token: string
+  expires_at: string
+  scope: string | null
+}
+
+export interface XeroAddress {
+  AddressType?: "STREET" | "POBOX"
+  AddressLine1?: string
+  AddressLine2?: string
+  City?: string
+  Region?: string
+  PostalCode?: string
+  Country?: string
+}
+
+export interface XeroPhone {
+  PhoneType?: "DEFAULT" | "DDI" | "MOBILE" | "FAX"
+  PhoneNumber?: string
+  PhoneAreaCode?: string
+  PhoneCountryCode?: string
+}
+
+export interface XeroContactInput {
+  ContactID?: string
+  Name: string
+  FirstName?: string
+  LastName?: string
+  EmailAddress?: string
+  TaxNumber?: string
+  Addresses?: XeroAddress[]
+  Phones?: XeroPhone[]
+  IsCustomer?: boolean
+  IsSupplier?: boolean
+}
+
+export interface XeroLineItem {
+  Description: string
+  Quantity: number
+  UnitAmount: number
+  AccountCode?: string
+  TaxType?: string
+  ItemCode?: string
+}
+
+export interface XeroInvoiceInput {
+  Type: "ACCREC" | "ACCPAY"
+  Contact: { ContactID: string }
+  LineItems: XeroLineItem[]
+  Date: string // YYYY-MM-DD
+  DueDate: string // YYYY-MM-DD
+  Reference?: string
+  InvoiceNumber?: string
+  Status?: "DRAFT" | "SUBMITTED" | "AUTHORISED"
+  LineAmountTypes?: "Exclusive" | "Inclusive" | "NoTax"
+  Url?: string
+}
+
+interface XeroTokenResponse {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+  token_type: string
+  scope?: string
+}
+
+interface XeroErrorResponse {
+  Type?: string
+  Message?: string
+  ErrorNumber?: number
+  Elements?: Array<{
+    ValidationErrors?: Array<{ Message: string }>
+    LineItems?: Array<{
+      ValidationErrors?: Array<{ Message: string }>
+    }>
+  }>
+}
+
+/**
+ * Custom error class that carries the raw Xero response body so callers
+ * can persist it to the sync log for debugging.
+ */
+export class XeroApiError extends Error {
+  status: number
+  rawBody: string
+  parsed: XeroErrorResponse | null
+  validationDetails: string
+
+  constructor(
+    status: number,
+    message: string,
+    rawBody: string,
+    parsed: XeroErrorResponse | null,
+    validationDetails: string,
+  ) {
+    super(message)
+    this.name = "XeroApiError"
+    this.status = status
+    this.rawBody = rawBody
+    this.parsed = parsed
+    this.validationDetails = validationDetails
+  }
+}
+
+/**
+ * Extract every validation error message from a Xero error response
+ * and join them into a single human-readable string.
+ */
+function extractValidationErrors(err: XeroErrorResponse | null): string {
+  if (!err) return ""
+  const messages: string[] = []
+  if (err.Elements) {
+    for (const el of err.Elements) {
+      for (const ve of el.ValidationErrors ?? []) {
+        if (ve.Message) messages.push(ve.Message)
+      }
+      for (const li of el.LineItems ?? []) {
+        for (const ve of li.ValidationErrors ?? []) {
+          if (ve.Message) messages.push(`Line item: ${ve.Message}`)
+        }
+      }
+    }
+  }
+  return messages.join(" | ")
+}
+
+/**
+ * Build the Xero authorization URL for the OAuth handshake.
+ *
+ * Builds the query string manually rather than using URLSearchParams
+ * because URLSearchParams encodes spaces as `+`, but Xero's authorization
+ * endpoint expects spaces in the `scope` param to be `%20` encoded.
+ */
+export function buildAuthUrl(redirectUri: string, state: string): string {
+  const clientId = process.env.XERO_CLIENT_ID
+  if (!clientId) {
+    throw new Error(
+      "XERO_CLIENT_ID is not set in environment variables",
+    )
+  }
+
+  const parts = [
+    `response_type=code`,
+    `client_id=${encodeURIComponent(clientId)}`,
+    `redirect_uri=${encodeURIComponent(redirectUri)}`,
+    `scope=${encodeURIComponent(XERO_SCOPES)}`,
+    `state=${encodeURIComponent(state)}`,
+  ]
+
+  const url = `${XERO_AUTH_URL}?${parts.join("&")}`
+
+  // Log so we can see exactly what we're sending to Xero. Strip if noisy.
+  console.log("[Xero OAuth] Authorization URL:", url)
+  console.log("[Xero OAuth] Scopes requested:", XERO_SCOPES)
+  console.log("[Xero OAuth] Redirect URI:", redirectUri)
+
+  return url
+}
+
+/**
+ * Exchange an authorization code for tokens.
+ */
+export async function exchangeCodeForTokens(
+  code: string,
+  redirectUri: string,
+): Promise<XeroTokenResponse> {
+  const clientId = process.env.XERO_CLIENT_ID
+  const clientSecret = process.env.XERO_CLIENT_SECRET
+  if (!clientId || !clientSecret) {
+    throw new Error("Missing XERO_CLIENT_ID or XERO_CLIENT_SECRET")
+  }
+
+  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64")
+
+  const res = await fetch(XERO_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${basic}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: redirectUri,
+    }).toString(),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Xero token exchange failed: ${text}`)
+  }
+
+  return res.json()
+}
+
+/**
+ * Refresh an access token using the refresh token.
+ */
+export async function refreshAccessToken(
+  refreshToken: string,
+): Promise<XeroTokenResponse> {
+  const clientId = process.env.XERO_CLIENT_ID
+  const clientSecret = process.env.XERO_CLIENT_SECRET
+  if (!clientId || !clientSecret) {
+    throw new Error("Missing XERO_CLIENT_ID or XERO_CLIENT_SECRET")
+  }
+
+  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64")
+
+  const res = await fetch(XERO_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${basic}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+    }).toString(),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Xero token refresh failed: ${text}`)
+  }
+
+  return res.json()
+}
+
+/**
+ * Get the list of tenant connections for the current access token.
+ */
+export async function getTenantConnections(
+  accessToken: string,
+): Promise<Array<{ tenantId: string; tenantName: string; tenantType: string }>> {
+  const res = await fetch(XERO_CONNECTIONS_URL, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+    },
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Xero connections lookup failed: ${text}`)
+  }
+  return res.json()
+}
+
+/**
+ * Get the most recently saved Xero credentials, refreshing if expired.
+ * Returns null if Xero is not connected.
+ */
+export async function getActiveCredentials(): Promise<XeroCredentialsRow | null> {
+  const supabase = createServiceRoleClient()
+
+  const { data, error } = await supabase
+    .from("xero_credentials")
+    .select("*")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !data) return null
+
+  const expiresAt = new Date(data.expires_at).getTime()
+  const now = Date.now()
+
+  // If expiring within 60 seconds, refresh
+  if (expiresAt - now < 60_000) {
+    try {
+      const refreshed = await refreshAccessToken(data.refresh_token)
+      const newExpiresAt = new Date(
+        Date.now() + refreshed.expires_in * 1000,
+      ).toISOString()
+
+      const { data: updated, error: updateError } = await supabase
+        .from("xero_credentials")
+        .update({
+          access_token: refreshed.access_token,
+          refresh_token: refreshed.refresh_token,
+          expires_at: newExpiresAt,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", data.id)
+        .select()
+        .single()
+
+      if (updateError) {
+        console.error("Failed to persist refreshed Xero token:", updateError)
+        return null
+      }
+      return updated as XeroCredentialsRow
+    } catch (err) {
+      console.error("Xero token refresh failed:", err)
+      return null
+    }
+  }
+
+  return data as XeroCredentialsRow
+}
+
+/**
+ * Low-level Xero API request with automatic auth headers.
+ *
+ * Adds `summarizeErrors=false` to mutating calls so Xero returns
+ * per-record validation errors instead of just "A validation exception
+ * occurred". The error thrown includes every ValidationError message.
+ */
+async function xeroRequest<T>(
+  creds: XeroCredentialsRow,
+  path: string,
+  options: {
+    method?: "GET" | "POST" | "PUT" | "DELETE"
+    body?: unknown
+    query?: Record<string, string>
+  } = {},
+): Promise<T> {
+  const url = new URL(`${XERO_API_BASE}${path}`)
+  if (options.query) {
+    for (const [k, v] of Object.entries(options.query)) {
+      url.searchParams.set(k, v)
+    }
+  }
+  // Get detailed per-record errors on writes
+  const method = options.method || "GET"
+  if (method === "POST" || method === "PUT") {
+    url.searchParams.set("summarizeErrors", "false")
+  }
+
+  const res = await fetch(url.toString(), {
+    method,
+    headers: {
+      Authorization: `Bearer ${creds.access_token}`,
+      "Xero-tenant-id": creds.tenant_id,
+      Accept: "application/json",
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    let err: XeroErrorResponse | null = null
+    try {
+      err = JSON.parse(text)
+    } catch {
+      // not JSON
+    }
+    const validationDetail = extractValidationErrors(err)
+    const baseMessage = err?.Message || text
+    const fullMessage = validationDetail
+      ? `${baseMessage} - ${validationDetail}`
+      : baseMessage
+    // Log full payload to terminal for debugging
+    console.error(`[Xero ${method} ${path}] failed (${res.status}):`, text)
+    throw new XeroApiError(
+      res.status,
+      `Xero ${method} ${path} failed (${res.status}): ${fullMessage}`,
+      text,
+      err,
+      validationDetail,
+    )
+  }
+
+  // ============================================================
+  // Critical: with summarizeErrors=false, Xero returns HTTP 200 even
+  // when validation fails on a record, with HasErrors=true and an
+  // all-zeros ID. We must detect this and throw an error so callers
+  // don't store the bogus ID and trigger downstream failures.
+  // ============================================================
+  const text = await res.text()
+  let data: unknown
+  try {
+    data = JSON.parse(text)
+  } catch {
+    throw new XeroApiError(
+      res.status,
+      `Xero ${method} ${path} returned non-JSON response: ${text}`,
+      text,
+      null,
+      "",
+    )
+  }
+
+  // Check every top-level record collection (Invoices, Contacts, etc.)
+  // for HasErrors flags or ValidationErrors arrays.
+  const recordKeys = [
+    "Invoices",
+    "Contacts",
+    "PurchaseOrders",
+    "CreditNotes",
+    "Payments",
+  ]
+  const dataObj = data as Record<string, unknown>
+  for (const key of recordKeys) {
+    const records = dataObj[key]
+    if (!Array.isArray(records)) continue
+    for (const record of records) {
+      const r = record as {
+        HasErrors?: boolean
+        ValidationErrors?: Array<{ Message: string }>
+        StatusAttributeString?: string
+      }
+      const hasError =
+        r.HasErrors === true ||
+        r.StatusAttributeString === "ERROR" ||
+        (Array.isArray(r.ValidationErrors) && r.ValidationErrors.length > 0)
+      if (hasError) {
+        const messages = (r.ValidationErrors ?? [])
+          .map((v) => v.Message)
+          .filter(Boolean)
+          .join(" | ")
+        throw new XeroApiError(
+          res.status,
+          `Xero ${method} ${path} record validation failed: ${messages || "Unknown error"}`,
+          text,
+          {
+            Type: "ValidationException",
+            Message: messages || "Record validation failed",
+            Elements: [{ ValidationErrors: r.ValidationErrors }],
+          },
+          messages,
+        )
+      }
+    }
+  }
+
+  return data as T
+}
+
+/**
+ * Public Xero client wrapper.
+ */
+export interface XeroClient {
+  credentials: XeroCredentialsRow
+  findContactByEmail(email: string): Promise<{ ContactID: string } | null>
+  createContact(input: XeroContactInput): Promise<{ ContactID: string }>
+  upsertContactByEmail(input: XeroContactInput): Promise<{ ContactID: string }>
+  createInvoice(input: XeroInvoiceInput): Promise<{
+    InvoiceID: string
+    InvoiceNumber: string
+    Status: string
+  }>
+  emailInvoice(invoiceId: string): Promise<void>
+  attachFileToInvoice(
+    invoiceId: string,
+    fileName: string,
+    contentType: string,
+    fileBuffer: Buffer | ArrayBuffer,
+  ): Promise<void>
+}
+
+export async function getXeroClient(): Promise<XeroClient | null> {
+  const creds = await getActiveCredentials()
+  if (!creds) return null
+
+  async function findContactByEmail(
+    email: string,
+  ): Promise<{ ContactID: string } | null> {
+    const where = `EmailAddress="${email.replace(/"/g, '\\"')}"`
+    const data = await xeroRequest<{
+      Contacts?: Array<{ ContactID: string }>
+    }>(creds!, "/Contacts", { query: { where } })
+    return data.Contacts?.[0] ?? null
+  }
+
+  async function createContact(
+    input: XeroContactInput,
+  ): Promise<{ ContactID: string }> {
+    const data = await xeroRequest<{
+      Contacts: Array<{ ContactID: string }>
+    }>(creds!, "/Contacts", {
+      method: "PUT",
+      body: { Contacts: [input] },
+    })
+    return data.Contacts[0]
+  }
+
+  async function upsertContactByEmail(
+    input: XeroContactInput,
+  ): Promise<{ ContactID: string }> {
+    if (input.EmailAddress) {
+      const existing = await findContactByEmail(input.EmailAddress)
+      if (existing) {
+        const data = await xeroRequest<{
+          Contacts: Array<{ ContactID: string }>
+        }>(creds!, "/Contacts", {
+          method: "POST",
+          body: {
+            Contacts: [{ ...input, ContactID: existing.ContactID }],
+          },
+        })
+        return data.Contacts[0]
+      }
+    }
+    return createContact(input)
+  }
+
+  async function createInvoice(input: XeroInvoiceInput) {
+    const data = await xeroRequest<{
+      Invoices: Array<{
+        InvoiceID: string
+        InvoiceNumber: string
+        Status: string
+      }>
+    }>(creds!, "/Invoices", {
+      method: "PUT",
+      body: { Invoices: [input] },
+    })
+    return data.Invoices[0]
+  }
+
+  /**
+   * Tell Xero to email the invoice to the contact.
+   *
+   * Xero responds with HTTP 204 and an empty body. The invoice must be
+   * AUTHORISED and the contact must have an EmailAddress, otherwise Xero
+   * returns a 400.
+   */
+  async function emailInvoice(invoiceId: string): Promise<void> {
+    const url = `${XERO_API_BASE}/Invoices/${invoiceId}/Email`
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${creds!.access_token}`,
+        "Xero-tenant-id": creds!.tenant_id,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({}),
+    })
+    if (!res.ok && res.status !== 204) {
+      const text = await res.text()
+      throw new Error(`Xero email invoice failed (${res.status}): ${text}`)
+    }
+  }
+
+  async function attachFileToInvoice(
+    invoiceId: string,
+    fileName: string,
+    contentType: string,
+    fileBuffer: Buffer | ArrayBuffer,
+  ): Promise<void> {
+    const url = `${XERO_API_BASE}/Invoices/${invoiceId}/Attachments/${encodeURIComponent(fileName)}`
+    // Wrap as Blob - widely compatible BodyInit type
+    const arrayBuffer =
+      fileBuffer instanceof ArrayBuffer
+        ? fileBuffer
+        : fileBuffer.buffer.slice(
+            fileBuffer.byteOffset,
+            fileBuffer.byteOffset + fileBuffer.byteLength,
+          )
+    const blob = new Blob([arrayBuffer as ArrayBuffer], { type: contentType })
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${creds!.access_token}`,
+        "Xero-tenant-id": creds!.tenant_id,
+        "Content-Type": contentType,
+        Accept: "application/json",
+      },
+      body: blob,
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(`Xero attach failed: ${text}`)
+    }
+  }
+
+  return {
+    credentials: creds,
+    findContactByEmail,
+    createContact,
+    upsertContactByEmail,
+    createInvoice,
+    emailInvoice,
+    attachFileToInvoice,
+  }
+}
+
+/**
+ * Log a Xero sync attempt for admin visibility / debugging.
+ */
+export async function logXeroSync(entry: {
+  entityType: string
+  entityId?: string | null
+  action: string
+  status: "success" | "error"
+  xeroId?: string | null
+  errorMessage?: string | null
+  request?: unknown
+  response?: unknown
+}): Promise<void> {
+  try {
+    const supabase = createServiceRoleClient()
+    await supabase.from("xero_sync_log").insert({
+      entity_type: entry.entityType,
+      entity_id: entry.entityId ?? null,
+      action: entry.action,
+      status: entry.status,
+      xero_id: entry.xeroId ?? null,
+      error_message: entry.errorMessage ?? null,
+      request_payload: (entry.request as object) ?? null,
+      response_payload: (entry.response as object) ?? null,
+    })
+  } catch (err) {
+    console.error("Failed to write xero_sync_log:", err)
+  }
+}

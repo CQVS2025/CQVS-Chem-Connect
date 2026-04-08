@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   ArrowLeft,
   ChevronRight,
-  MapPin,
   Package,
   Truck,
 } from "lucide-react"
@@ -71,7 +70,7 @@ async function getProduct(slug: string) {
   if (supabaseUrl && supabaseKey) {
     try {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/products?slug=eq.${encodeURIComponent(slug)}&select=*&limit=1`,
+        `${supabaseUrl}/rest/v1/products?slug=eq.${encodeURIComponent(slug)}&select=*,packaging_prices:product_packaging_prices(*,packaging_size:packaging_sizes(*))&limit=1`,
         {
           headers: {
             apikey: supabaseKey,
@@ -105,6 +104,18 @@ async function getProduct(slug: string) {
             region: data.region as string,
             image: (data.image_url as string) || "/images/cqvs-logo.png",
             badge: data.badge as string | null,
+            priceType: (data.price_type as "per_litre" | "fixed") ?? "per_litre",
+            packagingPrices: (data.packaging_prices ?? []) as Array<{
+              id: string
+              packaging_size_id: string
+              price_per_litre: number | null
+              fixed_price: number | null
+              packaging_size: {
+                id: string
+                name: string
+                volume_litres: number | null
+              }
+            }>,
           }
         }
       }
@@ -115,7 +126,18 @@ async function getProduct(slug: string) {
 
   const staticProduct = getProductBySlug(slug)
   if (!staticProduct) return null
-  return { ...staticProduct, shippingFee: 0 }
+  return {
+    ...staticProduct,
+    shippingFee: 0,
+    priceType: "per_litre" as const,
+    packagingPrices: [] as Array<{
+      id: string
+      packaging_size_id: string
+      price_per_litre: number | null
+      fixed_price: number | null
+      packaging_size: { id: string; name: string; volume_litres: number | null }
+    }>,
+  }
 }
 
 async function getRelatedProducts(category: string, excludeSlug: string) {
@@ -319,12 +341,49 @@ export default async function ProductDetailPage({
                 {product.name}
               </h1>
 
-              <p className="mt-4 text-4xl font-bold text-primary">
-                ${product.price.toFixed(2)}
-                <span className="text-lg font-normal text-muted-foreground">
-                  {" "}/ {product.unit}
-                </span>
-              </p>
+              {product.packagingPrices && product.packagingPrices.length > 0 ? (
+                <div className="mt-4 space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Pricing by Packaging Size
+                  </p>
+                  <div className="space-y-1.5">
+                    {product.packagingPrices.map((pp) => {
+                      const litres = Number(pp.packaging_size?.volume_litres ?? 0)
+                      const total =
+                        product.priceType === "per_litre"
+                          ? Number(pp.price_per_litre ?? 0) * litres
+                          : Number(pp.fixed_price ?? 0)
+                      return (
+                        <div
+                          key={pp.id}
+                          className="flex items-baseline justify-between rounded-md border border-border/50 bg-muted/30 px-3 py-2"
+                        >
+                          <span className="text-sm font-medium">
+                            {pp.packaging_size?.name}
+                          </span>
+                          <div className="flex items-baseline gap-2">
+                            {product.priceType === "per_litre" && (
+                              <span className="text-xs text-muted-foreground">
+                                ${Number(pp.price_per_litre ?? 0).toFixed(2)}/L
+                              </span>
+                            )}
+                            <span className="text-lg font-bold text-primary">
+                              ${total.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-4 text-4xl font-bold text-primary">
+                  ${product.price.toFixed(2)}
+                  <span className="text-lg font-normal text-muted-foreground">
+                    {" "}/ {product.unit}
+                  </span>
+                </p>
+              )}
             </div>
           </StaggerItem>
 
@@ -404,6 +463,8 @@ export default async function ProductDetailPage({
                   productId={product.id}
                   productName={product.name}
                   packagingSizes={product.packagingSizes}
+                  packagingPrices={product.packagingPrices}
+                  priceType={product.priceType}
                   inStock={product.inStock}
                   stockQty={product.stockQty}
                 />
@@ -425,27 +486,8 @@ export default async function ProductDetailPage({
                   <p className="mt-1 text-sm text-muted-foreground">
                     {product.deliveryInfo}
                   </p>
-                  <p className="mt-2 text-sm font-medium">
-                    Shipping:{" "}
-                    {product.shippingFee > 0 ? (
-                      <span className="text-foreground">${product.shippingFee.toFixed(2)}</span>
-                    ) : (
-                      <span className="text-emerald-500">Free</span>
-                    )}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </StaggerItem>
-
-          <StaggerItem>
-            <Card>
-              <CardContent className="flex items-start gap-3 pt-4">
-                <MapPin className="mt-0.5 size-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Regional Availability</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Available in {product.region}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Shipping calculated at checkout based on your delivery postcode.
                   </p>
                 </div>
               </CardContent>

@@ -1,0 +1,58 @@
+"use client"
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { get, post, put, del } from "@/lib/api/client"
+import type { PackagingSize } from "@/lib/supabase/types"
+
+export function usePackagingSizes() {
+  return useQuery({
+    queryKey: ["packaging-sizes"],
+    queryFn: () => get<PackagingSize[]>("/packaging-sizes"),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+}
+
+export function useCreatePackagingSize() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: {
+      name: string
+      volume_litres?: number | null
+      container_type?: string
+      sort_order?: number
+    }) => post<PackagingSize>("/packaging-sizes", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["packaging-sizes"] })
+    },
+  })
+}
+
+export function useUpdatePackagingSize() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...data
+    }: {
+      id: string
+      name?: string
+      volume_litres?: number | null
+      container_type?: string
+      sort_order?: number
+      is_active?: boolean
+    }) => put<PackagingSize>(`/packaging-sizes/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["packaging-sizes"] })
+    },
+  })
+}
+
+export function useDeletePackagingSize() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => del(`/packaging-sizes/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["packaging-sizes"] })
+    },
+  })
+}

@@ -15,12 +15,15 @@ interface CreateOrderItem {
   product_id: string
   quantity: number
   packaging_size: string
+  packaging_size_id?: string | null
   unit_price: number
 }
 
 interface CreateOrderInput {
   payment_method: "stripe" | "purchase_order"
   po_number?: string
+  invoice_email?: string
+  forklift_available?: boolean
   first_order_choice?: string | null
   first_order_truck_wash?: string | null
   items: CreateOrderItem[]
