@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Loader2, Plus, Pencil, Save, Warehouse as WarehouseIcon } from "lucide-react"
+import { Loader2, Plus, Pencil, Save, Trash2, Warehouse as WarehouseIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -44,12 +44,17 @@ import {
   useContainerCosts,
   useUpsertContainerCost,
 } from "@/lib/hooks/use-warehouses"
-import { usePackagingSizes } from "@/lib/hooks/use-packaging-sizes"
-import type { Warehouse } from "@/lib/supabase/types"
+import {
+  usePackagingSizes,
+  useCreatePackagingSize,
+  useUpdatePackagingSize,
+  useDeletePackagingSize,
+} from "@/lib/hooks/use-packaging-sizes"
+import type { Warehouse, PackagingSize } from "@/lib/supabase/types"
 
 const AU_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]
 
-type Tab = "warehouses" | "containers"
+type Tab = "warehouses" | "containers" | "packaging-sizes"
 
 export default function AdminWarehousesPage() {
   const [tab, setTab] = useState<Tab>("warehouses")
@@ -61,37 +66,36 @@ export default function AdminWarehousesPage() {
           Shipping &amp; Warehouses
         </h1>
         <p className="text-muted-foreground">
-          Manage warehouse locations and per-warehouse container costs.
+          Manage warehouse locations, packaging sizes, and per-warehouse container costs.
         </p>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-border">
-        <button
-          type="button"
-          onClick={() => setTab("warehouses")}
-          className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-            tab === "warehouses"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Warehouses
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("containers")}
-          className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-            tab === "containers"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Container Costs
-        </button>
+        {(
+          [
+            { id: "warehouses", label: "Warehouses" },
+            { id: "packaging-sizes", label: "Packaging Sizes" },
+            { id: "containers", label: "Container Costs" },
+          ] as const
+        ).map(({ id, label }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+              tab === id
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {tab === "warehouses" && <WarehousesTab />}
+      {tab === "packaging-sizes" && <PackagingSizesTab />}
       {tab === "containers" && <ContainerCostsTab />}
     </div>
   )
@@ -409,6 +413,284 @@ function WarehousesTab() {
                 disabled={createWarehouse.isPending || updateWarehouse.isPending}
               >
                 {createWarehouse.isPending || updateWarehouse.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ----------------------------------------------------------------
+// Packaging Sizes Tab
+// ----------------------------------------------------------------
+const CONTAINER_TYPES = [
+  { value: "drum", label: "Drum" },
+  { value: "jerry_can", label: "Jerry Can" },
+  { value: "ibc", label: "IBC" },
+  { value: "bag", label: "Bag" },
+  { value: "other", label: "Other" },
+]
+
+function PackagingSizesTab() {
+  const { data: sizes = [], isLoading } = usePackagingSizes()
+  const createSize = useCreatePackagingSize()
+  const updateSize = useUpdatePackagingSize()
+  const deleteSize = useDeletePackagingSize()
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState({
+    name: "",
+    volume_litres: "",
+    container_type: "drum",
+    sort_order: 0,
+    is_active: true,
+  })
+
+  function openAdd() {
+    setEditingId(null)
+    setForm({
+      name: "",
+      volume_litres: "",
+      container_type: "drum",
+      sort_order: (sizes.length + 1) * 10,
+      is_active: true,
+    })
+    setDialogOpen(true)
+  }
+
+  function openEdit(s: PackagingSize) {
+    setEditingId(s.id)
+    setForm({
+      name: s.name,
+      volume_litres: s.volume_litres != null ? String(s.volume_litres) : "",
+      container_type: s.container_type ?? "drum",
+      sort_order: s.sort_order,
+      is_active: s.is_active,
+    })
+    setDialogOpen(true)
+  }
+
+  async function handleSave() {
+    if (!form.name.trim()) {
+      toast.error("Name is required")
+      return
+    }
+    const payload = {
+      name: form.name.trim(),
+      volume_litres: form.volume_litres !== "" ? parseFloat(form.volume_litres) : null,
+      container_type: form.container_type,
+      sort_order: form.sort_order,
+      is_active: form.is_active,
+    }
+    try {
+      if (editingId) {
+        await updateSize.mutateAsync({ id: editingId, ...payload })
+        toast.success("Packaging size updated")
+      } else {
+        await createSize.mutateAsync(payload)
+        toast.success("Packaging size added")
+      }
+      setDialogOpen(false)
+    } catch {
+      toast.error("Failed to save packaging size")
+    }
+  }
+
+  async function handleDeactivate(id: string) {
+    try {
+      await deleteSize.mutateAsync(id)
+      toast.success("Packaging size deactivated")
+    } catch {
+      toast.error("Failed to deactivate")
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Packaging Sizes</CardTitle>
+          <CardDescription>
+            Master list of container/packaging options available across all products.
+          </CardDescription>
+        </div>
+        <Button onClick={openAdd}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Size
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Volume (L)</TableHead>
+                <TableHead>Sort</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sizes.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                    No packaging sizes configured.
+                  </TableCell>
+                </TableRow>
+              )}
+              {sizes.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell className="font-medium">{s.name}</TableCell>
+                  <TableCell className="capitalize text-muted-foreground">
+                    {(s.container_type ?? "").replace("_", " ")}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {s.volume_litres != null ? `${s.volume_litres}L` : "—"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{s.sort_order}</TableCell>
+                  <TableCell>
+                    {s.is_active ? (
+                      <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-500">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                        Inactive
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(s)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      {s.is_active && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeactivate(s.id)}
+                          disabled={deleteSize.isPending}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {editingId ? "Edit Packaging Size" : "Add Packaging Size"}
+              </DialogTitle>
+              <DialogDescription>
+                Sizes appear as selectable options on product pages and in cart.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label>Name *</Label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g. 205L Drum, 1000L IBC"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Container Type</Label>
+                  <Select
+                    value={form.container_type}
+                    onValueChange={(v) => setForm({ ...form, container_type: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CONTAINER_TYPES.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>
+                    Volume (litres){" "}
+                    <span className="text-xs text-muted-foreground">optional</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.volume_litres}
+                    onChange={(e) => setForm({ ...form, volume_litres: e.target.value })}
+                    placeholder="e.g. 205"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Sort Order</Label>
+                  <Input
+                    type="number"
+                    value={form.sort_order}
+                    onChange={(e) =>
+                      setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Status</Label>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, is_active: !form.is_active })}
+                    className={`flex h-10 items-center justify-center rounded-md border px-3 text-sm font-medium ${
+                      form.is_active
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                        : "border-red-500/30 bg-red-500/10 text-red-500"
+                    }`}
+                  >
+                    {form.is_active ? "Active" : "Inactive"}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={createSize.isPending || updateSize.isPending}
+              >
+                {createSize.isPending || updateSize.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Saving...
