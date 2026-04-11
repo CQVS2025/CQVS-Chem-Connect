@@ -12,15 +12,30 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   const { id } = await params
   const body = await request.json()
 
+  const updatePayload: Record<string, unknown> = {
+    name: body.name,
+    volume_litres: body.volume_litres ?? null,
+    container_type: body.container_type,
+    sort_order: body.sort_order,
+    is_active: body.is_active,
+  }
+  // Only include capacity fields if explicitly provided so partial updates work
+  if (body.units_per_pallet !== undefined) {
+    updatePayload.units_per_pallet =
+      typeof body.units_per_pallet === "number" && body.units_per_pallet > 0
+        ? body.units_per_pallet
+        : null
+  }
+  if (body.unit_weight_kg !== undefined) {
+    updatePayload.unit_weight_kg =
+      typeof body.unit_weight_kg === "number" && body.unit_weight_kg > 0
+        ? body.unit_weight_kg
+        : null
+  }
+
   const { data, error } = await supabase
     .from("packaging_sizes")
-    .update({
-      name: body.name,
-      volume_litres: body.volume_litres ?? null,
-      container_type: body.container_type,
-      sort_order: body.sort_order,
-      is_active: body.is_active,
-    })
+    .update(updatePayload)
     .eq("id", id)
     .select()
     .single()

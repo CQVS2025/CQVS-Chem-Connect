@@ -18,8 +18,11 @@ import {
   MapPin,
   Paperclip,
   Trash2,
+  ExternalLink,
+  FileText,
 } from "lucide-react"
 
+import { useQueryClient } from "@tanstack/react-query"
 import {
   useAdminOrders,
   useUpdateOrderStatus,
@@ -27,6 +30,19 @@ import {
 } from "@/lib/hooks/use-orders"
 import { useOrderDocuments } from "@/lib/hooks/use-order-documents"
 import type { Order, OrderStatus } from "@/lib/types/order"
+
+type AdminOrder = Order & {
+  macship_consignment_id?: string | null
+  macship_pickup_date?: string | null
+  macship_dispatched_at?: string | null
+  macship_tracking_url?: string | null
+  macship_consignment_failed?: boolean | null
+  macship_lead_time_fallback?: boolean | null
+  xero_invoice_id?: string | null
+  xero_invoice_number?: string | null
+  xero_po_id?: string | null
+  xero_po_number?: string | null
+}
 import {
   AlertDialog,
   AlertDialogAction,
@@ -779,45 +795,6 @@ export default function AdminOrdersPage() {
                                         </div>
                                       )}
 
-                                      {/* Xero invoice status */}
-                                      {order.payment_method === "purchase_order" && (
-                                        <div className="rounded-md border border-border bg-background p-3 text-sm">
-                                          <div className="mb-1 font-medium">Xero Invoice</div>
-                                          {order.xero_invoice_id ? (
-                                            <div className="space-y-1 text-xs text-muted-foreground">
-                                              <div>
-                                                Invoice number:{" "}
-                                                <a
-                                                  href={`https://go.xero.com/AccountsReceivable/Edit.aspx?InvoiceID=${order.xero_invoice_id}`}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  className="font-medium text-primary hover:underline"
-                                                >
-                                                  {order.xero_invoice_number}
-                                                </a>
-                                              </div>
-                                              {order.xero_invoice_status && (
-                                                <div>Status: {order.xero_invoice_status}</div>
-                                              )}
-                                              {order.xero_synced_at && (
-                                                <div>
-                                                  Synced: {formatDateTime(order.xero_synced_at)}
-                                                </div>
-                                              )}
-                                            </div>
-                                          ) : (
-                                            <p className="text-xs text-amber-500">
-                                              Not yet synced. Will be created automatically once
-                                              the PO document is uploaded, or check the{" "}
-                                              <a href="/admin/xero" className="underline">
-                                                Xero sync log
-                                              </a>{" "}
-                                              for errors.
-                                            </p>
-                                          )}
-                                        </div>
-                                      )}
-
                                       {/* Tracking */}
                                       {order.tracking_number && (
                                         <div>
@@ -890,6 +867,186 @@ export default function AdminOrdersPage() {
                                           PO Number: {order.po_number}
                                         </p>
                                       )}
+
+                                      {/* MacShip & Xero Info */}
+                                      <div className="mt-4 border-t pt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                        {/* MacShip section */}
+                                        <div className="space-y-2">
+                                          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Shipping (MacShip)
+                                          </h4>
+                                          {(order as AdminOrder).macship_consignment_id ? (
+                                            <div className="space-y-1 text-sm">
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-muted-foreground text-xs">Consignment:</span>
+                                                <span className="font-mono text-xs">{(order as AdminOrder).macship_consignment_id}</span>
+                                              </div>
+                                              {(order as AdminOrder).macship_pickup_date && (
+                                                <div className="flex items-center gap-2">
+                                                  <span className="text-muted-foreground text-xs">Pickup date:</span>
+                                                  <span className="text-xs font-medium">
+                                                    {new Date((order as AdminOrder).macship_pickup_date!).toLocaleDateString("en-AU", {
+                                                      day: "numeric",
+                                                      month: "short",
+                                                      year: "numeric",
+                                                    })}
+                                                  </span>
+                                                </div>
+                                              )}
+                                              {(order as AdminOrder).macship_tracking_url && (
+                                                <a
+                                                  href={(order as AdminOrder).macship_tracking_url!}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="flex items-center gap-1 text-xs text-primary hover:underline"
+                                                >
+                                                  <ExternalLink className="h-3 w-3" />
+                                                  Track Shipment
+                                                </a>
+                                              )}
+                                              {!(order as AdminOrder).macship_dispatched_at ? (
+                                                <DispatchButton order={order as AdminOrder} />
+                                              ) : (
+                                                <span className="flex items-center gap-1 text-xs text-emerald-500">
+                                                  <CheckCircle2 className="h-3 w-3" />
+                                                  Dispatched {new Date((order as AdminOrder).macship_dispatched_at!).toLocaleDateString("en-AU")}
+                                                </span>
+                                              )}
+                                              <PrintLabelsButton
+                                                consignmentId={(order as AdminOrder).macship_consignment_id!}
+                                              />
+                                            </div>
+                                          ) : (
+                                            <div className="space-y-1">
+                                              {(order as AdminOrder).macship_consignment_failed ? (
+                                                <span className="text-xs text-amber-500">⚠ Consignment creation failed — book manually</span>
+                                              ) : (
+                                                <span className="text-xs text-muted-foreground">No MacShip consignment</span>
+                                              )}
+                                              {(order as AdminOrder).macship_lead_time_fallback && (
+                                                <p className="text-xs text-amber-400">⚠ Used 5-day lead time fallback — configure lead times</p>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* Xero section */}
+                                        <div className="space-y-2">
+                                          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Xero Accounting
+                                          </h4>
+                                          <div className="space-y-1">
+                                            {(order as AdminOrder).xero_invoice_id ? (
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-muted-foreground text-xs">Invoice:</span>
+                                                <span className="font-mono text-xs">{(order as AdminOrder).xero_invoice_number || (order as AdminOrder).xero_invoice_id}</span>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-5 px-1 text-xs"
+                                                  onClick={async () => {
+                                                    try {
+                                                      const res = await fetch(`/api/xero/invoices/${(order as AdminOrder).xero_invoice_id}/url`)
+                                                      if (res.ok) {
+                                                        const { url } = await res.json()
+                                                        window.open(url, "_blank")
+                                                      } else {
+                                                        toast.error("Could not open Xero invoice")
+                                                      }
+                                                    } catch {
+                                                      toast.error("Could not open Xero invoice")
+                                                    }
+                                                  }}
+                                                >
+                                                  <ExternalLink className="h-3 w-3" />
+                                                </Button>
+                                              </div>
+                                            ) : (
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-xs text-muted-foreground">No Xero invoice</span>
+                                                {order.payment_method === "purchase_order" && (
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-5 px-1 text-xs text-primary"
+                                                    onClick={async () => {
+                                                      try {
+                                                        const res = await fetch("/api/xero/invoices", {
+                                                          method: "POST",
+                                                          headers: { "Content-Type": "application/json" },
+                                                          body: JSON.stringify({ order_id: order.id }),
+                                                        })
+                                                        if (res.ok) {
+                                                          toast.success("Xero invoice created")
+                                                        } else {
+                                                          toast.error("Failed to create invoice")
+                                                        }
+                                                      } catch {
+                                                        toast.error("Failed to create invoice")
+                                                      }
+                                                    }}
+                                                  >
+                                                    Create
+                                                  </Button>
+                                                )}
+                                              </div>
+                                            )}
+                                            {(order as AdminOrder).xero_po_id ? (
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-muted-foreground text-xs">PO:</span>
+                                                <span className="font-mono text-xs">{(order as AdminOrder).xero_po_number || (order as AdminOrder).xero_po_id}</span>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-5 px-1 text-xs"
+                                                  onClick={async () => {
+                                                    try {
+                                                      const res = await fetch(`/api/xero/purchase-orders/${(order as AdminOrder).xero_po_id}/url`)
+                                                      if (res.ok) {
+                                                        const { url } = await res.json()
+                                                        window.open(url, "_blank")
+                                                      } else {
+                                                        toast.error("Could not open Xero PO")
+                                                      }
+                                                    } catch {
+                                                      toast.error("Could not open Xero PO")
+                                                    }
+                                                  }}
+                                                >
+                                                  <ExternalLink className="h-3 w-3" />
+                                                </Button>
+                                              </div>
+                                            ) : (
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-xs text-muted-foreground">No Xero PO</span>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-5 px-1 text-xs text-primary"
+                                                  onClick={async () => {
+                                                    try {
+                                                      const res = await fetch("/api/xero/purchase-orders", {
+                                                        method: "POST",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({ order_id: order.id }),
+                                                      })
+                                                      if (res.ok) {
+                                                        toast.success("Xero PO created")
+                                                      } else {
+                                                        toast.error("Failed to create PO")
+                                                      }
+                                                    } catch {
+                                                      toast.error("Failed to create PO")
+                                                    }
+                                                  }}
+                                                >
+                                                  Create
+                                                </Button>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
                                   </TableCell>
                                 </TableRow>
@@ -1036,5 +1193,129 @@ export default function AdminOrdersPage() {
         </AlertDialogContent>
       </AlertDialog>
     </PageTransition>
+  )
+}
+
+function DispatchButton({ order }: { order: AdminOrder }) {
+  const queryClient = useQueryClient()
+  const [isDispatching, setIsDispatching] = useState(false)
+  const [isOverriding, setIsOverriding] = useState(false)
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const pickupDate = order.macship_pickup_date ? new Date(order.macship_pickup_date) : null
+  if (pickupDate) pickupDate.setHours(0, 0, 0, 0)
+
+  const isReady = !pickupDate || today >= pickupDate || isOverriding
+  const daysUntilReady = pickupDate ? Math.ceil((pickupDate.getTime() - today.getTime()) / 86400000) : 0
+
+  async function handleDispatch() {
+    setIsDispatching(true)
+    try {
+      const res = await fetch("/api/macship/manifest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: order.id }),
+      })
+      if (res.ok) {
+        toast.success("Order dispatched — carrier notified!")
+        queryClient.invalidateQueries({ queryKey: ["orders"] })
+      } else {
+        const { error } = await res.json()
+        toast.error(error || "Dispatch failed")
+      }
+    } catch {
+      toast.error("Dispatch failed")
+    } finally {
+      setIsDispatching(false)
+    }
+  }
+
+  return (
+    <div className="space-y-1">
+      {!isReady && (
+        <p className="text-xs text-amber-500">
+          Ready for dispatch on {pickupDate?.toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+          {daysUntilReady > 0 ? ` (${daysUntilReady}d)` : ""}
+        </p>
+      )}
+      <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          variant={isReady ? "default" : "outline"}
+          disabled={!isReady || isDispatching}
+          onClick={handleDispatch}
+          className="h-7 text-xs"
+        >
+          {isDispatching ? (
+            <><Loader2 className="mr-1 h-3 w-3 animate-spin" />Dispatching...</>
+          ) : (
+            <><Truck className="mr-1 h-3 w-3" />Dispatch</>
+          )}
+        </Button>
+        {!isReady && !isOverriding && (
+          <button
+            type="button"
+            className="text-xs text-muted-foreground underline"
+            onClick={() => setIsOverriding(true)}
+          >
+            Override
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function PrintLabelsButton({ consignmentId }: { consignmentId: string }) {
+  const [loading, setLoading] = useState(false)
+
+  async function handleClick() {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/macship/labels?consignment_id=${consignmentId}`)
+      const contentType = res.headers.get("content-type") || ""
+
+      // PDF returned → open it in a new tab
+      if (contentType.includes("application/pdf")) {
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        window.open(url, "_blank")
+        // Revoke after a delay so the browser has time to load it
+        setTimeout(() => URL.revokeObjectURL(url), 60_000)
+        return
+      }
+
+      // JSON response — either an error or the "carrier handles own labels" flag
+      const data = await res.json()
+      if (data.carrier_handles_own_labels) {
+        toast.info(
+          data.message ||
+            "This carrier handles its own labels directly (no Machship label required)",
+        )
+      } else {
+        toast.error(data.error || "Could not fetch labels")
+      }
+    } catch {
+      toast.error("Could not fetch labels")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline disabled:opacity-50"
+    >
+      {loading ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <FileText className="h-3 w-3" />
+      )}
+      Print Labels
+    </button>
   )
 }

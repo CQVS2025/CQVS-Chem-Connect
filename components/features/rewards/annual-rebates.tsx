@@ -18,9 +18,9 @@ interface RebateTier {
 }
 
 const tierColors = [
-  { color: "text-primary", bgColor: "bg-primary/10", borderColor: "hover:ring-primary/30" },
-  { color: "text-sky-400", bgColor: "bg-sky-400/10", borderColor: "hover:ring-sky-400/30" },
-  { color: "text-yellow-400", bgColor: "bg-yellow-400/10", borderColor: "hover:ring-yellow-400/30" },
+  { color: "text-primary", bgColor: "bg-primary/10", borderColor: "border-primary/20", hover: "hover:border-primary/40" },
+  { color: "text-sky-400", bgColor: "bg-sky-400/10", borderColor: "border-sky-400/20", hover: "hover:border-sky-400/40" },
+  { color: "text-yellow-400", bgColor: "bg-yellow-400/10", borderColor: "border-yellow-400/20", hover: "hover:border-yellow-400/40" },
 ]
 
 interface AnnualRebatesProps {
@@ -53,17 +53,17 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
     : 0
 
   return (
-    <section id="rebates" className="scroll-mt-36 px-4 py-16 sm:py-20">
+    <section id="rebates" className="scroll-mt-36 border-t border-border/60 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-5xl">
         <FadeIn>
-          <div className="mb-10">
-            <span className="mb-3 block text-sm font-bold tracking-widest text-primary">
-              05
-            </span>
-            <h2 className="mb-3 text-2xl font-bold tracking-tight sm:text-3xl">
-              Annual Spend & Save Rebates
+          <div className="mb-12">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              05 — Rebates
+            </div>
+            <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
+              Annual Spend &amp; Save Rebates
             </h2>
-            <p className="max-w-2xl text-muted-foreground">
+            <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
               Year-end store credit based on total spend. The more you buy, the
               more you get back.
             </p>
@@ -73,12 +73,12 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
         {isLoading ? (
           <div className="mb-8 grid gap-4 sm:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-40 rounded-xl" />
+              <Skeleton key={i} className="h-44 rounded-3xl" />
             ))}
           </div>
         ) : activeTiers.length === 0 ? (
           <FadeIn>
-            <div className="rounded-xl border border-white/5 bg-card/50 p-8 text-center backdrop-blur-sm">
+            <div className="rounded-3xl border border-border/60 bg-card p-10 text-center">
               <p className="text-sm text-muted-foreground">
                 Rebate tiers are being configured. Check back soon!
               </p>
@@ -100,32 +100,32 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
                   <StaggerItem key={tier.id}>
                     <Card
                       className={cn(
-                        "group h-full border-white/5 bg-card/50 backdrop-blur-sm transition-all duration-300",
-                        "hover:shadow-xl hover:shadow-primary/5 hover:ring-1",
-                        visual.borderColor
+                        "group h-full rounded-3xl border border-border/60 bg-card transition-all duration-300",
+                        "hover:shadow-xl hover:shadow-primary/5",
+                        visual.hover
                       )}
                     >
-                      <CardContent className="p-5 sm:p-6">
+                      <CardContent className="p-6 sm:p-7">
                         <div
                           className={cn(
-                            "mb-4 flex size-16 items-center justify-center rounded-2xl",
-                            visual.bgColor
+                            "mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border",
+                            visual.bgColor,
+                            visual.borderColor
                           )}
                         >
                           <span className={cn("text-2xl font-bold", visual.color)}>
                             {tier.rebate_percent}%
                           </span>
                         </div>
-                        <p className="mb-2 text-sm font-medium text-foreground">
-                          AUD {tier.min_annual_spend.toLocaleString()} -{" "}
+                        <p className="mb-2 text-sm font-semibold text-foreground">
+                          AUD {tier.min_annual_spend.toLocaleString()} —{" "}
                           {tier.max_annual_spend
                             ? `AUD ${tier.max_annual_spend.toLocaleString()}`
                             : "AUD 100k+"}{" "}
                           annual spend
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Spend AUD {exampleSpend.toLocaleString()} -{">"} AUD 
-                          {exampleCredit.toLocaleString()} credit
+                          Spend AUD {exampleSpend.toLocaleString()} → AUD {exampleCredit.toLocaleString()} credit
                         </p>
                       </CardContent>
                     </Card>
@@ -134,18 +134,18 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
               })}
             </StaggerContainer>
 
-            {/* Fine print */}
+            {/* Fine print chips */}
             <FadeIn delay={0.1}>
-              <div className="mb-8 flex flex-wrap justify-center gap-3 text-xs text-muted-foreground">
+              <div className="mb-8 flex flex-wrap justify-center gap-2.5">
                 {[
                   "Store credit (not cash)",
                   "Valid 12 months",
-                  "Calendar year (Jan-Dec)",
+                  "Calendar year (Jan–Dec)",
                   "Credited in January",
                 ].map((note) => (
                   <span
                     key={note}
-                    className="rounded-full border border-white/5 bg-muted/30 px-3 py-1"
+                    className="rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary"
                   >
                     {note}
                   </span>
@@ -156,13 +156,15 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
             {/* Progress */}
             {annualSpend > 0 && nextTier && (
               <FadeIn delay={0.2}>
-                <Card className="border-white/5 bg-card/50 backdrop-blur-sm">
-                  <CardContent className="p-5 sm:p-6">
-                    <div className="mb-3 flex items-center gap-2">
-                      <TrendingUp className="size-4 text-primary" />
-                      <span className="text-sm font-semibold">Your progress</span>
+                <Card className="rounded-3xl border border-border/60 bg-card">
+                  <CardContent className="p-6 sm:p-7">
+                    <div className="mb-4 flex items-center gap-2">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
+                        <TrendingUp className="size-5 text-primary" />
+                      </div>
+                      <span className="text-sm font-semibold text-foreground">Your progress</span>
                     </div>
-                    <div className="mb-3 h-3 overflow-hidden rounded-full bg-muted/50">
+                    <div className="mb-4 h-3 overflow-hidden rounded-full bg-muted">
                       <div
                         className="h-full rounded-full bg-linear-to-r from-primary to-emerald-400 transition-all duration-1000"
                         style={{ width: `${progressPercent}%` }}
@@ -177,7 +179,7 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
                       <span className="font-semibold text-primary">
                         AUD {remaining.toLocaleString()}
                       </span>{" "}
-                      away from the {nextTier.rebate_percent}% tier - that&apos;s AUD {potentialCredit.toLocaleString()} in credit.
+                      away from the {nextTier.rebate_percent}% tier — that&apos;s AUD {potentialCredit.toLocaleString()} in credit.
                     </p>
                   </CardContent>
                 </Card>

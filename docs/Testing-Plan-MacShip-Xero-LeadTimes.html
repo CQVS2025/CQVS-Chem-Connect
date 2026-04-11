@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Testing Plan (MacShip + Xero PO + Lead Times)</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 15px; }
+  h4 { color: #16a34a; margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .box-purple { border-left-color: #8b5cf6; background: #f5f3ff; }
+  .api { font-family: 'Courier New', monospace; background: #1f2937; color: #10b981; padding: 6px 12px; border-radius: 5px; display: block; margin: 6px 0; font-size: 11px; }
+  .file { font-family: 'Courier New', monospace; background: #f1f5f9; color: #0f172a; padding: 2px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #e2e8f0; }
+  .step { display: flex; gap: 12px; margin: 10px 0; }
+  .step-n { background: #16a34a; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .step-c { flex: 1; font-size: 13px; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 44px 0; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .b-pass { background: #dcfce7; color: #166534; }
+  .b-warn { background: #fef3c7; color: #92400e; }
+  .b-fail { background: #fee2e2; color: #991b1b; }
+  .b-info { background: #dbeafe; color: #1e40af; }
+  .b-required { background: #fce7f3; color: #9d174d; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  .phase-header { background: #16a34a; color: white; padding: 10px 16px; border-radius: 6px; margin: 20px 0 12px; font-weight: 700; font-size: 14px; }
+  .task-block { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin: 10px 0; }
+  .task-block h4 { margin-top: 0; }
+  .status-prereq { border-left: 4px solid #9d174d; }
+  .status-test { border-left: 4px solid #3b82f6; }
+  .status-edge { border-left: 4px solid #8b5cf6; }
+  .status-prod { border-left: 4px solid #f59e0b; }
+  .check { display: inline-block; width: 14px; height: 14px; border: 2px solid #d1d5db; border-radius: 3px; margin-right: 8px; vertical-align: middle; flex-shrink: 0; }
+  .checklist li { display: flex; align-items: flex-start; gap: 6px; list-style: none; padding-left: 0; margin: 6px 0; }
+  .checklist { padding-left: 0; }
+  .url { font-family: 'Courier New', monospace; background: #1f2937; color: #a78bfa; padding: 4px 10px; border-radius: 5px; font-size: 12px; display: inline-block; margin: 4px 0; }
+  .expected { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 8px 12px; margin: 8px 0; font-size: 12px; color: #166534; }
+  .expected::before { content: "✓ Expected: "; font-weight: 700; }
+  .warn-block { background: #fef3c7; border: 1px solid #fde68a; border-radius: 4px; padding: 8px 12px; margin: 8px 0; font-size: 12px; color: #92400e; }
+  .warn-block::before { content: "⚠ Note: "; font-weight: 700; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Testing Plan</p>
+  <p style="color: #9ca3af;">MacShip Integration · Xero Purchase Orders · Lead Time Management</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib | April 2026</p>
+</div>
+
+<div class="box">
+  <strong>Purpose:</strong> This document provides a step-by-step testing guide for all features implemented in the MacShip + Xero PO + Lead Times integration. Follow the phases in order — each phase depends on the previous one being correctly set up. Currently running in <strong>test mode</strong> (staging MacShip API).
+</div>
+
+<div class="box-blue box">
+  <strong>Status update — April 2026:</strong>
+  <ul>
+    <li>✅ Machship API integration <strong>fully verified working</strong> with real quotes on both pallet and carton lanes.</li>
+    <li>✅ Machship company ID <strong>55514</strong> (CQVS) set in <span class="file">.env.local</span> as <span class="file">MACSHIP_COMPANY_ID</span>.</li>
+    <li>✅ 4 carriers linked to CQVS: Freight Assist Australia, Followmont Transport, <strong>Aramex</strong>, Hi Trans.</li>
+    <li>✅ All requests send the correct <span class="file">itemType</span> so Machship can match against the right rate cards.</li>
+    <li>✅ Xero invoice + PO creation working end-to-end against the Demo Company (Global). Tax overrides set to <span class="file">NONE</span> + <span class="file">XERO_CURRENCY=AUTO</span> because the demo org is non-AU. Production with an real AU Xero org will use OUTPUT2/INPUT2 + AUD natively (no overrides).</li>
+    <li>✅ All 9 phases below are now testable end-to-end with real Machship + Xero responses.</li>
+  </ul>
+
+  <strong>Packaging-to-carrier routing logic (confirmed with CQVS + Multigroup Logistics):</strong>
+  <table style="margin-top: 8px;">
+    <tr><th>Cart / Order contents</th><th>Item type sent</th><th>Carrier (verified)</th><th>Sample lane (West Ryde → Sydney)</th></tr>
+    <tr><td><strong>1 × 20L Jerry Can</strong> (entire order is one unit)</td><td>Carton</td><td>Aramex Parcel</td><td>~AUD $27.25</td></tr>
+    <tr><td><strong>2+ × 20L Jerry Can</strong> or mixed cart</td><td>Pallet (consolidated)</td><td>Hi Trans Local</td><td>~AUD $276.08</td></tr>
+    <tr><td>200L drum</td><td>Drum</td><td>Pallet carrier</td><td>depends on rate card</td></tr>
+    <tr><td>1000L IBC</td><td>IBC</td><td>Pallet carrier</td><td>depends on rate card</td></tr>
+    <tr><td>Anything else</td><td>Pallet</td><td>Pallet carrier</td><td>depends on rate card</td></tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 0 -->
+<h2><span class="section-num">Phase 0.</span> Prerequisites — Do This First</h2>
+
+<div class="box-amber box">
+  <strong>Do not skip this phase.</strong> Everything else depends on the database migration being applied and the warehouse being correctly configured.
+</div>
+
+<h3>0.1 Apply Database Migration 025</h3>
+<div class="task-block status-prereq">
+  <h4>Action Required</h4>
+  <p>Run the migration SQL against your Supabase project:</p>
+  <ol>
+    <li>Open the Supabase Dashboard → SQL Editor</li>
+    <li>Paste the full contents of <span class="file">supabase/migrations/025_macship_lead_times.sql</span></li>
+    <li>Click Run</li>
+  </ol>
+  <h4>Verify in the Table Editor that these now exist</h4>
+  <table>
+    <tr><th>What to check</th><th>Location</th></tr>
+    <tr><td>New columns on <span class="file">orders</span> table</td><td><span class="file">macship_consignment_id</span>, <span class="file">macship_pickup_date</span>, <span class="file">macship_dispatched_at</span>, <span class="file">macship_tracking_url</span>, <span class="file">macship_consignment_failed</span>, <span class="file">macship_lead_time_fallback</span>, <span class="file">xero_po_id</span>, <span class="file">xero_po_number</span></td></tr>
+    <tr><td>New table <span class="file">lead_time_global</span></td><td>Should have 1 seeded row with manufacturing_days = 5</td></tr>
+    <tr><td>New table <span class="file">lead_time_warehouse</span></td><td>Empty until configured in admin</td></tr>
+    <tr><td>New table <span class="file">lead_time_product_warehouse</span></td><td>Empty until configured in admin</td></tr>
+    <tr><td>New table <span class="file">macship_failed_updates</span></td><td>Empty initially</td></tr>
+  </table>
+</div>
+
+<h3>0.2 Verify Environment Variables</h3>
+<div class="task-block status-prereq">
+  <h4>Check <span class="file">.env.local</span></h4>
+  <table>
+    <tr><th>Variable</th><th>Required Value</th><th>Notes</th></tr>
+    <tr><td><span class="file">MACSHIP_TEST_API_TOKEN</span></td><td><span class="badge b-pass">SET</span></td><td>CQVS test API token from Machship</td></tr>
+    <tr><td><span class="file">MACSHIP_PRODUCTION_API_TOKEN</span></td><td><span class="badge b-pass">SET</span></td><td>CQVS production API token — do not use yet</td></tr>
+    <tr><td><span class="file">MACSHIP_MODE</span></td><td><span class="file">test</span></td><td>Switch to <span class="file">production</span> when going live</td></tr>
+    <tr><td><span class="file">MACSHIP_COMPANY_ID</span></td><td><span class="file">55514</span></td><td><strong>Required</strong> — CQVS company ID. Sent on every routes / consignment request so Machship knows which rate cards to use.</td></tr>
+    <tr><td><span class="file">XERO_CLIENT_ID</span> + <span class="file">XERO_CLIENT_SECRET</span></td><td><span class="badge b-pass">SET</span></td><td>OAuth credentials from Xero developer portal</td></tr>
+    <tr><td><span class="file">XERO_SALES_TAX_TYPE</span></td><td><span class="file">NONE</span> (demo) / <em>unset</em> (AU prod)</td><td>Set to <span class="file">NONE</span> for Demo Company (Global) since it has no AU GST tax codes. Remove for real AU Xero org so it defaults to <span class="file">OUTPUT2</span>.</td></tr>
+    <tr><td><span class="file">XERO_PURCHASE_TAX_TYPE</span></td><td><span class="file">NONE</span> (demo) / <em>unset</em> (AU prod)</td><td>Same as above. Defaults to <span class="file">INPUT2</span> when unset.</td></tr>
+    <tr><td><span class="file">XERO_CURRENCY</span></td><td><span class="file">AUTO</span> (demo) / <em>unset</em> (AU prod)</td><td><span class="file">AUTO</span> tells Xero to use the org's base currency. Defaults to <span class="file">AUD</span> when unset.</td></tr>
+  </table>
+  <div class="warn-block">The Machship API base URL is <span class="file">https://api.machship.com</span> for both test and production — only the token determines which environment is hit.</div>
+  <div class="warn-block">If <span class="file">MACSHIP_COMPANY_ID</span> is missing, Machship will return zero routes for every quote because it doesn't know which company's rate cards to look up.</div>
+</div>
+
+<h3>0.3 Start the Dev Server</h3>
+<div class="task-block status-prereq">
+  <span class="api">npm run dev</span>
+  <p>Confirm the app loads at <span class="url">http://localhost:3000</span> with no console errors.</p>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 1 -->
+<h2><span class="section-num">Phase 1.</span> MacShip Settings Page — Connection Test</h2>
+
+<p>Verify the new MacShip admin page is working and can reach the API.</p>
+<p><span class="url">/admin/macship</span></p>
+
+<div class="task-block status-test">
+  <h4>1.1 Connection Status Card</h4>
+  <div class="expected">Green "MacShip configured" status. Mode badge shows "test". Both test and production tokens show as "present".</div>
+
+  <h4>1.2 Recheck Button</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">Click the <strong>Recheck</strong> button</div></div>
+  <div class="expected">Toast appears: "MacShip connected — running in test mode"</div>
+
+  <h4>1.3 Failed Updates Panel</h4>
+  <div class="expected">"No failed updates — all good!" (no orders yet)</div>
+
+  <h4>1.4 Recent Activity Log</h4>
+  <div class="expected">"No MacShip consignments yet" (no orders yet)</div>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 2 -->
+<h2><span class="section-num">Phase 2.</span> Admin Warehouses — Configure Data</h2>
+
+<div class="box-amber box">
+  <strong>Required before placing any test orders.</strong> Warehouse data, product mappings, pricing, and lead times must all be configured first or MacShip will not be able to select a warehouse and calculate shipping.
+</div>
+
+<p><span class="url">/admin/warehouses</span></p>
+
+<h3>2.1 Warehouses Tab — Verify Warehouse Data</h3>
+<div class="task-block status-prereq">
+  <h4>Your warehouse must have all of the following set</h4>
+  <table>
+    <tr><th>Field</th><th>Why It's Needed</th></tr>
+    <tr><td><span class="file">address_state</span></td><td>Lead time business-day calculation uses AU public holidays per state</td></tr>
+    <tr><td><span class="file">address_postcode</span></td><td>MacShip proximity scoring for warehouse selection</td></tr>
+    <tr><td><span class="file">address_street</span>, <span class="file">address_city</span></td><td>MacShip consignment pickup address</td></tr>
+    <tr><td><span class="file">contact_phone</span>, <span class="file">contact_email</span></td><td>MacShip consignment contact details</td></tr>
+    <tr><td><span class="file">xero_contact_id</span></td><td>Xero Purchase Order — sent to this Xero contact</td></tr>
+  </table>
+  <div class="warn-block">If xero_contact_id is missing, the Xero PO will fail (non-blocking — order still creates). Set a valid Xero Contact ID from your Xero account, or use a test value for now.</div>
+</div>
+
+<h3>2.2 Product Mapping Tab (New)</h3>
+<div class="task-block status-test">
+  <h4>Steps</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">Click the <strong>Product Mapping</strong> tab</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Select your warehouse from the dropdown</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">A list of all products appears with checkboxes — toggle ON the products stocked at this warehouse</div></div>
+  <div class="step"><div class="step-n">4</div><div class="step-c">Click <strong>Save</strong></div></div>
+  <div class="expected">Toast "Saved". Rows created in the <span class="file">product_warehouses</span> table. These products are now eligible for MacShip warehouse selection.</div>
+  <div class="warn-block">If no products are mapped to any warehouse, the MacShip quote endpoint will return serviceable: false for all orders.</div>
+</div>
+
+<h3>2.3 Warehouse Pricing Tab (New)</h3>
+<div class="task-block status-test">
+  <h4>Steps</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">Click the <strong>Warehouse Pricing</strong> tab</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Select your warehouse — you should see the products mapped in step 2.2</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Enter a cost price for each product and packaging size combination (e.g. AUD 1.80/L cost to CQVS)</div></div>
+  <div class="step"><div class="step-n">4</div><div class="step-c">Save per row</div></div>
+  <div class="expected">Rows in <span class="file">warehouse_product_pricing</span> table. These cost prices (not customer prices) will appear on the Xero Purchase Order sent to the warehouse.</div>
+  <div class="warn-block">If no cost prices are entered, Xero POs will fall back to customer-facing unit prices. The order still creates.</div>
+</div>
+
+<h3>2.4 Lead Times Tab (New)</h3>
+<div class="task-block status-test">
+  <h4>Global Default Section</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">The global default row should already show <strong>5 manufacturing days</strong> (seeded from migration)</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Change to <strong>3 days</strong> and click Save</div></div>
+  <div class="expected">Toast "Saved". The <span class="file">lead_time_global</span> row is updated. All orders without a warehouse or product override will use 3 business days.</div>
+
+  <h4>Per-Warehouse Defaults Section</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">Find your warehouse row in the table</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Set manufacturing days to <strong>4</strong>, add a note like "Standard warehouse lead time"</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Save</div></div>
+  <div class="expected">Row created in <span class="file">lead_time_warehouse</span>. This warehouse now overrides the global default.</div>
+
+  <h4>Product-Specific Overrides Section</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">Select your warehouse from the dropdown</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Pick one product, set manufacturing days to <strong>2</strong></div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Save</div></div>
+  <div class="expected">Row in <span class="file">lead_time_product_warehouse</span>.</div>
+
+  <h4>Inheritance Display Verification</h4>
+  <table>
+    <tr><th>Product</th><th>Expected Label</th><th>Days</th></tr>
+    <tr><td>The product with override</td><td>Product override</td><td>2</td></tr>
+    <tr><td>Other mapped products</td><td>Warehouse default</td><td>4</td></tr>
+    <tr><td>Unmapped products</td><td>Global default (5d)</td><td>3</td></tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 3 -->
+<h2><span class="section-num">Phase 3.</span> Checkout — Live Shipping Quote</h2>
+
+<p>Add one of your mapped products to the cart, then go to checkout.</p>
+<p><span class="url">/products</span> → Add to cart → <span class="url">/checkout</span></p>
+
+<div class="task-block status-test">
+  <h4>3.1 Fill In Delivery Address (Step 0)</h4>
+  <ul>
+    <li>Street: <strong>123 George Street</strong> (or any real street)</li>
+    <li>City / Suburb: <strong>Sydney</strong> (must be filled — Machship requires both suburb + postcode)</li>
+    <li>State: <strong>NSW</strong> (matching the Formula Chemicals warehouse in West Ryde)</li>
+    <li>Postcode: <strong>2000</strong></li>
+    <li>Select forklift availability</li>
+  </ul>
+
+  <h4>3.2 Scenario A — Single 20L Jerry Can → Carton / Aramex</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">Go to <span class="url">/products</span> and add <strong>1 × Eco Wash 20L Jerry Can</strong> to cart (quantity = 1)</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Go to <span class="url">/checkout</span> and fill the delivery address above</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Wait for the shipping quote to load (600ms debounce)</div></div>
+  <div class="expected">
+    Shipping row shows <strong>~AUD $27.25</strong><br>
+    Carrier name below: <strong>Aramex (ARAMEX)</strong> — Parcel service<br>
+    Server log shows: <span class="file">"itemType": 1</span> (Carton) and the firstRoute carrier is Aramex
+  </div>
+
+  <h4>3.3 Scenario B — Multi-unit / Consolidated → Pallet / Hi Trans</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">Clear the cart, then add <strong>2 × Eco Wash 20L Jerry Can</strong> (quantity = 2)</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Go to <span class="url">/checkout</span> with the same delivery address</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Wait for the quote</div></div>
+  <div class="expected">
+    Shipping row shows <strong>~AUD $276.08</strong><br>
+    Carrier name below: <strong>Hi Trans (HITRANS)</strong> — Local service<br>
+    Server log shows: <span class="file">"itemType": 3</span> (Pallet) and the firstRoute carrier is Hi Trans
+  </div>
+  <div class="warn-block">The switch from Carton (Aramex) to Pallet (Hi Trans) happens automatically whenever the cart has more than 1 unit, a mix of products, or any non-20L-jerry-can item. The detection is: <span class="file">cart.length === 1 &amp;&amp; cart[0].quantity === 1 &amp;&amp; is20LJerryCan(cart[0].packaging_size)</span>.</div>
+
+  <h4>3.4 Test Unserviceable Postcode</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">With any cart contents, change postcode to <strong>0872</strong> (remote NT)</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Wait for quote to load</div></div>
+  <div class="expected">Amber warning box appears above "Continue to Payment": "We can't calculate shipping for your area...". The "Continue to Payment" button is <strong>disabled</strong>.</div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Change postcode back to 2000 — button re-enables</div></div>
+
+  <h4>3.5 Server Log Verification</h4>
+  <p>While the quote is fetching, watch the dev server terminal. You should see the full request and response logged:</p>
+  <span class="api">[Machship quote] request: { "companyId": 55514, "fromLocation": {...}, "toLocation": {...}, "items": [{ "itemType": 1 or 3, "name": "Eco Wash", ... }] }</span>
+  <span class="api">[Machship quote] response: { "id": "&lt;uuid&gt;", "routesCount": 1, "firstRoute": { "carrier": { "displayName": "Aramex (ARAMEX)" or "Hi Trans (HITRANS)" }, ... } }</span>
+  <p>If <span class="file">routesCount</span> is 0, check that <span class="file">MACSHIP_COMPANY_ID=55514</span> is set, the warehouse suburb/postcode is correct, and <span class="file">itemType</span> is included in the request payload.</p>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 4 -->
+<h2><span class="section-num">Phase 4.</span> Place a Test Order — Core Integration Test</h2>
+
+<div class="box-blue box">
+  <strong>This is the most important test.</strong> It verifies the entire end-to-end flow: warehouse selection → lead time calculation → MacShip consignment → Xero PO.
+</div>
+
+<h3>4.1 Complete the Checkout</h3>
+<div class="task-block status-test">
+  <ul>
+    <li>Use a real AU delivery address (your office or home address is fine for testing)</li>
+    <li>Select <strong>Purchase Order</strong> as the payment method — easier to test without Stripe</li>
+    <li>Upload any PDF as the PO document</li>
+    <li>Enter a PO number (e.g. "TEST-001") and invoice email</li>
+    <li>Submit the order</li>
+  </ul>
+</div>
+
+<h3>4.2 Check Admin Orders — MacShip Section</h3>
+<div class="task-block status-test">
+  <p><span class="url">/admin/orders</span> → find your order → expand it → scroll to MacShip &amp; Xero section</p>
+
+  <h4>If Machship consignment was created successfully (the expected path)</h4>
+  <table>
+    <tr><th>Field</th><th>What to Look For</th></tr>
+    <tr><td>Consignment ID</td><td>A numeric ID from Machship (e.g. <span class="file">12345678</span>) — stored in <span class="file">macship_consignment_id</span></td></tr>
+    <tr><td>Carrier ID</td><td>Numeric carrier ID (e.g. <span class="file">631</span> for Hi Trans)</td></tr>
+    <tr><td>Pickup date</td><td>Today + lead time days (skipping weekends/holidays). Should reflect the product override (2 days) if you set one.</td></tr>
+    <tr><td>Track Shipment link</td><td>Built from <span class="file">trackingPageAccessToken</span> — opens <span class="file">https://app.machship.com/track/&lt;token&gt;</span></td></tr>
+    <tr><td>Dispatch button</td><td>Shows "Ready for dispatch on [date] (Xd)" if pickup date is in the future</td></tr>
+    <tr><td>Print Labels link</td><td>Visible once consignment exists. Click to download the carrier label PDF via <span class="file">/api/macship/labels?consignment_id=&lt;id&gt;</span></td></tr>
+  </table>
+
+  <h4>If Machship consignment failed (rare — only happens on payload validation issues)</h4>
+  <div class="warn-block">A failure here is non-blocking — the order still exists and the customer received it. The consignment can be booked manually in Machship. Check the error in <span class="url">/admin/macship</span> → Failed Updates panel and in the dev server terminal log.</div>
+  <table>
+    <tr><th>What you'll see</th><th>Meaning</th></tr>
+    <tr><td>⚠ "Consignment creation failed — book manually"</td><td>MacShip API rejected the payload. Check the error message in Failed Updates.</td></tr>
+    <tr><td>⚠ "Used 5-day lead time fallback"</td><td>No lead time was found for this product+warehouse combination — global fallback was used.</td></tr>
+  </table>
+</div>
+
+<h3>4.3 Check Admin Orders — Xero Section</h3>
+<div class="task-block status-test">
+  <table>
+    <tr><th>Scenario</th><th>What You Should See</th></tr>
+    <tr><td>Xero is connected and PO payment</td><td>Xero Invoice number + "Open in Xero" link. Xero PO number + "Open in Xero" link.</td></tr>
+    <tr><td>Xero is connected and card payment</td><td>Xero PO created (no invoice for card payments). PO link visible.</td></tr>
+    <tr><td>Xero not connected</td><td>"Create Invoice" and "Create PO" retry buttons shown.</td></tr>
+  </table>
+</div>
+
+<h3>4.4 Check Customer Dashboard</h3>
+<div class="task-block status-test">
+  <p>Log in as the customer who placed the order → <span class="url">/dashboard/orders</span></p>
+  <table>
+    <tr><th>Element</th><th>Expected</th></tr>
+    <tr><td>Summary row (collapsed)</td><td>If tracking URL exists: "Track Shipment" link with truck icon and external link icon, shown in primary colour</td></tr>
+    <tr><td>Expanded order → Tracking section</td><td>"Track Shipment" button (opens carrier page in new tab). Estimated dispatch date shown.</td></tr>
+    <tr><td>Total amount</td><td>Shows as <strong>AUD X.XX</strong> (not $X.XX)</td></tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 5 -->
+<h2><span class="section-num">Phase 5.</span> Lead Time Sync After Config Change</h2>
+
+<p>This tests the "auto MacShip update" feature requested by Jonny — when a lead time changes, all pending orders should have their pickup dates recalculated and MacShip notified.</p>
+
+<div class="task-block status-test">
+  <div class="step"><div class="step-n">1</div><div class="step-c">Go to <span class="url">/admin/warehouses</span> → Lead Times tab → Global Default section</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Change global default from <strong>3 days</strong> to <strong>6 days</strong> and click Save</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Observe the sync result toast that appears after saving</div></div>
+  <div class="expected">Toast: "X orders updated. Y orders need manual review." (X = orders whose pickup date was recalculated and MacShip notified. Y = orders where the new date fell in the past.)</div>
+  <div class="step"><div class="step-n">4</div><div class="step-c">Go to <span class="url">/admin/orders</span> → find your test order → expand it</div></div>
+  <div class="expected">Pickup date should be updated to reflect the new 6-day lead time. Note: the product with the 2-day override will not change since it has its own rule.</div>
+  <div class="warn-block">When a real Machship consignment exists, the sync calls <span class="file">POST /apiv2/consignments/updateDespatchDatesForManifest</span>. If that call fails, the order is added to the <span class="file">macship_failed_updates</span> table and shown in the Failed Updates panel on <span class="url">/admin/macship</span>. Order creation and the rest of the flow are never blocked by sync failures.</div>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 6 -->
+<h2><span class="section-num">Phase 6.</span> Dispatch / Manifest</h2>
+
+<p><span class="url">/admin/orders</span> → find your test order → expand it → MacShip section</p>
+
+<div class="task-block status-test">
+  <h4>6.1 If Pickup Date Is Today or in the Past</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">The <strong>Dispatch</strong> button is enabled (blue)</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Click Dispatch</div></div>
+  <div class="expected">Toast: "Order dispatched — carrier notified!". Dispatch button replaced with green "Dispatched [date]" badge. <span class="file">macship_dispatched_at</span> set on the order.</div>
+
+  <h4>6.2 If Pickup Date Is in the Future</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">Dispatch button is <strong>disabled</strong>. Shows: "Ready for dispatch on [date] (Xd)"</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Click the small <strong>Override</strong> link underneath</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Button becomes enabled</div></div>
+  <div class="step"><div class="step-n">4</div><div class="step-c">Click Dispatch and verify same outcome as 6.1</div></div>
+
+  <h4>6.3 Print Labels</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">After dispatch, the <strong>Print Labels</strong> link is visible in the MacShip section</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Click it — opens <span class="file">/api/macship/labels?consignment_id=XXX</span></div></div>
+  <div class="expected">PDF opens in browser (or downloads). The proxy route <span class="file">/api/macship/labels</span> calls <span class="file">GET /apiv2/labels/getConsignmentPdf?consignmentId=&lt;id&gt;</span> server-side with the Machship token and streams the PDF back to the browser.</div>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 7 -->
+<h2><span class="section-num">Phase 7.</span> Tracking Sync</h2>
+
+<p><span class="url">/admin/macship</span></p>
+
+<div class="task-block status-test">
+  <div class="step"><div class="step-n">1</div><div class="step-c">Click <strong>Sync Tracking</strong> button</div></div>
+  <div class="expected">Toast: "Tracking synced — X order(s) updated". If MacShip has new tracking data on the consignment, the tracking URL is updated on the order.</div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Go to <span class="url">/admin/orders</span> → check the order's tracking URL has been updated (if available)</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Return to <span class="url">/admin/macship</span> → Recent Activity log</div></div>
+  <div class="expected">Your dispatched order now appears in the activity log with consignment ID, pickup date, and "Dispatched" badge.</div>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 8 -->
+<h2><span class="section-num">Phase 8.</span> Edge Cases</h2>
+
+<div class="task-block status-edge">
+  <table>
+    <tr><th>Scenario</th><th>How to Test</th><th>Expected Behaviour</th></tr>
+    <tr>
+      <td>No products mapped to any warehouse</td>
+      <td>Remove all mappings from Product Mapping tab, then add a product to cart and go to checkout</td>
+      <td>Quote returns unserviceable warning. "Continue to Payment" is disabled.</td>
+    </tr>
+    <tr>
+      <td>No lead time configured anywhere</td>
+      <td>Delete warehouse lead time. Delete global default row. Place an order.</td>
+      <td>5-day hardcoded fallback is used. Order shows ⚠ "Used 5-day lead time fallback" badge in admin.</td>
+    </tr>
+    <tr>
+      <td>Pickup date lands on a weekend</td>
+      <td>Set lead time so today + days = next Saturday</td>
+      <td>Pickup date auto-advances to the following Monday.</td>
+    </tr>
+    <tr>
+      <td>Pickup date lands on an AU public holiday</td>
+      <td>Set lead time to land on a known public holiday (e.g. ANZAC Day 25 Apr)</td>
+      <td>Pickup date rolls forward to next business day after the holiday.</td>
+    </tr>
+    <tr>
+      <td>DG product in cart</td>
+      <td>Use a product with classification = "DG" (Dangerous Goods)</td>
+      <td>MacShip quote requests a DG-capable carrier. Carrier options may differ from non-DG orders.</td>
+    </tr>
+    <tr>
+      <td>Multiple products, different lead times</td>
+      <td>Add multiple products to cart (one with a 2-day override, one with the 4-day warehouse default)</td>
+      <td>Governing (longest) lead time is used. Pickup date based on 4-day product. Admin shows which product is governing.</td>
+    </tr>
+    <tr>
+      <td>MacShip consignment fails</td>
+      <td>Temporarily corrupt the test token in .env.local, place an order, then restore it</td>
+      <td>Order is created successfully. "⚠ Consignment creation failed — book manually" shown in admin orders. Entry in Failed Updates panel on /admin/macship.</td>
+    </tr>
+    <tr>
+      <td>Lead time change puts pickup date in the past</td>
+      <td>Set a very short lead time (0 days) on the global default, then save</td>
+      <td>Sync runs. Affected orders reported in "needs manual review" count in the toast. Not silently ignored.</td>
+    </tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 9 -->
+<h2><span class="section-num">Phase 9.</span> MacShip Settings Page — Full Review</h2>
+
+<p>Do a final walkthrough of the MacShip settings page after completing all the above phases.</p>
+<p><span class="url">/admin/macship</span></p>
+
+<div class="task-block status-test">
+  <table>
+    <tr><th>Card</th><th>What to Verify</th></tr>
+    <tr><td>Connection Status</td><td>Green "MacShip configured". Mode = test. Both tokens present. Recheck button works.</td></tr>
+    <tr><td>Failed Tracking Updates</td><td>Any failed items from your testing are visible. Resolve button marks them as resolved and removes from the list.</td></tr>
+    <tr><td>Recent MacShip Activity</td><td>Shows your test orders with consignment IDs, pickup dates, dispatch badges. "Track Shipment" link visible on dispatched orders.</td></tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE 10 -->
+<h2><span class="section-num">Phase 10.</span> Switch to Production</h2>
+
+<div class="box-red box">
+  <strong>Only do this after all test phases pass successfully.</strong> Switching to production will create real consignments with real carriers and real charges.
+</div>
+
+<div class="task-block status-prod">
+  <h4>Machship — switch from test to production</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c">Set <span class="file">MACSHIP_MODE=production</span> in <span class="file">.env.local</span> and your hosting environment (Vercel / Railway etc.)</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">Confirm <span class="file">MACSHIP_PRODUCTION_API_TOKEN</span> and <span class="file">MACSHIP_COMPANY_ID</span> are set</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Restart the server (or redeploy)</div></div>
+  <div class="step"><div class="step-n">4</div><div class="step-c">Go to <span class="url">/admin/macship</span> — mode badge should show <strong>production</strong></div></div>
+  <div class="step"><div class="step-n">5</div><div class="step-c">Place one real test order with a real AU address</div></div>
+  <div class="step"><div class="step-n">6</div><div class="step-c">Confirm the consignment appears in the Machship production dashboard at <span class="file">https://app.machship.com</span></div></div>
+
+  <h4>Xero — switch from Demo Company (Global) to real AU production org</h4>
+  <div class="step"><div class="step-n">1</div><div class="step-c"><strong>Remove or comment out</strong> these env vars from <span class="file">.env.local</span> and hosting:
+    <br><span class="file">XERO_SALES_TAX_TYPE=NONE</span>
+    <br><span class="file">XERO_PURCHASE_TAX_TYPE=NONE</span>
+    <br><span class="file">XERO_CURRENCY=AUTO</span>
+  </div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c">The defaults will kick back in: <span class="file">OUTPUT2</span> for sales GST, <span class="file">INPUT2</span> for purchase GST, <span class="file">AUD</span> for currency</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c">Disconnect the Demo Company on <span class="url">/admin/xero</span> and reconnect, choosing the real AU org during the OAuth consent screen</div></div>
+  <div class="step"><div class="step-n">4</div><div class="step-c">Update each warehouse's <span class="file">xero_contact_id</span> to point at the real supplier contact in the AU org</div></div>
+  <div class="step"><div class="step-n">5</div><div class="step-c">Place a test order — the invoice will now be created in AUD with proper 10% GST automatically calculated by Xero, and totals will match the platform total exactly</div></div>
+
+  <div class="expected">Consignments visible in real Machship + Xero accounts. Carriers notified on dispatch. Real labels generated. AU GST applied automatically.</div>
+</div>
+
+<hr class="divider">
+
+<!-- FINAL CHECKLIST -->
+<h2><span class="section-num">Final Checklist</span></h2>
+
+<div class="box-blue box">
+  <strong>Print this and tick off each item as you go through the phases above.</strong>
+</div>
+
+<h3>Phase 0 — Prerequisites</h3>
+<ul class="checklist">
+  <li><span class="check"></span> Migration 025 applied — all new tables and columns visible in Supabase</li>
+  <li><span class="check"></span> <span class="file">MACSHIP_TEST_API_TOKEN</span> set in <span class="file">.env.local</span></li>
+  <li><span class="check"></span> <span class="file">MACSHIP_COMPANY_ID=55514</span> set in <span class="file">.env.local</span></li>
+  <li><span class="check"></span> <span class="file">MACSHIP_MODE=test</span> set in <span class="file">.env.local</span></li>
+  <li><span class="check"></span> Xero demo overrides set: <span class="file">XERO_SALES_TAX_TYPE=NONE</span>, <span class="file">XERO_PURCHASE_TAX_TYPE=NONE</span>, <span class="file">XERO_CURRENCY=AUTO</span></li>
+  <li><span class="check"></span> Dev server starts with no errors</li>
+</ul>
+
+<h3>Phase 1 — MacShip Settings</h3>
+<ul class="checklist">
+  <li><span class="check"></span> Connection status shows green "configured" in test mode</li>
+  <li><span class="check"></span> Recheck button fires toast successfully</li>
+  <li><span class="check"></span> Diagnostic curl <span class="file">/apiv2/companies/getAvailableCarriersAccountsAndServices?companyId=55514</span> shows at least 1 carrier with <span class="file">accounts &gt; 0</span></li>
+</ul>
+
+<h3>Phase 2 — Warehouse Configuration</h3>
+<ul class="checklist">
+  <li><span class="check"></span> Warehouse has complete address + <span class="file">xero_contact_id</span></li>
+  <li><span class="check"></span> Products mapped to warehouse (Product Mapping tab)</li>
+  <li><span class="check"></span> Cost prices entered (Warehouse Pricing tab)</li>
+  <li><span class="check"></span> Lead times configured — global, warehouse, and one product override (Lead Times tab)</li>
+  <li><span class="check"></span> Inheritance labels show correctly (Product override / Warehouse default / Global default)</li>
+</ul>
+
+<h3>Phase 3 — Checkout Quote</h3>
+<ul class="checklist">
+  <li><span class="check"></span> Typing postcode + suburb triggers spinner then live shipping amount</li>
+  <li><span class="check"></span> <strong>Scenario A:</strong> 1 × 20L Jerry Can returns ~<strong>AUD $27</strong> from Aramex (Carton)</li>
+  <li><span class="check"></span> <strong>Scenario B:</strong> 2 × 20L Jerry Can returns ~<strong>AUD $276</strong> from Hi Trans (Pallet)</li>
+  <li><span class="check"></span> Server log shows <span class="file">itemType: 1</span> (Carton) for scenario A and <span class="file">itemType: 3</span> (Pallet) for scenario B</li>
+  <li><span class="check"></span> Server log shows <span class="file">[Machship quote] response: routesCount: 1</span> in both scenarios</li>
+  <li><span class="check"></span> Unserviceable postcode shows amber warning and disables Continue button</li>
+</ul>
+
+<h3>Phase 4 — Order Placement</h3>
+<ul class="checklist">
+  <li><span class="check"></span> Order created successfully</li>
+  <li><span class="check"></span> Admin orders MacShip section shows real consignment ID, carrier ID and pickup date</li>
+  <li><span class="check"></span> Track Shipment link opens <span class="file">https://app.machship.com/track/&lt;token&gt;</span></li>
+  <li><span class="check"></span> Dispatch button date-gates correctly</li>
+  <li><span class="check"></span> Xero invoice + PO created — see <span class="file">[Xero] Invoice created for ORD-XXX: INV-XXXX</span> in server log</li>
+  <li><span class="check"></span> Xero invoice opens via "Open in Xero" button</li>
+  <li><span class="check"></span> Xero PO opens via "Open in Xero" button</li>
+  <li><span class="check"></span> Customer dashboard shows "Track Shipment" button</li>
+  <li><span class="check"></span> All amounts show as AUD (not $)</li>
+  <li><span class="check"></span> When using demo Xero org: GST line item present in invoice so total matches platform total</li>
+</ul>
+
+<h3>Phase 5 — Lead Time Sync</h3>
+<ul class="checklist">
+  <li><span class="check"></span> Changing global lead time triggers sync toast with counts</li>
+  <li><span class="check"></span> Affected order pickup dates updated in admin</li>
+</ul>
+
+<h3>Phase 6 — Dispatch</h3>
+<ul class="checklist">
+  <li><span class="check"></span> Dispatch button blocks when pickup date is future</li>
+  <li><span class="check"></span> Override link unlocks the button</li>
+  <li><span class="check"></span> Dispatch updates order to "Dispatched" status</li>
+  <li><span class="check"></span> Print Labels link opens PDF</li>
+</ul>
+
+<h3>Phase 7 — Tracking Sync</h3>
+<ul class="checklist">
+  <li><span class="check"></span> Sync Tracking button fires and returns count</li>
+  <li><span class="check"></span> Recent Activity log shows dispatched order</li>
+</ul>
+
+<h3>Phase 8 — Edge Cases</h3>
+<ul class="checklist">
+  <li><span class="check"></span> No warehouse mapping → unserviceable quote</li>
+  <li><span class="check"></span> No lead time config → 5-day fallback with warning badge</li>
+  <li><span class="check"></span> Pickup date on weekend → rolls forward to Monday</li>
+  <li><span class="check"></span> MacShip failure → order still creates, failure logged in admin</li>
+</ul>
+
+<h3>Phase 10 — Production Go-Live</h3>
+<ul class="checklist">
+  <li><span class="check"></span> <span class="file">MACSHIP_MODE=production</span> set in hosting environment</li>
+  <li><span class="check"></span> Settings page shows "production" mode</li>
+  <li><span class="check"></span> Test order consignment visible in MacShip production account</li>
+</ul>
+
+<hr class="divider">
+
+<div class="footer">
+  <p><strong>Chem Connect by CQVS</strong> — Testing Plan</p>
+  <p>Covers: MacShip shipping integration · Xero Purchase Orders to warehouses · Lead Time Management (Jonny Harper feature request, April 2026)</p>
+  <p style="color: #16a34a; font-weight: 600;">- Sohaib</p>
+</div>
+
+</body>
+</html>

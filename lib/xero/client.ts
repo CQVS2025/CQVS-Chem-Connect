@@ -106,6 +106,19 @@ export interface XeroInvoiceInput {
   Url?: string
 }
 
+export interface XeroPurchaseOrderInput {
+  Contact: { ContactID: string }
+  LineItems: XeroLineItem[]
+  Date: string // YYYY-MM-DD
+  DeliveryDate?: string // YYYY-MM-DD
+  Reference?: string
+  Status?: "DRAFT" | "SUBMITTED" | "AUTHORISED"
+  LineAmountTypes?: "Exclusive" | "Inclusive" | "NoTax"
+  CurrencyCode?: string
+  DeliveryAddress?: string
+  AttentionTo?: string
+}
+
 interface XeroTokenResponse {
   access_token: string
   refresh_token: string
@@ -491,6 +504,13 @@ export interface XeroClient {
     InvoiceNumber: string
     Status: string
   }>
+  createPurchaseOrder(input: XeroPurchaseOrderInput): Promise<{
+    PurchaseOrderID: string
+    PurchaseOrderNumber: string
+    Status: string
+  }>
+  approvePurchaseOrder(poId: string): Promise<void>
+  emailPurchaseOrder(poId: string): Promise<void>
   emailInvoice(invoiceId: string): Promise<void>
   attachFileToInvoice(
     invoiceId: string,
@@ -617,12 +637,60 @@ export async function getXeroClient(): Promise<XeroClient | null> {
     }
   }
 
+  async function createPurchaseOrder(input: XeroPurchaseOrderInput) {
+    const data = await xeroRequest<{
+      PurchaseOrders: Array<{
+        PurchaseOrderID: string
+        PurchaseOrderNumber: string
+        Status: string
+      }>
+    }>(creds!, "/PurchaseOrders", {
+      method: "PUT",
+      body: { PurchaseOrders: [input] },
+    })
+    return data.PurchaseOrders[0]
+  }
+
+  async function approvePurchaseOrder(poId: string): Promise<void> {
+    await xeroRequest<{
+      PurchaseOrders: Array<{ PurchaseOrderID: string; Status: string }>
+    }>(creds!, "/PurchaseOrders", {
+      method: "POST",
+      body: {
+        PurchaseOrders: [
+          { PurchaseOrderID: poId, Status: "AUTHORISED" },
+        ],
+      },
+    })
+  }
+
+  async function emailPurchaseOrder(poId: string): Promise<void> {
+    const url = `${XERO_API_BASE}/PurchaseOrders/${poId}/Email`
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${creds!.access_token}`,
+        "Xero-tenant-id": creds!.tenant_id,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({}),
+    })
+    if (!res.ok && res.status !== 204) {
+      const text = await res.text()
+      throw new Error(`Xero email PO failed (${res.status}): ${text}`)
+    }
+  }
+
   return {
     credentials: creds,
     findContactByEmail,
     createContact,
     upsertContactByEmail,
     createInvoice,
+    createPurchaseOrder,
+    approvePurchaseOrder,
+    emailPurchaseOrder,
     emailInvoice,
     attachFileToInvoice,
   }

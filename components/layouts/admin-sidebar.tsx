@@ -18,6 +18,7 @@ import {
   Settings,
   Warehouse,
   LogOut,
+  Truck,
 } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/client"
@@ -51,6 +52,7 @@ const navItems = [
   { label: "Analytics", href: "/admin/analytics", icon: TrendingUp },
   { label: "Warehouses", href: "/admin/warehouses", icon: Warehouse },
   { label: "Xero", href: "/admin/xero", icon: LinkIcon },
+  { label: "MacShip", href: "/admin/macship", icon: Truck },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ]
 

@@ -41,6 +41,14 @@ export async function POST(request: NextRequest) {
       container_type: body.container_type || "drum",
       sort_order: body.sort_order ?? 0,
       is_active: body.is_active ?? true,
+      units_per_pallet:
+        typeof body.units_per_pallet === "number" && body.units_per_pallet > 0
+          ? body.units_per_pallet
+          : null,
+      unit_weight_kg:
+        typeof body.unit_weight_kg === "number" && body.unit_weight_kg > 0
+          ? body.unit_weight_kg
+          : null,
     })
     .select()
     .single()

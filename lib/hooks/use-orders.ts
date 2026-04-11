@@ -32,6 +32,8 @@ interface CreateOrderInput {
   delivery_address_state: string
   delivery_address_postcode: string
   delivery_notes?: string
+  macship_carrier_id?: string | null
+  macship_quote_amount?: number | null
 }
 
 interface ConfirmPaymentInput {

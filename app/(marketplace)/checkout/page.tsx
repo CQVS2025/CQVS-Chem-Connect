@@ -15,6 +15,7 @@ import {
   Paperclip,
   ShoppingCart,
   X,
+  Mail,
 } from "lucide-react"
 import { toast } from "sonner"
 import { domAnimation, LazyMotion, m } from "framer-motion"
@@ -155,6 +156,21 @@ interface CheckoutFormProps {
   orderId: string | null
   onOrderCreated: (order: Order) => void
   onDeliveryStateChange: (state: string) => void
+  macshipQuote: {
+    serviceable: boolean
+    shipping_amount: number | null
+    carrier_name: string | null
+    carrier_id: string | null
+    warehouse_id: string | null
+    warehouse_name: string | null
+    estimated_transit_days: number | null
+    pickup_date: string | null
+    is_partial_fulfillment: boolean
+    missing_product_ids: string[]
+  } | null
+  quoteLoading: boolean
+  onDeliveryPostcodeChange: (postcode: string) => void
+  onDeliveryCityChange: (city: string) => void
 }
 
 // ----------------------------------------------------------------
@@ -185,6 +201,10 @@ function CheckoutForm({
   orderId,
   onOrderCreated,
   onDeliveryStateChange,
+  macshipQuote,
+  quoteLoading,
+  onDeliveryPostcodeChange,
+  onDeliveryCityChange,
 }: CheckoutFormProps) {
   const router = useRouter()
   const stripe = useStripe()
@@ -252,6 +272,19 @@ function CheckoutForm({
     }
   }, [address.state, onDeliveryStateChange])
 
+  // Bubble up postcode and city when pre-filled from profile
+  useEffect(() => {
+    if (address.postcode) {
+      onDeliveryPostcodeChange(address.postcode)
+    }
+  }, [address.postcode, onDeliveryPostcodeChange])
+
+  useEffect(() => {
+    if (address.city) {
+      onDeliveryCityChange(address.city)
+    }
+  }, [address.city, onDeliveryCityChange])
+
   // ------- Validation -------
   const isDeliveryValid = useMemo(
     () =>
@@ -259,8 +292,9 @@ function CheckoutForm({
       address.city.trim() !== "" &&
       address.state !== "" &&
       address.postcode.trim() !== "" &&
-      address.forkliftAvailable !== "",
-    [address]
+      address.forkliftAvailable !== "" &&
+      macshipQuote?.serviceable !== false,
+    [address, macshipQuote]
   )
 
   const isPaymentValid = useMemo(() => {
@@ -353,6 +387,8 @@ function CheckoutForm({
           delivery_address_state: address.state,
           delivery_address_postcode: address.postcode,
           delivery_notes: address.notes,
+          macship_carrier_id: macshipQuote?.carrier_id,
+          macship_quote_amount: macshipQuote?.shipping_amount,
         })
 
         // Upload PO documents if any (non-blocking)
@@ -405,6 +441,8 @@ function CheckoutForm({
           delivery_address_state: address.state,
           delivery_address_postcode: address.postcode,
           delivery_notes: address.notes,
+          macship_carrier_id: macshipQuote?.carrier_id,
+          macship_quote_amount: macshipQuote?.shipping_amount,
         })
         orderResult = { id: order.id, client_secret: order.client_secret ?? null }
         onOrderCreated(order)
@@ -565,9 +603,10 @@ function CheckoutForm({
                           placeholder="Rockhampton"
                           className="h-10"
                           value={address.city}
-                          onChange={(e) =>
+                          onChange={(e) => {
                             updateAddress("city", e.target.value)
-                          }
+                            onDeliveryCityChange(e.target.value)
+                          }}
                         />
                       </div>
                       <div className="space-y-2">
@@ -601,9 +640,10 @@ function CheckoutForm({
                           placeholder="4700"
                           className="h-10"
                           value={address.postcode}
-                          onChange={(e) =>
+                          onChange={(e) => {
                             updateAddress("postcode", e.target.value)
-                          }
+                            onDeliveryPostcodeChange(e.target.value)
+                          }}
                         />
                       </div>
                     </div>
@@ -652,6 +692,14 @@ function CheckoutForm({
                         }
                       />
                     </div>
+
+                    {macshipQuote?.serviceable === false && (
+                      <UnserviceablePostcodeBlock
+                        postcode={address.postcode}
+                        city={address.city}
+                        state={address.state}
+                      />
+                    )}
 
                     <div className="flex justify-end pt-2">
                       <Button
@@ -1130,10 +1178,35 @@ function CheckoutForm({
                 )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="text-xs italic text-muted-foreground">
-                    Calculated after order
-                  </span>
+                  {quoteLoading ? (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Calculating...
+                    </span>
+                  ) : macshipQuote?.serviceable && macshipQuote.shipping_amount !== null ? (
+                    <span className="font-medium">{formatCurrency(macshipQuote.shipping_amount)}</span>
+                  ) : macshipQuote?.serviceable === false ? (
+                    <span className="text-xs text-amber-500">Not serviceable</span>
+                  ) : (
+                    <span className="text-xs italic text-muted-foreground">
+                      Calculated at checkout
+                    </span>
+                  )}
                 </div>
+                {macshipQuote?.carrier_name && macshipQuote.serviceable && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Carrier</span>
+                    <span className="text-muted-foreground">{macshipQuote.carrier_name}</span>
+                  </div>
+                )}
+                {macshipQuote?.pickup_date && macshipQuote.serviceable && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Est. pickup</span>
+                    <span className="text-muted-foreground">
+                      {new Date(macshipQuote.pickup_date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">GST (10%)</span>
                   <span>{formatCurrency(gst)}</span>
@@ -1226,6 +1299,21 @@ export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
   const [deliveryState, setDeliveryState] = useState<string>("")
+  const [macshipQuote, setMacshipQuote] = useState<{
+    serviceable: boolean
+    shipping_amount: number | null
+    carrier_name: string | null
+    carrier_id: string | null
+    warehouse_id: string | null
+    warehouse_name: string | null
+    estimated_transit_days: number | null
+    pickup_date: string | null
+    is_partial_fulfillment: boolean
+    missing_product_ids: string[]
+  } | null>(null)
+  const [quoteLoading, setQuoteLoading] = useState(false)
+  const [deliveryPostcode, setDeliveryPostcode] = useState("")
+  const [deliveryCity, setDeliveryCity] = useState("")
 
   const items = cartItems ?? []
 
@@ -1328,11 +1416,14 @@ export default function CheckoutPage() {
     0,
   )
 
-  // Shipping is calculated server-side via MacShip in a future phase.
-  // For now we keep it as 0 at the cart level - the order API will calculate
-  // and the customer sees a placeholder until MacShip is wired up.
-  const shipping = 0
-  const rawShipping = 0
+  // Shipping comes from the live Machship quote. We treat the quote as
+  // authoritative — if it's still loading or the postcode isn't serviceable,
+  // shipping is 0 and the "Continue to Payment" button is already gated
+  // elsewhere so the customer can't complete checkout without a valid quote.
+  const rawShipping =
+    macshipQuote?.serviceable && macshipQuote.shipping_amount !== null
+      ? Number(macshipQuote.shipping_amount)
+      : 0
 
   // Promotion detection
   const { data: promotions } = usePromotions()
@@ -1355,11 +1446,58 @@ export default function CheckoutPage() {
   const promoFreeFreight = useMemo(() => hasPromotionFreeFreight(qualifiedPromos), [qualifiedPromos])
 
   const freeFreight = (isFirstOrder && firstOrderChoice === "free_freight") || promoFreeFreight
+  // Apply free-freight discount: waive the live quote entirely
+  const shipping = freeFreight ? 0 : rawShipping
   const totalDiscount = bundleDiscount + truckWashDiscount + promoDiscount
   const gst = Math.round(
     (subtotal - totalDiscount + containerTotal + shipping) * 0.1 * 100,
   ) / 100
   const total = subtotal - totalDiscount + containerTotal + shipping + gst
+
+  const fetchMacShipQuote = useCallback(async (postcode: string, state: string, city: string) => {
+    if (!postcode || postcode.length < 4 || !state || !city.trim() || items.length === 0) return
+    setQuoteLoading(true)
+    try {
+      const response = await fetch("/api/macship/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          delivery_postcode: postcode,
+          delivery_state: state,
+          delivery_city: city,
+          cart_items: items.map((item) => ({
+            product_id: item.product_id,
+            packaging_size_id: item.packaging_size_id,
+            packaging_size_name: item.packaging_size,
+            quantity: item.quantity,
+          })),
+          forklift_available: true, // we update after form submission
+        }),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setMacshipQuote(data)
+      }
+    } catch {
+      // Non-blocking - quote failure doesn't block checkout
+    } finally {
+      setQuoteLoading(false)
+    }
+  }, [items])
+
+  useEffect(() => {
+    if (deliveryPostcode.length >= 4 && deliveryState && deliveryCity.trim()) {
+      const timer = setTimeout(() => {
+        fetchMacShipQuote(deliveryPostcode, deliveryState, deliveryCity)
+      }, 600) // debounce 600ms
+      return () => clearTimeout(timer)
+    }
+  }, [deliveryPostcode, deliveryState, deliveryCity, fetchMacShipQuote])
+
+  const handleDeliveryStateChange = useCallback((state: string) => {
+    setDeliveryState(state)
+    setMacshipQuote(null)
+  }, [])
 
   const handleOrderCreated = useCallback((order: Order) => {
     if (order.id) {
@@ -1474,10 +1612,102 @@ export default function CheckoutPage() {
             clientSecret={clientSecret}
             orderId={orderId}
             onOrderCreated={handleOrderCreated}
-            onDeliveryStateChange={setDeliveryState}
+            onDeliveryStateChange={handleDeliveryStateChange}
+            macshipQuote={macshipQuote}
+            quoteLoading={quoteLoading}
+            onDeliveryPostcodeChange={setDeliveryPostcode}
+            onDeliveryCityChange={setDeliveryCity}
           />
         </Elements>
       </m.div>
     </LazyMotion>
+  )
+}
+
+// ============================================================
+// Unserviceable postcode CTA — sends enquiry to admin
+// ============================================================
+
+function UnserviceablePostcodeBlock({
+  postcode,
+  city,
+  state,
+}: {
+  postcode: string
+  city: string
+  state: string
+}) {
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+
+  async function handleRequestQuote() {
+    setSending(true)
+    try {
+      const res = await fetch("/api/shipping-enquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postcode,
+          city,
+          state,
+          cart_summary: "Submitted from checkout — unserviceable postcode",
+        }),
+      })
+      if (res.ok) {
+        setSent(true)
+        toast.success(
+          "Request sent! Our team will contact you within 1 business day.",
+        )
+      } else {
+        toast.error("Could not send request — please call us instead")
+      }
+    } catch {
+      toast.error("Could not send request — please call us instead")
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5">
+      <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+        We can&apos;t calculate shipping for postcode {postcode}.
+      </p>
+      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+        This area isn&apos;t covered by our standard carriers yet. Request a
+        custom quote and our team will get back to you within 1 business day
+        with a shipping option for your site.
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        {sent ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            <Check className="size-3.5" />
+            Quote requested — we&apos;ll be in touch
+          </span>
+        ) : (
+          <Button
+            size="sm"
+            variant="default"
+            className="h-9 rounded-lg text-xs font-semibold"
+            onClick={handleRequestQuote}
+            disabled={sending}
+          >
+            {sending ? (
+              <>
+                <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                Sending…
+              </>
+            ) : (
+              <>
+                <Mail className="mr-1.5 size-3.5" />
+                Request Custom Quote
+              </>
+            )}
+          </Button>
+        )}
+
+      </div>
+    </div>
   )
 }

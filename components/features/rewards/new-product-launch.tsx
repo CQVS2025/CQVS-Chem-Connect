@@ -17,26 +17,29 @@ const upcomingProducts = [
   {
     name: "AluBright",
     description:
-      "Aluminium brightener - restores and protects aluminium surfaces",
+      "Aluminium brightener — restores and protects aluminium surfaces",
     timing: "Coming 2026",
     color: "text-sky-400",
     bgColor: "bg-sky-400/10",
+    borderColor: "border-sky-400/20",
   },
   {
     name: "BrakePrep",
     description:
-      "Brake dust cleaner - fast-drying, residue-free formula",
+      "Brake dust cleaner — fast-drying, residue-free formula",
     timing: "Coming 2026",
     color: "text-violet-400",
     bgColor: "bg-violet-400/10",
+    borderColor: "border-violet-400/20",
   },
   {
     name: "Vision",
     description:
-      "Commercial glass cleaner - streak-free, ammonia-free finish",
+      "Commercial glass cleaner — streak-free, ammonia-free finish",
     timing: "Coming 2026",
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
+    borderColor: "border-amber-400/20",
   },
 ]
 
@@ -87,17 +90,17 @@ export function NewProductLaunch() {
   }
 
   return (
-    <section id="new-products" className="scroll-mt-36 px-4 py-16 sm:py-20">
+    <section id="new-products" className="scroll-mt-36 border-t border-border/60 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-5xl">
         <FadeIn>
-          <div className="mb-10">
-            <span className="mb-3 block text-sm font-bold tracking-widest text-primary">
-              07
-            </span>
-            <h2 className="mb-3 text-2xl font-bold tracking-tight sm:text-3xl">
+          <div className="mb-12">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              07 — New Products
+            </div>
+            <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               New Product Launch
             </h2>
-            <p className="max-w-2xl text-muted-foreground">
+            <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
               Be first. Get free product. First {earlyAccessLimit} customers get a
               free 200L drum with any order over AUD 1,000.
             </p>
@@ -105,30 +108,34 @@ export function NewProductLaunch() {
         </FadeIn>
 
         {/* Product cards */}
-        <StaggerContainer className="mb-10 grid gap-4 sm:grid-cols-3">
+        <StaggerContainer className="mb-12 grid gap-4 sm:grid-cols-3">
           {upcomingProducts.map((product) => (
             <StaggerItem key={product.name}>
-              <Card className="group h-full border-white/5 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
-                <CardContent className="p-5 sm:p-6">
-                  <div className="mb-4 flex items-center justify-between">
+              <Card className={cn(
+                "group h-full rounded-3xl border border-border/60 bg-card transition-all duration-300",
+                "hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30"
+              )}>
+                <CardContent className="p-6 sm:p-7">
+                  <div className="mb-5 flex items-center justify-between">
                     <div
                       className={cn(
-                        "flex size-10 items-center justify-center rounded-xl",
-                        product.bgColor
+                        "flex h-11 w-11 items-center justify-center rounded-2xl border",
+                        product.bgColor,
+                        product.borderColor
                       )}
                     >
                       <Sparkles className={cn("size-5", product.color)} />
                     </div>
                     <Badge
                       variant="outline"
-                      className="border-white/10 text-xs"
+                      className="rounded-full border-border/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
                     >
                       {product.timing}
                     </Badge>
                   </div>
 
-                  <h3 className="mb-2 text-lg font-bold">{product.name}</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="mb-2 text-lg font-bold tracking-[-0.01em] text-foreground">{product.name}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
                     {product.description}
                   </p>
                 </CardContent>
@@ -139,26 +146,26 @@ export function NewProductLaunch() {
 
         {/* Timeline */}
         <FadeIn delay={0.1}>
-          <div className="mb-10 flex items-center justify-center gap-0">
+          <div className="mb-12 flex items-center justify-center gap-0">
             {timeline.map((step, i) => (
               <div key={step} className="flex items-center">
                 <div className="flex flex-col items-center">
                   <div
                     className={cn(
-                      "flex size-8 items-center justify-center rounded-full text-xs font-bold",
+                      "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold",
                       i === 0
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted/50 text-muted-foreground"
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                        : "border border-border/60 bg-card text-muted-foreground"
                     )}
                   >
                     {i + 1}
                   </div>
-                  <span className="mt-2 text-[11px] text-muted-foreground sm:text-xs">
+                  <span className="mt-2 text-[11px] font-medium text-muted-foreground sm:text-xs">
                     {step}
                   </span>
                 </div>
                 {i < timeline.length - 1 && (
-                  <div className="mx-1 h-px w-6 bg-border sm:mx-2 sm:w-12" />
+                  <div className="mx-1 mb-5 h-px w-8 bg-border/60 sm:mx-2 sm:w-16" />
                 )}
               </div>
             ))}
@@ -167,13 +174,13 @@ export function NewProductLaunch() {
 
         {/* Signup form */}
         <FadeIn delay={0.2}>
-          <Card className="border-white/5 bg-card/50 backdrop-blur-sm">
-            <CardContent className="p-5 sm:p-6">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+          <Card className="rounded-3xl border border-border/60 bg-card">
+            <CardContent className="p-6 sm:p-7">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
                   <Bell className="size-5 text-primary" />
                 </div>
-                <h3 className="font-bold">JOIN THE EARLY ACCESS LIST</h3>
+                <h3 className="font-bold tracking-tight text-foreground">Join the Early Access List</h3>
               </div>
 
               <form
@@ -194,7 +201,7 @@ export function NewProductLaunch() {
                 <Button
                   type="submit"
                   disabled={submitting || authLoading}
-                  className="shadow-md shadow-primary/25 transition-shadow duration-200 hover:shadow-lg hover:shadow-primary/40"
+                  className="h-12 rounded-xl px-7 text-[15px] font-semibold shadow-lg shadow-primary/25 transition-shadow duration-200 hover:shadow-xl hover:shadow-primary/40"
                 >
                   {submitting ? "Signing up..." : "Notify Me"}
                 </Button>

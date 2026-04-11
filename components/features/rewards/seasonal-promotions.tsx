@@ -43,8 +43,8 @@ const seasonVisuals: Record<
     icon: Sun,
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
-    borderColor: "hover:ring-amber-400/30",
-    badgeColor: "bg-amber-400/15 text-amber-400",
+    borderColor: "hover:border-amber-400/30",
+    badgeColor: "border-amber-400/20 bg-amber-400/10 text-amber-400",
     period: "Nov - Jan",
     tagline: "Peak wash season = peak volume",
   },
@@ -52,8 +52,8 @@ const seasonVisuals: Record<
     icon: Snowflake,
     color: "text-sky-400",
     bgColor: "bg-sky-400/10",
-    borderColor: "hover:ring-sky-400/30",
-    badgeColor: "bg-sky-400/15 text-sky-400",
+    borderColor: "hover:border-sky-400/30",
+    badgeColor: "border-sky-400/20 bg-sky-400/10 text-sky-400",
     period: "Jun - Aug",
     tagline: "Keep orders flowing in quieter months",
   },
@@ -61,8 +61,8 @@ const seasonVisuals: Record<
     icon: Receipt,
     color: "text-violet-400",
     bgColor: "bg-violet-400/10",
-    borderColor: "hover:ring-violet-400/30",
-    badgeColor: "bg-violet-400/15 text-violet-400",
+    borderColor: "hover:border-violet-400/30",
+    badgeColor: "border-violet-400/20 bg-violet-400/10 text-violet-400",
     period: "June",
     tagline: "Your accountant will thank you",
   },
@@ -72,8 +72,8 @@ const defaultVisual = {
   icon: Tag,
   color: "text-primary",
   bgColor: "bg-primary/10",
-  borderColor: "hover:ring-primary/30",
-  badgeColor: "bg-primary/15 text-primary",
+  borderColor: "hover:border-primary/30",
+  badgeColor: "border-primary/20 bg-primary/10 text-primary",
   period: "",
   tagline: "",
 }
@@ -89,17 +89,17 @@ export function SeasonalPromotions() {
   const activePromos = promotions?.filter((p) => p.is_active) ?? []
 
   return (
-    <section id="seasonal" className="scroll-mt-36 px-4 py-16 sm:py-20">
+    <section id="seasonal" className="scroll-mt-36 border-t border-border/60 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-5xl">
         <FadeIn>
-          <div className="mb-10">
-            <span className="mb-3 block text-sm font-bold tracking-widest text-primary">
-              06
-            </span>
-            <h2 className="mb-3 text-2xl font-bold tracking-tight sm:text-3xl">
+          <div className="mb-12">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              06 — Seasonal
+            </div>
+            <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               Seasonal Promotions
             </h2>
-            <p className="max-w-2xl text-muted-foreground">
+            <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
               Seasonal deals that hit different. Timed offers across summer,
               winter, and EOFY.
             </p>
@@ -109,12 +109,12 @@ export function SeasonalPromotions() {
         {isLoading ? (
           <div className="grid gap-4 sm:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-56 rounded-xl" />
+              <Skeleton key={i} className="h-64 rounded-3xl" />
             ))}
           </div>
         ) : activePromos.length === 0 ? (
           <FadeIn>
-            <div className="rounded-xl border border-white/5 bg-card/50 p-8 text-center backdrop-blur-sm">
+            <div className="rounded-3xl border border-border/60 bg-card p-10 text-center">
               <p className="text-sm text-muted-foreground">
                 No active promotions right now. Check back soon!
               </p>
@@ -137,42 +137,42 @@ export function SeasonalPromotions() {
               const Icon = visual.icon
               const displayPeriod =
                 promo.start_date && promo.end_date
-                  ? `${new Date(promo.start_date).toLocaleDateString("en-AU", { month: "short" })} - ${new Date(promo.end_date).toLocaleDateString("en-AU", { month: "short", year: "numeric" })}`
+                  ? `${new Date(promo.start_date).toLocaleDateString("en-AU", { month: "short" })} – ${new Date(promo.end_date).toLocaleDateString("en-AU", { month: "short", year: "numeric" })}`
                   : visual.period || "Limited time"
 
               return (
                 <StaggerItem key={promo.id}>
                   <Card
                     className={cn(
-                      "group h-full border-white/5 bg-card/50 backdrop-blur-sm transition-all duration-300",
-                      "hover:shadow-xl hover:shadow-primary/5 hover:ring-1",
+                      "group h-full rounded-3xl border border-border/60 bg-card transition-all duration-300",
+                      "hover:shadow-xl hover:shadow-primary/5",
                       visual.borderColor
                     )}
                   >
-                    <CardContent className="flex h-full flex-col p-5 sm:p-6">
-                      <div className="mb-4 flex items-center justify-between">
+                    <CardContent className="flex h-full flex-col p-6 sm:p-7">
+                      <div className="mb-5 flex items-center justify-between">
                         <Badge
-                          className={cn("border-0 uppercase", visual.badgeColor)}
+                          className={cn("border rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider", visual.badgeColor)}
                         >
                           {promo.season || promo.type}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs font-medium text-muted-foreground">
                           {displayPeriod}
                         </span>
                       </div>
 
                       <div
                         className={cn(
-                          "mb-4 flex size-12 items-center justify-center rounded-2xl",
+                          "mb-5 flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20",
                           visual.bgColor
                         )}
                       >
-                        <Icon className={cn("size-6", visual.color)} />
+                        <Icon className={cn("size-5", visual.color)} />
                       </div>
 
                       {/* Headline or fallback to description */}
                       {promo.headline && (
-                        <p className="mb-1 text-base font-bold leading-tight text-foreground">
+                        <p className="mb-1.5 text-base font-bold tracking-[-0.01em] text-foreground">
                           {promo.headline}
                         </p>
                       )}
@@ -194,7 +194,7 @@ export function SeasonalPromotions() {
                       )}
 
                       {visual.tagline && (
-                        <p className="mt-auto pt-2 text-xs italic text-muted-foreground">
+                        <p className="mt-auto pt-3 text-xs italic text-muted-foreground">
                           {visual.tagline}
                         </p>
                       )}

@@ -126,3 +126,61 @@ export function useUpsertWarehousePricing() {
     },
   })
 }
+
+// ============================================================
+// Product ↔ Warehouse mapping hooks
+// ============================================================
+
+export interface ProductWarehouseMapping {
+  id: string
+  product_id: string
+  warehouse_id: string
+  product?: { id: string; name: string; slug: string }
+  warehouse?: { id: string; name: string }
+}
+
+export function useProductWarehouses(
+  filters: { warehouseId?: string; productId?: string } = {},
+) {
+  return useQuery({
+    queryKey: ["product-warehouses", filters],
+    queryFn: () => {
+      const params: Record<string, string> = {}
+      if (filters.warehouseId) params.warehouse_id = filters.warehouseId
+      if (filters.productId) params.product_id = filters.productId
+      return get<ProductWarehouseMapping[]>("/product-warehouses", { params })
+    },
+    enabled: Boolean(filters.warehouseId ?? filters.productId),
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useAddProductWarehouse() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { product_id: string; warehouse_id: string }) =>
+      post<ProductWarehouseMapping>("/product-warehouses", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["product-warehouses"] })
+    },
+  })
+}
+
+export function useRemoveProductWarehouse() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      productId,
+      warehouseId,
+    }: {
+      productId: string
+      warehouseId: string
+    }) =>
+      del<void>("/product-warehouses", undefined, {
+        params: { product_id: productId, warehouse_id: warehouseId },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["product-warehouses"] })
+    },
+  })
+}

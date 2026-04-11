@@ -20,6 +20,8 @@ export function useCreatePackagingSize() {
       volume_litres?: number | null
       container_type?: string
       sort_order?: number
+      units_per_pallet?: number | null
+      unit_weight_kg?: number | null
     }) => post<PackagingSize>("/packaging-sizes", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["packaging-sizes"] })
@@ -40,6 +42,8 @@ export function useUpdatePackagingSize() {
       container_type?: string
       sort_order?: number
       is_active?: boolean
+      units_per_pallet?: number | null
+      unit_weight_kg?: number | null
     }) => put<PackagingSize>(`/packaging-sizes/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["packaging-sizes"] })

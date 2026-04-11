@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Complete Implementation Plan (MacShip + Xero POs + Lead Times)</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 15px; }
+  h4 { color: #16a34a; margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .box-purple { border-left-color: #8b5cf6; background: #f5f3ff; }
+  .api { font-family: 'Courier New', monospace; background: #1f2937; color: #10b981; padding: 6px 12px; border-radius: 5px; display: block; margin: 6px 0; font-size: 11px; }
+  .file { font-family: 'Courier New', monospace; background: #f1f5f9; color: #0f172a; padding: 2px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #e2e8f0; }
+  .step { display: flex; gap: 12px; margin: 10px 0; }
+  .step-n { background: #16a34a; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .step-c { flex: 1; font-size: 13px; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 44px 0; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .b-done { background: #dcfce7; color: #166534; }
+  .b-new { background: #dbeafe; color: #1e40af; }
+  .b-partial { background: #fef3c7; color: #92400e; }
+  .b-critical { background: #fee2e2; color: #991b1b; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  .phase-header { background: #16a34a; color: white; padding: 10px 16px; border-radius: 6px; margin: 20px 0 12px; font-weight: 700; font-size: 14px; }
+  .task-block { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin: 10px 0; }
+  .task-block h4 { margin-top: 0; }
+  .status-done { border-left: 4px solid #16a34a; }
+  .status-partial { border-left: 4px solid #f59e0b; }
+  .status-todo { border-left: 4px solid #6b7280; }
+  .status-new { border-left: 4px solid #3b82f6; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Complete Implementation Plan</p>
+  <p style="color: #9ca3af;">MacShip Integration · Xero Purchase Orders · Lead Time Management</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib | April 2026 | Updated post-MacShip credentials</p>
+</div>
+
+<div class="box">
+  <strong>Document Purpose:</strong> This is the consolidated implementation plan covering what has already been built, what remains, and the new Lead Time Management feature requested by Jonny (April 2026). MacShip API credentials are now in hand. This document is the single source of truth going forward.
+</div>
+
+<hr class="divider">
+
+<!-- STATUS SUMMARY -->
+<h2><span class="section-num">1.</span> Current Status — What's Already Done</h2>
+
+<p>The following work is fully implemented and in production. No action needed.</p>
+
+<table>
+  <tr><th>Feature</th><th>Status</th><th>Key Files</th></tr>
+  <tr>
+    <td>Packaging size pricing (per-litre + fixed)</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">lib/pricing.ts</span>, <span class="file">migrations/021</span></td>
+  </tr>
+  <tr>
+    <td>Container costs per warehouse × packaging size</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">admin/warehouses</span> — Container Costs tab</td>
+  </tr>
+  <tr>
+    <td>Admin: Warehouse management (add/edit/delete)</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">admin/warehouses</span> — Warehouses tab</td>
+  </tr>
+  <tr>
+    <td>Admin: Packaging sizes management</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">admin/warehouses</span> — Packaging Sizes tab</td>
+  </tr>
+  <tr>
+    <td>Signup: Invoice email field + 30-day net terms checkbox</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">app/(auth)/register/page.tsx</span></td>
+  </tr>
+  <tr>
+    <td>Checkout: Forklift dropdown (required)</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">checkout/page.tsx</span></td>
+  </tr>
+  <tr>
+    <td>Checkout: PO upload mandatory</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">checkout/page.tsx</span></td>
+  </tr>
+  <tr>
+    <td>Checkout: Invoice email (editable, auto-filled)</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">checkout/page.tsx</span></td>
+  </tr>
+  <tr>
+    <td>Checkout: Container cost as separate line item</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">checkout/page.tsx</span></td>
+  </tr>
+  <tr>
+    <td>Xero: OAuth 2.0 connect flow</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">api/auth/xero/</span></td>
+  </tr>
+  <tr>
+    <td>Xero: Auto-create Contacts on signup</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">lib/xero/sync.ts</span></td>
+  </tr>
+  <tr>
+    <td>Xero: Auto-create + auto-send Invoices (PO orders)</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">lib/xero/sync.ts</span></td>
+  </tr>
+  <tr>
+    <td>Xero: PO document attached to invoice</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">lib/xero/sync.ts</span></td>
+  </tr>
+  <tr>
+    <td>Xero: Send invoice to accounts email</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">lib/xero/sync.ts</span></td>
+  </tr>
+  <tr>
+    <td>Admin: Xero settings page (OAuth, sync logs)</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">admin/xero/page.tsx</span></td>
+  </tr>
+  <tr>
+    <td>Homepage UI (stacked title, logo relocation)</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">app/page.tsx</span></td>
+  </tr>
+  <tr>
+    <td>Cart + Product page: Shipping fee display removed</td>
+    <td><span class="badge b-done">DONE</span></td>
+    <td><span class="file">cart/page.tsx</span>, <span class="file">products/[slug]/page.tsx</span></td>
+  </tr>
+</table>
+
+<hr class="divider">
+
+<!-- WHAT REMAINS -->
+<h2><span class="section-num">2.</span> Remaining Work — Full Scope</h2>
+
+<div class="box-amber box">
+  <strong>4 work streams remain:</strong> (A) Two missing admin UIs for warehouse pricing &amp; product mapping, (B) Full MacShip integration including lead time management, (C) Xero Purchase Orders to warehouses, (D) Order page updates for tracking &amp; Xero links.
+</div>
+
+<hr class="divider">
+
+<!-- PHASE A -->
+<h2><span class="section-num">A.</span> Admin UI Gaps (Quick Wins — Do First)</h2>
+
+<p>The database tables and API routes are already built. These are UI-only additions to the existing warehouses admin page.</p>
+
+<h3>A.1 Product–Warehouse Mapping Tab</h3>
+<div class="task-block status-todo">
+  <h4>What to build</h4>
+  <p>A new "Product Mapping" tab in <span class="file">app/(admin)/admin/warehouses/page.tsx</span>. Allows admin to configure which products are available at which warehouses. This data drives MacShip warehouse selection logic.</p>
+  <ul>
+    <li>Select a warehouse → see all products with checkboxes (in stock at this warehouse or not)</li>
+    <li>Toggle on/off per product</li>
+    <li>Save button persists to <strong>product_warehouses</strong> table</li>
+  </ul>
+  <p><strong>Why needed now:</strong> MacShip warehouse selection reads this table to determine which warehouse can fulfil an order. Without this data populated, warehouse selection logic cannot work.</p>
+</div>
+
+<h3>A.2 Warehouse Product Pricing Tab</h3>
+<div class="task-block status-todo">
+  <h4>What to build</h4>
+  <p>A new "Warehouse Pricing" tab in <span class="file">app/(admin)/admin/warehouses/page.tsx</span>. Configures what each warehouse charges CQVS per product (cost price used in Xero Purchase Orders — different from customer-facing price).</p>
+  <ul>
+    <li>Select a warehouse → table of all mapped products</li>
+    <li>Editable cost price per product per packaging size</li>
+    <li>Persists to <strong>warehouse_product_pricing</strong> table</li>
+    <li>API route already exists at <span class="file">app/api/warehouse-pricing/route.ts</span></li>
+    <li>Hooks already exist: <span class="file">useWarehousePricing()</span>, <span class="file">useUpsertWarehousePricing()</span></li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE B -->
+<h2><span class="section-num">B.</span> MacShip Integration (Phase 2 — Full Implementation)</h2>
+
+<div class="box-blue box">
+  <strong>Credentials status:</strong> <span class="file">MACSHIP_TEST_API_TOKEN</span> and <span class="file">MACSHIP_PRODUCTION_API_TOKEN</span> are both in <span class="file">.env.local</span>. Ready to build.
+</div>
+
+<h3>B.1 Database Migration — MacShip &amp; Lead Times</h3>
+<div class="task-block status-todo">
+  <h4>New migration: 025_macship_lead_times.sql</h4>
+  <p>Add MacShip columns to existing tables and create lead time tables.</p>
+  <ul>
+    <li>
+      <strong>orders table additions:</strong>
+      <ul>
+        <li><span class="file">macship_consignment_id</span> — returned from createConsignment</li>
+        <li><span class="file">macship_carrier_id</span> — chosen carrier</li>
+        <li><span class="file">macship_tracking_url</span> — live tracking link</li>
+        <li><span class="file">macship_pickup_date</span> — calculated from lead time</li>
+        <li><span class="file">macship_manifest_id</span> — set when dispatched</li>
+        <li><span class="file">macship_dispatched_at</span> — timestamp when manifested</li>
+        <li><span class="file">macship_quote_amount</span> — shipping cost quoted</li>
+        <li><span class="file">macship_governing_product_id</span> — product with longest lead time</li>
+      </ul>
+    </li>
+    <li>
+      <strong>New table: lead_time_global</strong> — single-row global default
+      <ul>
+        <li>manufacturing_days integer (default 5)</li>
+        <li>buffer_days integer (default 0)</li>
+        <li>use_business_days boolean (default true)</li>
+      </ul>
+    </li>
+    <li>
+      <strong>New table: lead_time_warehouse</strong> — per warehouse default
+      <ul>
+        <li>warehouse_id UUID FK</li>
+        <li>manufacturing_days integer</li>
+        <li>buffer_days integer</li>
+        <li>use_business_days boolean</li>
+        <li>notes text</li>
+        <li>UNIQUE(warehouse_id)</li>
+      </ul>
+    </li>
+    <li>
+      <strong>New table: lead_time_product_warehouse</strong> — most specific override
+      <ul>
+        <li>product_id UUID FK</li>
+        <li>warehouse_id UUID FK</li>
+        <li>manufacturing_days integer</li>
+        <li>buffer_days integer</li>
+        <li>use_business_days boolean</li>
+        <li>notes text</li>
+        <li>UNIQUE(product_id, warehouse_id)</li>
+      </ul>
+    </li>
+    <li>
+      <strong>New table: macship_failed_updates</strong> — for flagging failed consignment sync
+      <ul>
+        <li>order_id UUID FK</li>
+        <li>reason text</li>
+        <li>attempted_at timestamptz</li>
+        <li>resolved boolean default false</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<h3>B.2 MacShip API Client</h3>
+<div class="task-block status-todo">
+  <h4>New file: lib/macship/client.ts</h4>
+  <p>Typed API client for all MacShip endpoints. Reads env vars at runtime to switch test/production.</p>
+  <ul>
+    <li><strong>getRoutes(payload)</strong> — POST /apiv2/routes/returnRoutes<br>Sends: pickup suburb/postcode/state, delivery postcode, items (packaging size, weight, dimensions, DG class), tailgate YES/NO. Returns array of carrier options with prices. We always select minimum price.</li>
+    <li><strong>createConsignment(payload)</strong> — POST /apiv2/consignments/createConsignment<br>Sends: carrier ID, pickup/delivery details, items, scheduled pickup date (from lead time calculation). Returns: consignment ID, tracking info.</li>
+    <li><strong>updateConsignment(id, payload)</strong> — PUT /apiv2/consignments/{id}<br>Used to update pickup date when lead times change.</li>
+    <li><strong>manifestConsignment(consignmentId)</strong> — POST /apiv2/manifests/manifest<br>Called when admin dispatches order. Notifies carrier to pick up.</li>
+    <li><strong>getConsignment(id)</strong> — GET /apiv2/consignments/getConsignment?id={id}<br>Polls for tracking updates and POD.</li>
+    <li><strong>getLabels(consignmentId)</strong> — returns printable label PDF URL</li>
+  </ul>
+  <div class="api">Base URL: https://api.macship.com.au (production) | https://staging-api.macship.com.au (test)</div>
+  <p>Include: request/response TypeScript types, error handling with meaningful messages, automatic test/prod switching from <span class="file">MACSHIP_MODE=test|production</span> env var.</p>
+</div>
+
+<h3>B.3 Lead Time Calculation Logic</h3>
+<div class="task-block status-todo">
+  <h4>New file: lib/macship/lead-time.ts</h4>
+  <p>Pure utility functions — no side effects, easy to test.</p>
+  <ul>
+    <li>
+      <strong>getLeadTime(productId, warehouseId)</strong> — resolves the lead time using inheritance:
+      <ol>
+        <li>Check <span class="file">lead_time_product_warehouse</span> for exact product+warehouse match</li>
+        <li>Fall back to <span class="file">lead_time_warehouse</span> for warehouse default</li>
+        <li>Fall back to <span class="file">lead_time_global</span></li>
+        <li>Hardcoded fallback: 5 business days if nothing configured</li>
+      </ol>
+    </li>
+    <li>
+      <strong>calculatePickupDate(manufacturingDays, bufferDays, useBusinessDays, warehouseState)</strong>
+      <ul>
+        <li>Start from today (order placement date)</li>
+        <li>Add manufacturing + buffer days</li>
+        <li>Skip weekends if useBusinessDays = true</li>
+        <li>Skip AU public holidays for the warehouse's state (use a maintained holiday list: VIC, QLD, NSW, SA, WA)</li>
+        <li>Roll forward if result lands on weekend or public holiday</li>
+        <li>Return: ISO date string</li>
+      </ul>
+    </li>
+    <li>
+      <strong>getOrderPickupDate(orderItems, warehouseId)</strong>
+      <ul>
+        <li>For each item: resolve lead time for that product + warehouse</li>
+        <li>Return the longest lead time result (governing product)</li>
+        <li>Also return which product_id is governing (for display in admin)</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h4>Edge Cases</h4>
+  <table>
+    <tr><th>Scenario</th><th>Handling</th></tr>
+    <tr><td>Pickup date on weekend/holiday</td><td>Roll forward to next business day using warehouse state holidays</td></tr>
+    <tr><td>No lead time configured anywhere</td><td>5-day fallback; flag order in admin with warning badge</td></tr>
+    <tr><td>Multiple products, different lead times</td><td>Use maximum; note governing product on order record</td></tr>
+    <tr><td>Calculated date is in the past</td><td>Use today as minimum; flag for manual review</td></tr>
+  </table>
+</div>
+
+<h3>B.4 Warehouse Selection Logic</h3>
+<div class="task-block status-todo">
+  <h4>New file: lib/macship/warehouse-selector.ts</h4>
+  <ul>
+    <li><strong>selectWarehouse(cartItems, deliveryPostcode)</strong>
+      <ol>
+        <li>For each cart item: query <span class="file">product_warehouses</span> to find warehouses that carry it</li>
+        <li>Find warehouses that carry ALL items in the cart</li>
+        <li>If multiple qualify: score by proximity to delivery postcode (postcode distance lookup table for AU states — exact postcode proximity requires MacShip route call, so use state-level scoring as approximation: same state = score 1, adjacent state = score 2, etc.)</li>
+        <li>Return single winning warehouse</li>
+        <li>If no single warehouse carries all products: return warehouse with most items + flag for admin split-order review</li>
+      </ol>
+    </li>
+    <li>Cache postcode → state mapping using a lightweight AU postcode range lookup (no external API needed)</li>
+  </ul>
+</div>
+
+<h3>B.5 Checkout — Live MacShip Quote</h3>
+<div class="task-block status-todo">
+  <h4>New API route: app/api/macship/quote/route.ts</h4>
+  <p>Called client-side when customer enters delivery postcode at checkout (debounced, 500ms).</p>
+  <ul>
+    <li>Input: delivery postcode, cart items (product IDs, packaging sizes, quantities), forklift_available</li>
+    <li>Server-side: run warehouse selection logic → get winning warehouse → call MacShip getRoutes → return cheapest carrier + price</li>
+    <li>Output: { shipping_amount, carrier_name, warehouse_id, warehouse_name, estimated_transit_days, pickup_date }</li>
+    <li>If postcode not serviceable: return { serviceable: false } → checkout shows "We can't calculate shipping for your area" + submit button that emails admin</li>
+  </ul>
+
+  <h4>Checkout UI changes (app/(marketplace)/checkout/page.tsx)</h4>
+  <ul>
+    <li>After postcode field: show shipping quote status (loading spinner → carrier name + AUD amount)</li>
+    <li>Shipping line in order summary: live from quote (replacing current static value)</li>
+    <li>Show estimated delivery date (pickup date + transit days from MacShip response)</li>
+    <li>Unserviceable postcode: overlay message with "Notify Admin" submit button</li>
+    <li>Block checkout submission until valid quote received (or unserviceable path chosen)</li>
+  </ul>
+</div>
+
+<h3>B.6 Order Placement — Create MacShip Consignment</h3>
+<div class="task-block status-todo">
+  <h4>Update: app/api/orders/route.ts</h4>
+  <p>After the order is created in Supabase, immediately call MacShip createConsignment.</p>
+  <ul>
+    <li>Build MacShip consignment payload from order data:
+      <ul>
+        <li>Pickup: winning warehouse address, contact details</li>
+        <li>Delivery: customer's delivery address from checkout</li>
+        <li>Items: packaging size dimensions/weight from packaging_sizes table, DG class from product</li>
+        <li>Tailgate: !forklift_available</li>
+        <li>Scheduled pickup date: from lead time calculation</li>
+        <li>Carrier: ID from the quote response (stored during checkout)</li>
+      </ul>
+    </li>
+    <li>On success: save macship_consignment_id, macship_carrier_id, macship_tracking_url, macship_pickup_date to order record</li>
+    <li>On failure: log error, continue order creation (do NOT block order — flag in admin for manual MacShip booking)</li>
+    <li>Also: save macship_governing_product_id (which product has the longest lead time)</li>
+  </ul>
+</div>
+
+<h3>B.7 Admin: Lead Time Management UI</h3>
+<div class="task-block status-new">
+  <h4>New tab: "Lead Times" in app/(admin)/admin/warehouses/page.tsx</h4>
+  <p>This is the feature requested by Jonny in the April 2026 document.</p>
+
+  <h4>Global Default section</h4>
+  <ul>
+    <li>Single form: Manufacturing Days, Buffer Days, Use Business Days toggle</li>
+    <li>Displayed as "System Default (fallback if no other lead time is set)"</li>
+  </ul>
+
+  <h4>Per-Warehouse Defaults section</h4>
+  <ul>
+    <li>Table of all warehouses with editable Manufacturing Days, Buffer Days, Notes columns</li>
+    <li>Inline editing, save per row</li>
+  </ul>
+
+  <h4>Product-Specific Overrides section</h4>
+  <ul>
+    <li>Warehouse selector → table of mapped products at that warehouse</li>
+    <li>Each product row: Manufacturing Days, Buffer Days, Notes (blank = uses warehouse default)</li>
+    <li>Inline editing</li>
+  </ul>
+
+  <h4>Inheritance display</h4>
+  <ul>
+    <li>Each row shows the effective lead time with source label: "Product override", "Warehouse default", or "Global default (5d)"</li>
+  </ul>
+</div>
+
+<h3>B.8 Admin: Dispatch Button with Date Gating</h3>
+<div class="task-block status-todo">
+  <h4>Update: app/(admin)/admin/orders/page.tsx</h4>
+  <ul>
+    <li>Order detail panel: show <span class="file">macship_pickup_date</span> as "Ready for dispatch on [date]"</li>
+    <li>Dispatch / Manifest button:
+      <ul>
+        <li>Disabled if today &lt; macship_pickup_date. Shows: "Ready for dispatch on [date]"</li>
+        <li>Enabled when today ≥ macship_pickup_date</li>
+        <li>Admin override: small "Override dispatch date" link that unlocks the button immediately with a confirmation dialog</li>
+      </ul>
+    </li>
+    <li>On dispatch click: call <span class="file">app/api/macship/manifest/route.ts</span> → MacShip manifestConsignment → update order <span class="file">macship_manifest_id</span>, <span class="file">macship_dispatched_at</span></li>
+    <li>Show: consignment ID, carrier name, tracking URL (clickable), ETA, "Print Labels" button</li>
+    <li>Flag badge for orders where MacShip consignment creation failed (manual booking required)</li>
+    <li>Flag badge for orders where lead time fallback was used (no config found)</li>
+  </ul>
+</div>
+
+<h3>B.9 Automatic Lead Time Change → MacShip Sync</h3>
+<div class="task-block status-new">
+  <h4>New API route: app/api/macship/sync-lead-times/route.ts</h4>
+  <p>Triggered automatically whenever a lead time value is saved in admin. This is the critical feature from Jonny's document.</p>
+
+  <div class="step"><div class="step-n">1</div><div class="step-c"><strong>Admin saves a lead time change</strong> (global, warehouse, or product-specific). The save action calls the sync endpoint.</div></div>
+  <div class="step"><div class="step-n">2</div><div class="step-c"><strong>Find affected orders:</strong> Query all orders where macship_dispatched_at IS NULL (not yet dispatched) and the warehouse_id matches the changed lead time scope.</div></div>
+  <div class="step"><div class="step-n">3</div><div class="step-c"><strong>Recalculate pickup date</strong> for each affected order using the new lead time. Skip if calculated date is in the past — flag those for manual review.</div></div>
+  <div class="step"><div class="step-n">4</div><div class="step-c"><strong>Call MacShip updateConsignment</strong> for each affected order with the new pickup date. Record success or failure.</div></div>
+  <div class="step"><div class="step-n">5</div><div class="step-c"><strong>Return summary to admin UI:</strong> "X orders updated. Y orders need manual review." Failed updates are written to <span class="file">macship_failed_updates</span> table and shown as warning badges in the orders list.</div></div>
+
+  <h4>Edge case handling</h4>
+  <table>
+    <tr><th>Scenario</th><th>Handling</th></tr>
+    <tr><td>New pickup date is in the past</td><td>Skip MacShip update. Flag order for manual review. Show in admin summary.</td></tr>
+    <tr><td>Order already dispatched</td><td>Exclude from query entirely. No action.</td></tr>
+    <tr><td>MacShip update call fails</td><td>Write to macship_failed_updates. Show warning badge on order. Do NOT silently fail.</td></tr>
+    <tr><td>No MacShip consignment on order</td><td>Skip (consignment creation may have failed originally). No update possible.</td></tr>
+  </table>
+</div>
+
+<h3>B.10 Tracking Sync</h3>
+<div class="task-block status-todo">
+  <h4>New API route: app/api/macship/sync-tracking/route.ts</h4>
+  <p>Polling endpoint called periodically (or via cron) to sync tracking updates for active shipments.</p>
+  <ul>
+    <li>Query orders where macship_dispatched_at IS NOT NULL and status != 'delivered'</li>
+    <li>For each: call MacShip getConsignment → check for status updates / POD</li>
+    <li>If delivered: update order status to 'delivered', save tracking update</li>
+    <li>Display tracking status and POD link in both admin order view and customer dashboard order view</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE C -->
+<h2><span class="section-num">C.</span> Xero Purchase Orders to Warehouses (Phase 4)</h2>
+
+<h3>C.1 Wire Xero PO creation to order placement</h3>
+<div class="task-block status-todo">
+  <h4>Update: lib/xero/sync.ts</h4>
+  <p>The Xero client already supports Purchase Order creation. Need to wire it to fire when an order is placed.</p>
+  <ul>
+    <li>After MacShip consignment is created (warehouse is now confirmed), call <span class="file">createXeroPurchaseOrder()</span></li>
+    <li>PO includes:
+      <ul>
+        <li>Warehouse as the Xero Contact (use <span class="file">warehouses.xero_contact_id</span>)</li>
+        <li>Products with warehouse-specific cost prices from <span class="file">warehouse_product_pricing</span></li>
+        <li>Container costs (warehouse-specific)</li>
+        <li>Customer delivery address in reference/notes</li>
+        <li>Platform order number as PO reference</li>
+      </ul>
+    </li>
+    <li>On success: save <span class="file">xero_po_id</span>, <span class="file">xero_po_number</span> to order record</li>
+    <li>On failure: log to <span class="file">xero_sync_log</span>, flag in admin — do NOT block order</li>
+  </ul>
+  <div class="api">PUT https://api.xero.com/api.xro/2.0/PurchaseOrders</div>
+</div>
+
+<h3>C.2 Xero PO links in admin order view</h3>
+<div class="task-block status-todo">
+  <h4>Update: app/(admin)/admin/orders/page.tsx</h4>
+  <ul>
+    <li>Show Xero Invoice link: direct URL to invoice in Xero (already partially done, verify it's wired)</li>
+    <li>Show Xero PO link: direct URL to Purchase Order in Xero</li>
+    <li>If either failed to create: show "Retry" button that calls the sync endpoint manually</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE D -->
+<h2><span class="section-num">D.</span> Admin MacShip Settings Page</h2>
+
+<div class="task-block status-todo">
+  <h4>New section in app/(admin)/admin/warehouses/page.tsx OR new tab in admin nav</h4>
+  <ul>
+    <li><strong>API Mode toggle:</strong> Test / Production (saves <span class="file">MACSHIP_MODE</span> to a settings table or env)</li>
+    <li><strong>Connection test button:</strong> Calls a simple MacShip API ping → shows green/red status</li>
+    <li><strong>Recent MacShip activity log:</strong> Last 20 consignment creations, manifest calls, errors</li>
+    <li><strong>Failed updates panel:</strong> Orders from <span class="file">macship_failed_updates</span> that need manual attention</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- PHASE E -->
+<h2><span class="section-num">E.</span> Customer-Facing Updates</h2>
+
+<h3>E.1 Customer order page — tracking visibility</h3>
+<div class="task-block status-todo">
+  <h4>Update: app/(dashboard)/dashboard/orders/page.tsx</h4>
+  <ul>
+    <li>If order has <span class="file">macship_tracking_url</span>: show "Track Shipment" button (opens carrier tracking page)</li>
+    <li>Show estimated delivery date (from MacShip transit time + pickup date)</li>
+    <li>Show current tracking status if available from sync</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- IMPLEMENTATION ORDER -->
+<h2><span class="section-num">3.</span> Recommended Build Order</h2>
+
+<div class="box-amber box">
+  <strong>Important:</strong> Build in this order. Each step unblocks the next. Do not start MacShip API calls until the DB migration and warehouse UI gaps are done.
+</div>
+
+<table>
+  <tr><th>#</th><th>Task</th><th>Depends On</th><th>Effort</th></tr>
+  <tr><td>1</td><td>DB migration 025 (MacShip columns + lead time tables)</td><td>Nothing</td><td>Small</td></tr>
+  <tr><td>2</td><td>Admin: Product-Warehouse Mapping tab (A.1)</td><td>Migration 025</td><td>Small</td></tr>
+  <tr><td>3</td><td>Admin: Warehouse Product Pricing tab (A.2)</td><td>Nothing (hooks exist)</td><td>Small</td></tr>
+  <tr><td>4</td><td>lib/macship/client.ts — API client</td><td>Nothing</td><td>Medium</td></tr>
+  <tr><td>5</td><td>lib/macship/lead-time.ts — calculation logic</td><td>Migration 025</td><td>Medium</td></tr>
+  <tr><td>6</td><td>lib/macship/warehouse-selector.ts</td><td>Step 2 (mapping data)</td><td>Medium</td></tr>
+  <tr><td>7</td><td>Admin: Lead Times tab (B.7)</td><td>Migration 025</td><td>Medium</td></tr>
+  <tr><td>8</td><td>API: /api/macship/quote — live quote endpoint (B.5)</td><td>Steps 4, 5, 6</td><td>Medium</td></tr>
+  <tr><td>9</td><td>Checkout: live shipping quote UI (B.5)</td><td>Step 8</td><td>Medium</td></tr>
+  <tr><td>10</td><td>Order placement: createConsignment call (B.6)</td><td>Steps 4, 5, 6</td><td>Medium</td></tr>
+  <tr><td>11</td><td>Admin orders: Dispatch button + date gating (B.8)</td><td>Steps 5, 10</td><td>Medium</td></tr>
+  <tr><td>12</td><td>API: /api/macship/manifest (B.8)</td><td>Step 4</td><td>Small</td></tr>
+  <tr><td>13</td><td>API: sync-lead-times — auto MacShip update on change (B.9)</td><td>Steps 4, 5, 10</td><td>Medium</td></tr>
+  <tr><td>14</td><td>Xero PO creation on order (C.1)</td><td>Step 3, Step 10 (warehouse confirmed)</td><td>Small</td></tr>
+  <tr><td>15</td><td>Admin orders: Xero PO + invoice links (C.2)</td><td>Step 14</td><td>Small</td></tr>
+  <tr><td>16</td><td>API: sync-tracking + tracking display (B.10, E.1)</td><td>Step 10</td><td>Medium</td></tr>
+  <tr><td>17</td><td>Admin: MacShip settings page (D)</td><td>Steps 4, 13</td><td>Small</td></tr>
+</table>
+
+<hr class="divider">
+
+<!-- ENV VARS -->
+<h2><span class="section-num">4.</span> Environment Variables Required</h2>
+
+<table>
+  <tr><th>Variable</th><th>Status</th><th>Purpose</th></tr>
+  <tr><td><span class="file">MACSHIP_TEST_API_TOKEN</span></td><td><span class="badge b-done">IN .env.local</span></td><td>MacShip staging environment</td></tr>
+  <tr><td><span class="file">MACSHIP_PRODUCTION_API_TOKEN</span></td><td><span class="badge b-done">IN .env.local</span></td><td>MacShip production environment</td></tr>
+  <tr><td><span class="file">MACSHIP_MODE</span></td><td><span class="badge b-new">ADD</span></td><td>"test" or "production" — controls which token is used</td></tr>
+  <tr><td><span class="file">XERO_CLIENT_ID</span></td><td><span class="badge b-done">EXISTS</span></td><td>Xero OAuth</td></tr>
+  <tr><td><span class="file">XERO_CLIENT_SECRET</span></td><td><span class="badge b-done">EXISTS</span></td><td>Xero OAuth</td></tr>
+  <tr><td><span class="file">XERO_REDIRECT_URI</span></td><td><span class="badge b-done">EXISTS</span></td><td>Xero OAuth callback</td></tr>
+</table>
+
+<hr class="divider">
+
+<!-- SUMMARY -->
+<h2><span class="section-num">5.</span> Feature Completion Summary</h2>
+
+<table>
+  <tr><th>Feature</th><th>From Plan</th><th>Status After This Work</th></tr>
+  <tr><td>Packaging size pricing</td><td>Phase 1</td><td><span class="badge b-done">DONE</span></td></tr>
+  <tr><td>Signup changes</td><td>Phase 1</td><td><span class="badge b-done">DONE</span></td></tr>
+  <tr><td>Checkout changes (most)</td><td>Phase 1</td><td><span class="badge b-done">DONE</span></td></tr>
+  <tr><td>Checkout: live MacShip shipping quote</td><td>Phase 1/2</td><td>Step 8–9 above</td></tr>
+  <tr><td>Admin: Warehouse management</td><td>Phase 2</td><td><span class="badge b-done">DONE</span></td></tr>
+  <tr><td>Admin: Product-Warehouse mapping UI</td><td>Phase 2</td><td>Step 2 above</td></tr>
+  <tr><td>Admin: Warehouse product pricing UI</td><td>Phase 4</td><td>Step 3 above</td></tr>
+  <tr><td>Admin: MacShip settings page</td><td>Phase 2</td><td>Step 17 above</td></tr>
+  <tr><td>MacShip: live quote at checkout</td><td>Phase 2</td><td>Steps 8–9 above</td></tr>
+  <tr><td>MacShip: consignment creation on order</td><td>Phase 2</td><td>Step 10 above</td></tr>
+  <tr><td>MacShip: manifest/dispatch</td><td>Phase 2</td><td>Steps 11–12 above</td></tr>
+  <tr><td>MacShip: tracking sync</td><td>Phase 2</td><td>Step 16 above</td></tr>
+  <tr><td>Unserviceable postcode handling</td><td>Phase 2</td><td>Step 8–9 above</td></tr>
+  <tr><td>Xero: OAuth + invoicing + contacts</td><td>Phase 3</td><td><span class="badge b-done">DONE</span></td></tr>
+  <tr><td>Xero: Purchase Orders to warehouses</td><td>Phase 4</td><td>Steps 14–15 above</td></tr>
+  <tr><td>Lead Time configuration (admin)</td><td><span class="badge b-new">NEW — Jonny doc</span></td><td>Steps 1, 7 above</td></tr>
+  <tr><td>Automatic pickup date calculation</td><td><span class="badge b-new">NEW — Jonny doc</span></td><td>Steps 5, 10 above</td></tr>
+  <tr><td>Dispatch date gating in admin</td><td><span class="badge b-new">NEW — Jonny doc</span></td><td>Step 11 above</td></tr>
+  <tr><td>Auto MacShip sync on lead time change</td><td><span class="badge b-new">NEW — Jonny doc</span></td><td>Step 13 above</td></tr>
+  <tr><td>Customer tracking visibility</td><td>Phase 2</td><td>Step 16 above</td></tr>
+</table>
+
+<hr class="divider">
+
+<div class="footer">
+  <p><strong>Chem Connect by CQVS</strong> — Complete Implementation Plan</p>
+  <p>Covers: Original Final Integration Plan (Sohaib, April 2026) + Lead Time Management Feature Request (Jonny Harper, April 2026). MacShip credentials confirmed in .env.local. Ready to build.</p>
+  <p style="color: #16a34a; font-weight: 600;">- Sohaib</p>
+</div>
+
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Package, ArrowRight, ShoppingCart, Sparkles, Loader2, Check } from "lucide-react"
+import { Package, ShoppingCart, Sparkles, Loader2, Check } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -42,10 +42,10 @@ interface Bundle {
 }
 
 const accentColors = [
-  { border: "hover:ring-primary/30", glow: "group-hover:shadow-primary/8" },
-  { border: "hover:ring-sky-400/30", glow: "group-hover:shadow-sky-400/8" },
-  { border: "hover:ring-violet-400/30", glow: "group-hover:shadow-violet-400/8" },
-  { border: "hover:ring-amber-400/30", glow: "group-hover:shadow-amber-400/8" },
+  { hover: "hover:border-primary/30", badge: "bg-primary/15 text-primary" },
+  { hover: "hover:border-sky-400/30", badge: "bg-sky-400/15 text-sky-400" },
+  { hover: "hover:border-violet-400/30", badge: "bg-violet-400/15 text-violet-400" },
+  { hover: "hover:border-amber-400/30", badge: "bg-amber-400/15 text-amber-400" },
 ]
 
 export function CrossSellBundles() {
@@ -111,17 +111,17 @@ export function CrossSellBundles() {
   }
 
   return (
-    <section id="bundles" className="scroll-mt-36 px-4 py-16 sm:py-20">
+    <section id="bundles" className="scroll-mt-36 border-t border-border/60 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-5xl">
         <FadeIn>
-          <div className="mb-10">
-            <span className="mb-3 block text-sm font-bold tracking-widest text-primary">
-              04
-            </span>
-            <h2 className="mb-3 text-2xl font-bold tracking-tight sm:text-3xl">
+          <div className="mb-12">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              04 — Bundles
+            </div>
+            <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               Cross-Sell Bundles
             </h2>
-            <p className="max-w-2xl text-muted-foreground">
+            <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
               Buy together, save together. Order multiple products and unlock
               bundle discounts automatically at checkout.
             </p>
@@ -131,12 +131,12 @@ export function CrossSellBundles() {
         {isLoading ? (
           <div className="grid gap-5 sm:grid-cols-2">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-64 rounded-xl" />
+              <Skeleton key={i} className="h-72 rounded-3xl" />
             ))}
           </div>
         ) : activeBundles.length === 0 ? (
           <FadeIn>
-            <div className="rounded-xl border border-white/5 bg-card/50 p-8 text-center backdrop-blur-sm">
+            <div className="rounded-3xl border border-border/60 bg-card p-10 text-center">
               <p className="text-sm text-muted-foreground">
                 No active bundles right now. Check back soon!
               </p>
@@ -158,33 +158,32 @@ export function CrossSellBundles() {
                 <StaggerItem key={bundle.id}>
                   <Card
                     className={cn(
-                      "group h-full border-white/5 bg-card/50 backdrop-blur-sm transition-all duration-300",
-                      "hover:shadow-xl hover:ring-1",
-                      accent.border,
-                      accent.glow
+                      "group h-full rounded-3xl border border-border/60 bg-card transition-all duration-300",
+                      "hover:shadow-xl hover:shadow-primary/5",
+                      accent.hover
                     )}
                   >
                     <CardContent className="flex h-full flex-col p-0">
                       {/* Header */}
-                      <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
+                      <div className="flex items-center justify-between border-b border-border/60 px-6 py-5">
                         <div className="flex items-center gap-3">
-                          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                            <Package className="size-4 text-primary" />
+                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
+                            <Package className="size-5 text-primary" />
                           </div>
                           <div>
-                            <h3 className="font-bold leading-tight">{bundle.name}</h3>
+                            <h3 className="font-bold leading-tight text-foreground">{bundle.name}</h3>
                             {bundle.description && (
                               <p className="text-xs text-muted-foreground">{bundle.description}</p>
                             )}
                           </div>
                         </div>
-                        <Badge className="border-0 bg-primary/15 text-primary text-sm font-bold px-3">
+                        <Badge className={cn("border-0 px-3 py-1 text-xs font-bold", accent.badge)}>
                           {bundle.badge_text || `${bundle.discount_percent}% OFF`}
                         </Badge>
                       </div>
 
                       {/* Products */}
-                      <div className="flex-1 px-5 py-4">
+                      <div className="flex-1 px-6 py-5">
                         {hasProducts ? (
                           <div className="space-y-2">
                             {products.map((product) => {
@@ -194,13 +193,13 @@ export function CrossSellBundles() {
                                 <Link
                                   key={product.id}
                                   href={`/products/${product.slug}`}
-                                  className="flex items-center justify-between rounded-lg border border-white/5 bg-muted/10 px-3 py-2.5 transition-all hover:border-primary/15 hover:bg-muted/20"
+                                  className="flex items-center justify-between rounded-2xl border border-border/60 bg-muted/20 px-4 py-3 transition-all hover:border-primary/20 hover:bg-muted/40"
                                 >
                                   <div className="flex items-center gap-2.5 min-w-0">
-                                    <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/8">
+                                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
                                       <Sparkles className="size-3 text-primary" />
                                     </div>
-                                    <span className="truncate text-sm font-medium">
+                                    <span className="truncate text-sm font-medium text-foreground">
                                       {product.name}
                                     </span>
                                   </div>
@@ -245,7 +244,7 @@ export function CrossSellBundles() {
 
                       {/* Footer */}
                       {hasProducts && (
-                        <div className="border-t border-white/5 px-5 py-3 space-y-3">
+                        <div className="space-y-3 border-t border-border/60 px-6 py-4">
                           <div className="flex items-center justify-between">
                             <div className="text-xs text-muted-foreground">
                               You save{" "}
@@ -256,24 +255,23 @@ export function CrossSellBundles() {
                             </div>
                           </div>
                           <Button
-                            className="w-full shadow-md shadow-primary/25 transition-shadow duration-200 hover:shadow-lg hover:shadow-primary/40"
-                            size="sm"
+                            className="h-12 w-full rounded-xl px-7 text-[15px] font-semibold shadow-lg shadow-primary/25 transition-shadow duration-200 hover:shadow-xl hover:shadow-primary/40"
                             disabled={addingBundleId === bundle.id}
                             onClick={() => handleAddBundleToCart(bundle)}
                           >
                             {addingBundleId === bundle.id ? (
                               <>
-                                <Loader2 className="mr-2 size-3.5 animate-spin" />
+                                <Loader2 className="mr-2 size-4 animate-spin" />
                                 Adding...
                               </>
                             ) : addedBundleId === bundle.id ? (
                               <>
-                                <Check className="mr-2 size-3.5" />
+                                <Check className="mr-2 size-4" />
                                 Added to Cart!
                               </>
                             ) : (
                               <>
-                                <ShoppingCart className="mr-2 size-3.5" />
+                                <ShoppingCart className="mr-2 size-4" />
                                 Add Bundle to Cart
                               </>
                             )}

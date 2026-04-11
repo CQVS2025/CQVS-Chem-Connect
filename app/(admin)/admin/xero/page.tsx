@@ -22,7 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { get, post } from "@/lib/api/client"
+import { get, post, put } from "@/lib/api/client"
 
 interface XeroStatus {
   connected: boolean
@@ -59,6 +59,9 @@ function AdminXeroPageInner() {
   const [loading, setLoading] = useState(true)
   const [disconnecting, setDisconnecting] = useState(false)
   const [logs, setLogs] = useState<SyncLogRow[]>([])
+  const [poAutoApprove, setPoAutoApprove] = useState(false)
+  const [poAutoApproveLoading, setPoAutoApproveLoading] = useState(true)
+  const [poAutoApproveSaving, setPoAutoApproveSaving] = useState(false)
 
   // Check for query string flags from the OAuth callback
   useEffect(() => {
@@ -93,9 +96,40 @@ function AdminXeroPageInner() {
     }
   }
 
+  async function loadPoAutoApprove() {
+    setPoAutoApproveLoading(true)
+    try {
+      const settings = await get<Record<string, string>>("/settings")
+      setPoAutoApprove(settings.xero_po_auto_approve === "true")
+    } catch {
+      setPoAutoApprove(false)
+    } finally {
+      setPoAutoApproveLoading(false)
+    }
+  }
+
+  async function togglePoAutoApprove() {
+    const newValue = !poAutoApprove
+    setPoAutoApproveSaving(true)
+    try {
+      await put("/settings", { xero_po_auto_approve: String(newValue) })
+      setPoAutoApprove(newValue)
+      toast.success(
+        newValue
+          ? "PO auto-approve enabled — warehouse will be notified automatically"
+          : "PO auto-approve disabled — POs will need manual approval in Xero",
+      )
+    } catch {
+      toast.error("Failed to update setting")
+    } finally {
+      setPoAutoApproveSaving(false)
+    }
+  }
+
   useEffect(() => {
     loadStatus()
     loadLogs()
+    loadPoAutoApprove()
   }, [])
 
   function handleConnect() {
@@ -202,6 +236,65 @@ function AdminXeroPageInner() {
               <Button onClick={handleConnect} className="glow-primary">
                 <Link2 className="mr-2 h-4 w-4" />
                 Connect to Xero
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* PO Automation Toggle */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Purchase Order Automation</CardTitle>
+          <CardDescription>
+            Control whether Purchase Orders to warehouses are auto-approved and
+            emailed, or require manual approval in Xero.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {poAutoApproveLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  {poAutoApprove ? (
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      Auto-approve is ON
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                      Auto-approve is OFF (manual)
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {poAutoApprove
+                    ? "New POs are automatically approved and emailed to the warehouse supplier as soon as an order is placed."
+                    : "New POs are created as \"Awaiting Approval\" in Xero. An admin must manually approve and send them to the warehouse."}
+                </p>
+              </div>
+              <Button
+                variant={poAutoApprove ? "outline" : "default"}
+                size="sm"
+                onClick={togglePoAutoApprove}
+                disabled={poAutoApproveSaving}
+                className="shrink-0"
+              >
+                {poAutoApproveSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : poAutoApprove ? (
+                  "Switch to Manual"
+                ) : (
+                  "Enable Auto-Approve"
+                )}
               </Button>
             </div>
           )}

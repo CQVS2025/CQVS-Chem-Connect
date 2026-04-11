@@ -24,17 +24,17 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
   const isLoggedIn = stamps > 0 || freeIBCsEarned > 0
 
   return (
-    <section id="stamp-card" className="scroll-mt-36 px-4 py-16 sm:py-20">
+    <section id="stamp-card" className="scroll-mt-36 border-t border-border/60 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-5xl">
         <FadeIn>
-          <div className="mb-10">
-            <span className="mb-3 block text-sm font-bold tracking-widest text-primary">
-              08
-            </span>
-            <h2 className="mb-3 text-2xl font-bold tracking-tight sm:text-3xl">
+          <div className="mb-12">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              08 — Stamp Card
+            </div>
+            <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               Physical Loyalty Stamp Card
             </h2>
-            <p className="max-w-2xl text-muted-foreground">
+            <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
               Old school. Still works. Every 1000L IBC order = 1 stamp. 10
               stamps = free IBC of Truck Wash Standard, Truck Wash Premium,
               or Eco Wash.
@@ -45,16 +45,18 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Visual stamp card */}
           <FadeIn delay={0.1}>
-            <Card className="overflow-hidden border-white/5 bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-5 sm:p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="size-5 text-primary" />
-                    <span className="text-sm font-bold tracking-wide">
+            <Card className="overflow-hidden rounded-3xl border border-border/60 bg-card">
+              <CardContent className="p-6 sm:p-7">
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
+                      <CreditCard className="size-4 text-primary" />
+                    </div>
+                    <span className="text-sm font-bold tracking-wider text-foreground">
                       CQVS
                     </span>
                   </div>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Loyalty Stamp Card
                   </span>
                 </div>
@@ -67,10 +69,10 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
                       <div
                         key={i}
                         className={cn(
-                          "flex aspect-square items-center justify-center rounded-xl border-2 text-sm font-bold transition-all duration-300",
+                          "flex aspect-square items-center justify-center rounded-2xl border-2 text-sm font-bold transition-all duration-300",
                           isFilled
-                            ? "border-primary/40 bg-primary/15 text-primary"
-                            : "border-white/5 bg-muted/20 text-muted-foreground/40"
+                            ? "border-primary/30 bg-primary/10 text-primary"
+                            : "border-border/60 bg-muted/20 text-muted-foreground/30"
                         )}
                       >
                         {isFilled ? (
@@ -84,7 +86,7 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
                 </div>
 
                 {/* Progress */}
-                <div className="flex items-center justify-between rounded-xl border border-white/5 bg-muted/20 px-4 py-3">
+                <div className="flex items-center justify-between rounded-2xl border border-border/60 bg-muted/20 px-4 py-3">
                   <div>
                     <span className="text-2xl font-bold text-primary">
                       {currentCardStamps}
@@ -105,8 +107,8 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
 
                 {/* Free IBCs earned banner */}
                 {freeIBCsEarned > 0 && (
-                  <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-center">
-                    <p className="text-sm font-semibold text-primary">
+                  <div className="mt-3 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-center">
+                    <p className="text-sm font-bold text-primary">
                       {freeIBCsEarned} free IBC{freeIBCsEarned > 1 ? "s" : ""} earned!
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -123,15 +125,15 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
             <div className="flex h-full flex-col justify-center space-y-4">
               {features.map((feature) => (
                 <div key={feature} className="flex items-center gap-3">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
                     <Check className="size-4 text-primary" />
                   </div>
-                  <span className="text-sm font-medium">{feature}</span>
+                  <span className="text-sm font-medium text-foreground">{feature}</span>
                 </div>
               ))}
 
-              <div className="mt-6! rounded-xl border border-white/5 bg-muted/20 px-4 py-3">
-                <p className="text-xs font-medium text-muted-foreground">
+              <div className="mt-4 rounded-2xl border border-border/60 bg-muted/20 px-5 py-4">
+                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Eligible free products
                 </p>
                 <p className="text-sm font-bold text-primary">
@@ -143,8 +145,8 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
         </div>
 
         <FadeIn delay={0.3}>
-          <p className="mt-8 rounded-xl border border-primary/10 bg-primary/5 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
-            For the bloke running a batching plant who doesn&apos;t check apps -
+          <p className="mt-8 rounded-2xl border border-primary/15 bg-primary/5 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
+            For the bloke running a batching plant who doesn&apos;t check apps —
             a card on the office wall with 6 stamps out of 10 is the most
             effective loyalty tool we can give you.
           </p>

@@ -8,6 +8,22 @@ import {
 } from "@/lib/email/notifications"
 import { sendReceiptEmail } from "@/lib/email/receipt-email"
 import { sendEmail, getAdminEmail } from "@/lib/email/send"
+import { isMacShipConfigured, createConsignment } from "@/lib/macship/client"
+import { getOrderPickupDate } from "@/lib/macship/lead-time"
+import {
+  buildConsolidatedCart,
+  buildCapacityMap,
+} from "@/lib/macship/pallet-consolidation"
+
+// ============================================================
+// Machship helpers
+// ============================================================
+
+function isDgClassification(classification: string | null | undefined): boolean {
+  if (!classification) return false
+  const c = classification.toLowerCase()
+  return c !== "non-dg" && c !== "non dg" && c !== "none" && c !== ""
+}
 
 const GST_RATE = 0.1
 const STRIPE_FEE_PERCENT = 0.0175 // 1.75% for domestic AU cards
@@ -142,6 +158,8 @@ export async function POST(request: NextRequest) {
       delivery_address_postcode,
       delivery_notes,
     } = body
+    const macship_carrier_id = body.macship_carrier_id as string | undefined
+    const macship_quote_amount = body.macship_quote_amount as number | undefined
 
     if (!payment_method || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -161,11 +179,11 @@ export async function POST(request: NextRequest) {
     const productIds = items.map((item: { product_id: string }) => item.product_id)
     const { data: productsData } = await supabase
       .from("products")
-      .select("id, name, image_url, unit, shipping_fee, price, price_type")
+      .select("id, name, image_url, unit, shipping_fee, price, price_type, classification")
       .in("id", productIds)
 
     const productMap = new Map(
-      (productsData ?? []).map((p: { id: string; name: string; image_url: string | null; unit: string; shipping_fee?: number; price: number; price_type?: string }) => [p.id, p]),
+      (productsData ?? []).map((p: { id: string; name: string; image_url: string | null; unit: string; shipping_fee?: number; price: number; price_type?: string; classification?: string | null }) => [p.id, p]),
     )
 
     // Compute container costs server-side
@@ -179,7 +197,7 @@ export async function POST(request: NextRequest) {
     // A more sophisticated closest-warehouse algorithm will land with MacShip.
     const { data: warehousesData } = await supabase
       .from("warehouses")
-      .select("id, address_state")
+      .select("id, address_state, address_street, address_city, address_postcode, name, contact_phone, contact_email")
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
 
@@ -256,16 +274,22 @@ export async function POST(request: NextRequest) {
       bundleDiscount = Math.round(bundleDiscount * 100) / 100
     }
 
-    // Calculate shipping from per-product fees
+    // Shipping: prefer the live Machship quote amount sent from checkout,
+    // fall back to per-product shipping_fee legacy calculation only if the
+    // quote is missing (e.g. direct API clients without a quote step).
     const shippingMap = new Map(
       (productsData ?? []).map((p: { id: string; shipping_fee?: number }) => [p.id, p.shipping_fee ?? 0]),
     )
-    const shipping = Math.round(
+    const legacyShipping = Math.round(
       items.reduce(
         (sum: number, item: { product_id: string }) => sum + (shippingMap.get(item.product_id) ?? 0),
         0,
       ) * 100,
     ) / 100
+    const shipping =
+      typeof macship_quote_amount === "number" && macship_quote_amount > 0
+        ? Math.round(macship_quote_amount * 100) / 100
+        : legacyShipping
 
     // First-order incentive
     let firstOrderDiscount = 0
@@ -529,6 +553,177 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: itemsError.message }, { status: 500 })
     }
 
+    // Get user profile (needed for MacShip delivery name and email notifications)
+    const { data: userProfile } = await supabase
+      .from("profiles")
+      .select("contact_name, email, company_name, phone")
+      .eq("id", user.id)
+      .single()
+
+    // --- MacShip Consignment Creation (non-blocking) ---
+    // We don't block order creation on MacShip failure - just flag it
+    let macshipData: {
+      consignment_id?: string
+      carrier_id?: string
+      tracking_url?: string
+      pickup_date?: string
+      manifest_id?: null
+      quote_amount?: number
+      governing_product_id?: string
+      used_fallback?: boolean
+      failed?: boolean
+    } = {}
+
+    try {
+      if (selectedWarehouse) {
+        // Get pickup date from lead time calculation (works without Machship token)
+        const pickupResult = await getOrderPickupDate(
+          items.map((i: { product_id: string; quantity: number }) => ({
+            product_id: i.product_id,
+            quantity: i.quantity,
+          })),
+          selectedWarehouse.id,
+          selectedWarehouse.address_state,
+          supabase,
+        )
+
+        // Always record what we know from the quote, even if Machship token is missing.
+        // This lets the admin order page show pickup date and quoted carrier so the
+        // rest of the flow (dispatch button, lead time sync) can be tested without
+        // a real consignment.
+        macshipData = {
+          carrier_id: macship_carrier_id || undefined,
+          quote_amount: macship_quote_amount,
+          pickup_date: pickupResult.pickupDate,
+          governing_product_id: pickupResult.governingProductId || undefined,
+          used_fallback: pickupResult.usedFallback,
+          failed: false,
+        }
+      }
+
+      if (isMacShipConfigured() && selectedWarehouse) {
+        const pickupResult = await getOrderPickupDate(
+          items.map((i: { product_id: string; quantity: number }) => ({
+            product_id: i.product_id,
+            quantity: i.quantity,
+          })),
+          selectedWarehouse.id,
+          selectedWarehouse.address_state,
+          supabase,
+        )
+
+        // Fetch packaging_sizes capacity for the order so admin-configured
+        // pallet capacities take precedence over the hardcoded fallbacks.
+        const orderPackagingSizeIds = [
+          ...new Set(
+            orderItems
+              .map((oi) => oi.packaging_size_id)
+              .filter((id): id is string => Boolean(id)),
+          ),
+        ]
+        const { data: orderPackagingSizesData } = orderPackagingSizeIds.length > 0
+          ? await supabase
+              .from("packaging_sizes")
+              .select("id, name, units_per_pallet, unit_weight_kg")
+              .in("id", orderPackagingSizeIds)
+          : { data: [] as Array<{ id: string; name: string; units_per_pallet: number | null; unit_weight_kg: number | null }> }
+        const orderCapacityMap = buildCapacityMap(orderPackagingSizesData ?? [])
+
+        // Build Machship items via the whole-cart consolidation helper.
+        // Groups lines sharing a packaging size onto shared pallets
+        // (CQVS' "Option B" pricing rule — approved April 2026).
+        const machshipItems = buildConsolidatedCart(
+          orderItems.map((oi) => {
+            const product = productMap.get(oi.product_id)
+            return {
+              product_name: product?.name ?? oi.product_name,
+              packaging_size_name: oi.packaging_size,
+              packaging_size_id: oi.packaging_size_id,
+              quantity: oi.quantity,
+            }
+          }),
+          orderCapacityMap,
+        )
+
+        // Carrier ID is selected from the quote response on the checkout page
+        const carrierId = macship_carrier_id ? parseInt(macship_carrier_id, 10) : null
+        const isDg = orderItems.some((oi) =>
+          isDgClassification(productMap.get(oi.product_id)?.classification),
+        )
+
+        if (carrierId && !Number.isNaN(carrierId) && machshipItems.length > 0) {
+          const despatchDateLocal = `${pickupResult.pickupDate}T08:00:00`
+          const consignmentResult = await createConsignment({
+            despatchDateTimeLocal: despatchDateLocal,
+            customerReference: order.order_number,
+            carrierId,
+            fromName: selectedWarehouse.name,
+            fromContact: selectedWarehouse.name,
+            fromPhone: selectedWarehouse.contact_phone || undefined,
+            fromEmail: selectedWarehouse.contact_email || undefined,
+            fromAddressLine1: selectedWarehouse.address_street,
+            fromLocation: {
+              suburb: selectedWarehouse.address_city,
+              postcode: selectedWarehouse.address_postcode,
+            },
+            toName:
+              userProfile?.company_name || userProfile?.contact_name || "Customer",
+            toContact: userProfile?.contact_name || undefined,
+            toPhone: userProfile?.phone || undefined,
+            toEmail: userProfile?.email || undefined,
+            toAddressLine1: delivery_address_street || "",
+            toLocation: {
+              suburb: delivery_address_city || "",
+              postcode: delivery_address_postcode || "",
+            },
+            specialInstructions: forklift_available === false
+              ? "Tailgate truck required — no forklift on site"
+              : undefined,
+            dgsDeclaration: isDg,
+            items: machshipItems,
+          })
+
+          // Build a tracking URL from the response token if available
+          const trackingUrl = consignmentResult.trackingPageAccessToken
+            ? `https://mship.io/v2/${consignmentResult.trackingPageAccessToken}`
+            : ""
+
+          macshipData = {
+            consignment_id: String(consignmentResult.id),
+            carrier_id: String(consignmentResult.carrier?.id ?? carrierId),
+            tracking_url: trackingUrl,
+            pickup_date: pickupResult.pickupDate,
+            quote_amount: macship_quote_amount,
+            governing_product_id: pickupResult.governingProductId || undefined,
+            used_fallback: pickupResult.usedFallback,
+            failed: false,
+          }
+        }
+      }
+    } catch (macshipError) {
+      console.error("Machship consignment creation failed (non-blocking):", macshipError)
+      macshipData = { failed: true }
+    }
+
+    // Update order with MacShip data (separate update, non-blocking)
+    if (
+      macshipData.consignment_id ||
+      macshipData.failed ||
+      macshipData.pickup_date ||
+      macshipData.carrier_id
+    ) {
+      supabase.from("orders").update({
+        macship_consignment_id: macshipData.consignment_id || null,
+        macship_carrier_id: macshipData.carrier_id || null,
+        macship_tracking_url: macshipData.tracking_url || null,
+        macship_pickup_date: macshipData.pickup_date || null,
+        macship_quote_amount: macshipData.quote_amount || null,
+        macship_governing_product_id: macshipData.governing_product_id || null,
+        macship_consignment_failed: macshipData.failed || false,
+        macship_lead_time_fallback: macshipData.used_fallback || false,
+      }).eq("id", order.id).then(() => {})  // fire-and-forget
+    }
+
     // Clear user's cart
     const { error: cartError } = await supabase
       .from("cart_items")
@@ -538,13 +733,6 @@ export async function POST(request: NextRequest) {
     if (cartError) {
       console.error("Failed to clear cart after order creation:", cartError.message)
     }
-
-    // Get user profile for email
-    const { data: userProfile } = await supabase
-      .from("profiles")
-      .select("contact_name, email, company_name")
-      .eq("id", user.id)
-      .single()
 
     const customerName = userProfile?.contact_name || "Customer"
     const customerEmail = userProfile?.email || user.email || ""
@@ -809,6 +997,39 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    // --- Xero Integration (non-blocking) ---
+    // Create Xero invoice for PO orders, and Xero PO to warehouse for all orders
+    if (payment_method === "purchase_order") {
+      import("@/lib/xero/sync").then(({ createXeroInvoiceForOrder }) => {
+        createXeroInvoiceForOrder(order.id)
+          .then((result) => {
+            if (result) {
+              console.log(`[Xero] Invoice created for ${order.order_number}: ${result.invoiceNumber}`)
+            } else {
+              console.warn(`[Xero] Invoice NOT created for ${order.order_number} — check /admin/xero (likely not connected) or xero_sync_log table`)
+            }
+          })
+          .catch((err) => {
+            console.error("[Xero] invoice creation failed (non-blocking):", err)
+          })
+      })
+    }
+
+    // Create Xero PO to warehouse for all orders (PO and card)
+    import("@/lib/xero/sync").then(({ createXeroPurchaseOrderForOrder }) => {
+      createXeroPurchaseOrderForOrder(order.id)
+        .then((result) => {
+          if (result) {
+            console.log(`[Xero] PO created for ${order.order_number}: ${result.poNumber}`)
+          } else {
+            console.warn(`[Xero] PO NOT created for ${order.order_number} — check /admin/xero (likely not connected, or warehouse missing xero_contact_id) or xero_sync_log table`)
+          }
+        })
+        .catch((err) => {
+          console.error("[Xero] PO creation failed (non-blocking):", err)
+        })
+    })
 
     return NextResponse.json(
       {

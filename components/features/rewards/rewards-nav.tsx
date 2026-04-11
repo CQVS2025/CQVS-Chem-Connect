@@ -56,14 +56,14 @@ export function RewardsNav({ activeSection, onScrollTo }: RewardsNavProps) {
         className={cn(
           "sticky top-[72px] z-40 transition-all duration-300",
           isSticky
-            ? "border-b border-white/5 bg-background/80 shadow-lg shadow-black/10 backdrop-blur-xl"
+            ? "border-b border-border/60 bg-background/85 shadow-sm shadow-black/5 backdrop-blur-xl"
             : "bg-transparent"
         )}
       >
-        <div className="mx-auto max-w-5xl px-4">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div
             ref={scrollRef}
-            className="scrollbar-none flex gap-1 overflow-x-auto py-3"
+            className="scrollbar-none flex gap-0.5 overflow-x-auto py-2.5"
           >
             {tabs.map((tab) => (
               <button
@@ -71,10 +71,10 @@ export function RewardsNav({ activeSection, onScrollTo }: RewardsNavProps) {
                 data-tab={tab.id}
                 onClick={() => onScrollTo(tab.id)}
                 className={cn(
-                  "shrink-0 rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200",
+                  "shrink-0 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200",
                   activeSection === tab.id
                     ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                 )}
               >
                 {tab.label}

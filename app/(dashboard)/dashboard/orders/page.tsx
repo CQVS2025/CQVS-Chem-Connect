@@ -16,6 +16,7 @@ import {
   XCircle,
   Loader2,
   AlertCircle,
+  ExternalLink,
 } from "lucide-react"
 
 import {
@@ -318,24 +319,34 @@ export default function OrdersPage() {
                               {order.items.length}{" "}
                               {order.items.length === 1 ? "item" : "items"}
                             </span>
-                            {order.tracking_number && (
+                            {order.macship_tracking_url ? (
+                              <a
+                                href={order.macship_tracking_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 text-primary hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Truck className="h-4 w-4" />
+                                Track Shipment
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            ) : order.tracking_number ? (
                               <span className="flex items-center gap-1.5">
                                 <Truck className="h-4 w-4" />
                                 {order.tracking_number}
                               </span>
-                            )}
-                            {!order.tracking_number &&
-                              order.status !== "cancelled" &&
-                              order.status !== "delivered" && (
-                                <span className="flex items-center gap-1.5">
-                                  <MapPin className="h-4 w-4" />
-                                  Tracking not yet available
-                                </span>
-                              )}
+                            ) : order.status !== "cancelled" &&
+                              order.status !== "delivered" ? (
+                              <span className="flex items-center gap-1.5">
+                                <MapPin className="h-4 w-4" />
+                                Tracking not yet available
+                              </span>
+                            ) : null}
                           </div>
                           <div className="flex items-center gap-3">
                             <p className="text-lg font-semibold">
-                              ${order.total.toLocaleString("en-AU", {
+                              AUD {order.total.toLocaleString("en-AU", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                               })}
@@ -431,6 +442,14 @@ export default function OrdersPage() {
                                     <span>-AUD {order.promo_discount.toLocaleString("en-AU", { minimumFractionDigits: 2 })}</span>
                                   </div>
                                 )}
+                                {(order.container_total ?? 0) > 0 && (
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Container Costs</span>
+                                    <span>
+                                      AUD {order.container_total.toLocaleString("en-AU", { minimumFractionDigits: 2 })}
+                                    </span>
+                                  </div>
+                                )}
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>Shipping</span>
                                   <span>
@@ -439,20 +458,6 @@ export default function OrdersPage() {
                                       : "Free"}
                                   </span>
                                 </div>
-                                {order.shipping > 0 && (
-                                  <div className="space-y-0.5 ml-4 pl-3 border-l-2 border-border">
-                                    {order.items.map((item) => (
-                                      <div key={item.id} className="flex justify-between text-xs text-muted-foreground">
-                                        <span className="truncate max-w-40">{item.product_name}</span>
-                                        <span className="shrink-0 ml-2">
-                                          {(item.shipping_fee ?? 0) > 0
-                                            ? `AUD ${item.shipping_fee.toFixed(2)}`
-                                            : "Free"}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>GST</span>
                                   <span>
@@ -502,22 +507,57 @@ export default function OrdersPage() {
                             )}
 
                             {/* Tracking info */}
-                            {order.tracking_number && (
+                            {(order.tracking_number || order.macship_tracking_url) && (
                               <div className="rounded-lg border bg-muted/30 p-3">
                                 <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                   Tracking
                                 </p>
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Truck className="h-4 w-4 text-muted-foreground" />
-                                  <span className="font-mono">
-                                    {order.tracking_number}
-                                  </span>
-                                </div>
-                                {order.estimated_delivery && (
-                                  <p className="mt-1 text-xs text-muted-foreground">
-                                    Estimated delivery:{" "}
-                                    {formatDate(order.estimated_delivery)}
-                                  </p>
+                                {order.macship_tracking_url ? (
+                                  <div className="space-y-2">
+                                    <a
+                                      href={order.macship_tracking_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+                                    >
+                                      <Truck className="h-4 w-4" />
+                                      Track Shipment
+                                      <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                    {order.macship_pickup_date && !order.macship_dispatched_at && (
+                                      <p className="text-xs text-muted-foreground">
+                                        Estimated dispatch:{" "}
+                                        {formatDate(order.macship_pickup_date)}
+                                      </p>
+                                    )}
+                                    {order.macship_dispatched_at && (
+                                      <p className="text-xs text-muted-foreground">
+                                        Dispatched:{" "}
+                                        {formatDate(order.macship_dispatched_at)}
+                                      </p>
+                                    )}
+                                    {order.estimated_delivery && (
+                                      <p className="text-xs text-muted-foreground">
+                                        Estimated delivery:{" "}
+                                        {formatDate(order.estimated_delivery)}
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Truck className="h-4 w-4 text-muted-foreground" />
+                                      <span className="font-mono">
+                                        {order.tracking_number}
+                                      </span>
+                                    </div>
+                                    {order.estimated_delivery && (
+                                      <p className="mt-1 text-xs text-muted-foreground">
+                                        Estimated delivery:{" "}
+                                        {formatDate(order.estimated_delivery)}
+                                      </p>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             )}

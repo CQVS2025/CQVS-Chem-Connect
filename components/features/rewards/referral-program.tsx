@@ -20,6 +20,7 @@ const milestones = [
     condition: "Referred customer must place an order",
     color: "text-primary",
     bgColor: "bg-primary/10",
+    borderColor: "border-primary/20",
   },
   {
     count: "3",
@@ -28,14 +29,16 @@ const milestones = [
     condition: "All 3 referred customers must place an order",
     color: "text-sky-400",
     bgColor: "bg-sky-400/10",
+    borderColor: "border-sky-400/20",
   },
   {
     count: "5+",
     label: "5+ referrals",
-    reward: "Ambassador - permanent 5% discount",
+    reward: "Ambassador — permanent 5% discount",
     condition: "All 5 referred customers must place an order",
     color: "text-yellow-400",
     bgColor: "bg-yellow-400/10",
+    borderColor: "border-yellow-400/20",
   },
 ]
 
@@ -93,17 +96,17 @@ export function ReferralProgram() {
   }
 
   return (
-    <section id="referrals" className="scroll-mt-36 px-4 py-16 sm:py-20">
+    <section id="referrals" className="scroll-mt-36 border-t border-border/60 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-5xl">
         <FadeIn>
-          <div className="mb-10">
-            <span className="mb-3 block text-sm font-bold tracking-widest text-primary">
-              03
-            </span>
-            <h2 className="mb-3 text-2xl font-bold tracking-tight sm:text-3xl">
+          <div className="mb-12">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              03 — Referrals
+            </div>
+            <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               Refer a Site, Get Rewarded
             </h2>
-            <p className="max-w-2xl text-muted-foreground">
+            <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
               Know someone overpaying for chemicals? Send them our way and earn
               free product.
             </p>
@@ -114,22 +117,23 @@ export function ReferralProgram() {
         <StaggerContainer className="mb-10 grid gap-4 sm:grid-cols-3">
           {milestones.map((m) => (
             <StaggerItem key={m.count}>
-              <Card className="border-white/5 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
-                <CardContent className="p-5 sm:p-6">
+              <Card className="rounded-3xl border border-border/60 bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
+                <CardContent className="p-6 sm:p-7">
                   <div
                     className={cn(
-                      "mb-3 flex size-12 items-center justify-center rounded-2xl text-2xl font-bold",
+                      "mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border text-xl font-bold",
                       m.bgColor,
+                      m.borderColor,
                       m.color
                     )}
                   >
                     {m.count}
                   </div>
-                  <p className="mb-1 text-sm font-semibold text-foreground">
+                  <p className="mb-1 text-sm font-bold text-foreground">
                     {m.label}
                   </p>
-                  <p className="text-sm text-muted-foreground">{m.reward}</p>
-                  <p className="mt-1.5 text-[11px] italic text-muted-foreground/70">{m.condition}</p>
+                  <p className="mb-2 text-sm text-muted-foreground">{m.reward}</p>
+                  <p className="text-[11px] italic text-muted-foreground/60">{m.condition}</p>
                 </CardContent>
               </Card>
             </StaggerItem>
@@ -137,7 +141,7 @@ export function ReferralProgram() {
         </StaggerContainer>
 
         <FadeIn delay={0.1}>
-          <p className="mb-6 text-center text-xs font-medium text-muted-foreground">
+          <p className="mb-8 text-center text-xs font-medium text-muted-foreground">
             A &quot;successful referral&quot; = the referred customer places their
             first order. Rewards are issued automatically once the condition is met.
           </p>
@@ -145,13 +149,13 @@ export function ReferralProgram() {
 
         {/* Referral form */}
         <FadeIn delay={0.2}>
-          <Card className="border-white/5 bg-card/50 backdrop-blur-sm">
-            <CardContent className="p-5 sm:p-6">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+          <Card className="rounded-3xl border border-border/60 bg-card">
+            <CardContent className="p-6 sm:p-7">
+              <div className="mb-6 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
                   <Megaphone className="size-5 text-primary" />
                 </div>
-                <h3 className="font-bold">TELL US WHO TO CALL</h3>
+                <h3 className="font-bold tracking-tight text-foreground">Tell Us Who To Call</h3>
               </div>
 
               <form
@@ -206,7 +210,7 @@ export function ReferralProgram() {
                     }
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    Optional - we&apos;ll send them an intro email about Chem Connect
+                    Optional — we&apos;ll send them an intro email about Chem Connect
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -227,7 +231,7 @@ export function ReferralProgram() {
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="w-full shadow-md shadow-primary/25 transition-shadow duration-200 hover:shadow-lg hover:shadow-primary/40 sm:w-auto"
+                    className="h-12 rounded-xl px-7 text-[15px] font-semibold shadow-lg shadow-primary/25 transition-shadow duration-200 hover:shadow-xl hover:shadow-primary/40 sm:w-auto"
                   >
                     <Send className="mr-2 size-4" />
                     {submitting ? "Submitting..." : "Submit Referral"}
@@ -239,7 +243,7 @@ export function ReferralProgram() {
         </FadeIn>
 
         <FadeIn delay={0.3}>
-          <p className="mt-6 rounded-xl border border-primary/10 bg-primary/5 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-6 rounded-2xl border border-primary/15 bg-primary/5 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
             Concrete and quarry is a small world. One conversation over a beer
             could earn you free product for a year.
           </p>

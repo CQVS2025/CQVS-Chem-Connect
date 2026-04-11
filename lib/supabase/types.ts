@@ -155,6 +155,8 @@ export interface Database {
           container_type: string
           sort_order: number
           is_active: boolean
+          units_per_pallet: number | null
+          unit_weight_kg: number | null
           created_at: string
           updated_at: string
         }
@@ -165,6 +167,8 @@ export interface Database {
           container_type?: string
           sort_order?: number
           is_active?: boolean
+          units_per_pallet?: number | null
+          unit_weight_kg?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -174,6 +178,8 @@ export interface Database {
           container_type?: string
           sort_order?: number
           is_active?: boolean
+          units_per_pallet?: number | null
+          unit_weight_kg?: number | null
           updated_at?: string
         }
       }

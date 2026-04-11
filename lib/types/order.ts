@@ -65,6 +65,17 @@ export interface Order {
   xero_invoice_number: string | null
   xero_invoice_status: string | null
   xero_synced_at: string | null
+  xero_po_id: string | null
+  xero_po_number: string | null
+  macship_consignment_id: string | null
+  macship_carrier_id: string | null
+  macship_tracking_url: string | null
+  macship_pickup_date: string | null
+  macship_manifest_id: string | null
+  macship_dispatched_at: string | null
+  macship_quote_amount: number | null
+  macship_consignment_failed: boolean | null
+  macship_lead_time_fallback: boolean | null
   created_at: string
   updated_at: string
   items: OrderItem[]

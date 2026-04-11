@@ -37,12 +37,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Switch } from "@/components/ui/switch"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   useWarehouses,
   useCreateWarehouse,
   useUpdateWarehouse,
   useContainerCosts,
   useUpsertContainerCost,
+  useProductWarehouses,
+  useAddProductWarehouse,
+  useRemoveProductWarehouse,
+  useWarehousePricing,
+  useUpsertWarehousePricing,
 } from "@/lib/hooks/use-warehouses"
 import {
   usePackagingSizes,
@@ -50,11 +57,19 @@ import {
   useUpdatePackagingSize,
   useDeletePackagingSize,
 } from "@/lib/hooks/use-packaging-sizes"
+import {
+  useLeadTimes,
+  useUpsertGlobalLeadTime,
+  useUpsertWarehouseLeadTime,
+  useUpsertProductWarehouseLeadTime,
+  useDeleteProductWarehouseLeadTime,
+} from "@/lib/hooks/use-lead-times"
+import { useProducts } from "@/lib/hooks/use-products"
 import type { Warehouse, PackagingSize } from "@/lib/supabase/types"
 
 const AU_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]
 
-type Tab = "warehouses" | "containers" | "packaging-sizes"
+type Tab = "warehouses" | "packaging-sizes" | "containers" | "product-mapping" | "warehouse-pricing" | "lead-times"
 
 export default function AdminWarehousesPage() {
   const [tab, setTab] = useState<Tab>("warehouses")
@@ -71,12 +86,15 @@ export default function AdminWarehousesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-border">
+      <div className="flex gap-2 border-b border-border flex-wrap">
         {(
           [
             { id: "warehouses", label: "Warehouses" },
             { id: "packaging-sizes", label: "Packaging Sizes" },
             { id: "containers", label: "Container Costs" },
+            { id: "product-mapping", label: "Product Mapping" },
+            { id: "warehouse-pricing", label: "Warehouse Pricing" },
+            { id: "lead-times", label: "Lead Times" },
           ] as const
         ).map(({ id, label }) => (
           <button
@@ -97,6 +115,9 @@ export default function AdminWarehousesPage() {
       {tab === "warehouses" && <WarehousesTab />}
       {tab === "packaging-sizes" && <PackagingSizesTab />}
       {tab === "containers" && <ContainerCostsTab />}
+      {tab === "product-mapping" && <ProductMappingTab />}
+      {tab === "warehouse-pricing" && <WarehousePricingTab />}
+      {tab === "lead-times" && <LeadTimesTab />}
     </div>
   )
 }
@@ -451,12 +472,15 @@ function PackagingSizesTab() {
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [form, setForm] = useState({
     name: "",
     volume_litres: "",
     container_type: "drum",
     sort_order: 0,
     is_active: true,
+    units_per_pallet: "",
+    unit_weight_kg: "",
   })
 
   function openAdd() {
@@ -467,6 +491,8 @@ function PackagingSizesTab() {
       container_type: "drum",
       sort_order: (sizes.length + 1) * 10,
       is_active: true,
+      units_per_pallet: "",
+      unit_weight_kg: "",
     })
     setDialogOpen(true)
   }
@@ -479,6 +505,8 @@ function PackagingSizesTab() {
       container_type: s.container_type ?? "drum",
       sort_order: s.sort_order,
       is_active: s.is_active,
+      units_per_pallet: s.units_per_pallet != null ? String(s.units_per_pallet) : "",
+      unit_weight_kg: s.unit_weight_kg != null ? String(s.unit_weight_kg) : "",
     })
     setDialogOpen(true)
   }
@@ -488,12 +516,26 @@ function PackagingSizesTab() {
       toast.error("Name is required")
       return
     }
+    const unitsPerPallet =
+      form.units_per_pallet !== "" ? parseInt(form.units_per_pallet, 10) : null
+    const unitWeightKg =
+      form.unit_weight_kg !== "" ? parseFloat(form.unit_weight_kg) : null
+    if (unitsPerPallet !== null && (Number.isNaN(unitsPerPallet) || unitsPerPallet < 1)) {
+      toast.error("Units per pallet must be a positive integer")
+      return
+    }
+    if (unitWeightKg !== null && (Number.isNaN(unitWeightKg) || unitWeightKg <= 0)) {
+      toast.error("Unit weight must be a positive number")
+      return
+    }
     const payload = {
       name: form.name.trim(),
       volume_litres: form.volume_litres !== "" ? parseFloat(form.volume_litres) : null,
       container_type: form.container_type,
       sort_order: form.sort_order,
       is_active: form.is_active,
+      units_per_pallet: unitsPerPallet,
+      unit_weight_kg: unitWeightKg,
     }
     try {
       if (editingId) {
@@ -510,11 +552,14 @@ function PackagingSizesTab() {
   }
 
   async function handleDeactivate(id: string) {
+    setDeletingId(id)
     try {
       await deleteSize.mutateAsync(id)
       toast.success("Packaging size deactivated")
     } catch {
       toast.error("Failed to deactivate")
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -544,6 +589,8 @@ function PackagingSizesTab() {
                 <TableHead>Name</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Volume (L)</TableHead>
+                <TableHead>Units / Pallet</TableHead>
+                <TableHead>Unit Weight (kg)</TableHead>
                 <TableHead>Sort</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -552,7 +599,7 @@ function PackagingSizesTab() {
             <TableBody>
               {sizes.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                     No packaging sizes configured.
                   </TableCell>
                 </TableRow>
@@ -565,6 +612,20 @@ function PackagingSizesTab() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {s.volume_litres != null ? `${s.volume_litres}L` : "—"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {s.units_per_pallet ?? (
+                      <span className="text-amber-500" title="Not set — Machship quotes will use defaults">
+                        not set
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {s.unit_weight_kg != null ? `${s.unit_weight_kg} kg` : (
+                      <span className="text-amber-500" title="Not set — Machship quotes will use defaults">
+                        not set
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{s.sort_order}</TableCell>
                   <TableCell>
@@ -591,7 +652,11 @@ function PackagingSizesTab() {
                           onClick={() => handleDeactivate(s.id)}
                           disabled={deleteSize.isPending}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          {deletingId === s.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
                         </Button>
                       )}
                     </div>
@@ -655,6 +720,46 @@ function PackagingSizesTab() {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>
+                    Units per Pallet{" "}
+                    <span className="text-xs text-muted-foreground">for shipping quotes</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={form.units_per_pallet}
+                    onChange={(e) =>
+                      setForm({ ...form, units_per_pallet: e.target.value })
+                    }
+                    placeholder="e.g. 16"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>
+                    Unit Weight (kg){" "}
+                    <span className="text-xs text-muted-foreground">when filled</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.unit_weight_kg}
+                    onChange={(e) =>
+                      setForm({ ...form, unit_weight_kg: e.target.value })
+                    }
+                    placeholder="e.g. 25"
+                  />
+                </div>
+              </div>
+              <p className="rounded-md border border-blue-500/20 bg-blue-500/5 p-2 text-xs text-blue-400">
+                <strong>Pallet capacity</strong> is used by Machship shipping quotes to consolidate
+                multiple units onto shared pallets. E.g. setting <em>Units per Pallet = 16</em> for a
+                20L Drum means 2 drums get quoted as 1 pallet (50 kg) instead of 2 separate pallets.
+                Leave blank to use the system default for that size.
+              </p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Sort Order</Label>
@@ -836,7 +941,7 @@ function ContainerCostsTab() {
                         return (
                           <TableCell key={w.id}>
                             <div className="flex items-center gap-1">
-                              <span className="text-xs text-muted-foreground">$</span>
+                              <span className="text-xs text-muted-foreground">AUD</span>
                               <Input
                                 type="number"
                                 step="0.01"
@@ -875,5 +980,911 @@ function ContainerCostsTab() {
         )}
       </CardContent>
     </Card>
+  )
+}
+
+// ----------------------------------------------------------------
+// Product Mapping Tab
+// ----------------------------------------------------------------
+function ProductMappingTab() {
+  const { data: warehouses = [] } = useWarehouses()
+  const { data: allProducts = [] } = useProducts()
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("")
+
+  const { data: mappings = [], isLoading: loadingMappings } = useProductWarehouses({
+    warehouseId: selectedWarehouseId || undefined,
+  })
+
+  const addMapping = useAddProductWarehouse()
+  const removeMapping = useRemoveProductWarehouse()
+
+  const mappedProductIds = useMemo(
+    () => new Set(mappings.map((m) => m.product_id)),
+    [mappings],
+  )
+
+  async function handleToggle(productId: string, isCurrentlyMapped: boolean) {
+    if (!selectedWarehouseId) return
+    try {
+      if (isCurrentlyMapped) {
+        await removeMapping.mutateAsync({
+          productId,
+          warehouseId: selectedWarehouseId,
+        })
+      } else {
+        await addMapping.mutateAsync({
+          product_id: productId,
+          warehouse_id: selectedWarehouseId,
+        })
+      }
+    } catch {
+      toast.error("Failed to update mapping")
+    }
+  }
+
+  const mappedCount = mappedProductIds.size
+  const totalCount = allProducts.length
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col gap-1">
+          <CardTitle>Product Mapping</CardTitle>
+          <CardDescription>
+            Configure which products are available at each warehouse. This controls MacShip warehouse selection.
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="w-72">
+            <Select
+              value={selectedWarehouseId}
+              onValueChange={setSelectedWarehouseId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a warehouse..." />
+              </SelectTrigger>
+              <SelectContent>
+                {warehouses.map((w) => (
+                  <SelectItem key={w.id} value={w.id}>
+                    {w.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {selectedWarehouseId && (
+            <p className="text-sm text-muted-foreground">
+              {mappedCount} of {totalCount} products mapped
+            </p>
+          )}
+        </div>
+
+        {!selectedWarehouseId ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Select a warehouse above to configure its product availability.
+          </p>
+        ) : loadingMappings ? (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading products...
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">Available</TableHead>
+                <TableHead>Product Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Slug</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {allProducts.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                    No products found.
+                  </TableCell>
+                </TableRow>
+              )}
+              {allProducts.map((product) => {
+                const isMapped = mappedProductIds.has(product.id)
+                const isBusy =
+                  (addMapping.isPending || removeMapping.isPending)
+                return (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={isMapped}
+                        disabled={isBusy}
+                        onCheckedChange={() => handleToggle(product.id, isMapped)}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {product.category ?? "—"}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {product.slug}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ----------------------------------------------------------------
+// Warehouse Pricing Tab
+// ----------------------------------------------------------------
+function WarehousePricingTab() {
+  const { data: warehouses = [] } = useWarehouses()
+  const { data: packagingSizes = [] } = usePackagingSizes()
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("")
+
+  const { data: mappings = [], isLoading: loadingMappings } = useProductWarehouses({
+    warehouseId: selectedWarehouseId || undefined,
+  })
+
+  const { data: pricingRows = [], isLoading: loadingPricing } = useWarehousePricing({
+    warehouseId: selectedWarehouseId || undefined,
+  })
+
+  const upsertPricing = useUpsertWarehousePricing()
+
+  // Build a map: { "productId:packagingSizeId" -> cost_price }
+  const priceMap = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const row of pricingRows) {
+      map.set(`${row.product_id}:${row.packaging_size_id}`, Number(row.cost_price))
+    }
+    return map
+  }, [pricingRows])
+
+  const [edits, setEdits] = useState<Record<string, string>>({})
+  const [savingKey, setSavingKey] = useState<string | null>(null)
+
+  function priceKey(productId: string, packagingSizeId: string) {
+    return `${productId}:${packagingSizeId}`
+  }
+
+  function getDisplayValue(productId: string, packagingSizeId: string): string {
+    const k = priceKey(productId, packagingSizeId)
+    if (edits[k] !== undefined) return edits[k]
+    const existing = priceMap.get(k)
+    return existing != null ? existing.toString() : ""
+  }
+
+  async function handleSave(productId: string, packagingSizeId: string) {
+    if (!selectedWarehouseId) return
+    const k = priceKey(productId, packagingSizeId)
+    const value = parseFloat(edits[k] ?? getDisplayValue(productId, packagingSizeId))
+    if (Number.isNaN(value) || value < 0) {
+      toast.error("Enter a valid amount")
+      return
+    }
+    setSavingKey(k)
+    try {
+      await upsertPricing.mutateAsync({
+        warehouse_id: selectedWarehouseId,
+        product_id: productId,
+        packaging_size_id: packagingSizeId,
+        cost_price: value,
+      })
+      setEdits((prev) => {
+        const next = { ...prev }
+        delete next[k]
+        return next
+      })
+      toast.success("Saved")
+    } catch {
+      toast.error("Failed to save")
+    } finally {
+      setSavingKey(null)
+    }
+  }
+
+  const activeSizes = packagingSizes.filter((s) => s.is_active)
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Warehouse Pricing</CardTitle>
+        <CardDescription>
+          Configure the cost price (what CQVS pays the warehouse) per product per packaging size. Used for Xero Purchase Orders.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="w-72">
+          <Select
+            value={selectedWarehouseId}
+            onValueChange={setSelectedWarehouseId}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a warehouse..." />
+            </SelectTrigger>
+            <SelectContent>
+              {warehouses.map((w) => (
+                <SelectItem key={w.id} value={w.id}>
+                  {w.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {!selectedWarehouseId ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Select a warehouse above to configure pricing.
+          </p>
+        ) : loadingMappings || loadingPricing ? (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+          </div>
+        ) : mappings.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            No products mapped to this warehouse. Go to the Product Mapping tab to add products first.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Packaging Size</TableHead>
+                  <TableHead>Cost Price (AUD)</TableHead>
+                  <TableHead className="w-16">Save</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {mappings.flatMap((mapping) =>
+                  activeSizes.map((ps) => {
+                    const productId = mapping.product_id
+                    const k = priceKey(productId, ps.id)
+                    const productName = mapping.product?.name ?? productId
+                    return (
+                      <TableRow key={k}>
+                        <TableCell className="font-medium">{productName}</TableCell>
+                        <TableCell className="text-muted-foreground">{ps.name}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground">AUD</span>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={getDisplayValue(productId, ps.id)}
+                              onChange={(e) =>
+                                setEdits((prev) => ({
+                                  ...prev,
+                                  [k]: e.target.value,
+                                }))
+                              }
+                              className="h-9 w-28"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9"
+                            disabled={savingKey === k}
+                            onClick={() => handleSave(productId, ps.id)}
+                          >
+                            {savingKey === k ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Save className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  }),
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ----------------------------------------------------------------
+// Lead Times Tab
+// ----------------------------------------------------------------
+function LeadTimesTab() {
+  const { data: warehouses = [] } = useWarehouses()
+  const { data: leadTimes, isLoading } = useLeadTimes()
+
+  const upsertGlobal = useUpsertGlobalLeadTime()
+  const upsertWarehouse = useUpsertWarehouseLeadTime()
+  const upsertProductWarehouse = useUpsertProductWarehouseLeadTime()
+  const deleteProductWarehouse = useDeleteProductWarehouseLeadTime()
+
+  // --- Global form state ---
+  const [globalForm, setGlobalForm] = useState({
+    manufacturing_days: "",
+    buffer_days: "",
+    use_business_days: true,
+  })
+  const [globalSaving, setGlobalSaving] = useState(false)
+
+  // Sync global form when data loads
+  useMemo(() => {
+    if (leadTimes?.global) {
+      setGlobalForm({
+        manufacturing_days: String(leadTimes.global.manufacturing_days),
+        buffer_days: String(leadTimes.global.buffer_days),
+        use_business_days: leadTimes.global.use_business_days,
+      })
+    }
+  }, [leadTimes?.global])
+
+  async function syncMacShipPickupDates(payload: {
+    scope: "global" | "warehouse" | "product_warehouse"
+    warehouse_id?: string
+    product_id?: string
+  }) {
+    try {
+      const res = await fetch("/api/macship/sync-lead-times", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) return
+      const data = (await res.json()) as {
+        total_affected?: number
+        updated?: number
+        needs_manual_review?: string[]
+        failed?: string[]
+      }
+      const updated = data.updated ?? 0
+      const review = data.needs_manual_review?.length ?? 0
+      if ((data.total_affected ?? 0) > 0) {
+        toast.success(
+          `${updated} order${updated === 1 ? "" : "s"} updated${review > 0 ? `, ${review} need${review === 1 ? "s" : ""} manual review` : ""}`,
+        )
+      }
+    } catch {
+      // sync failure is non-blocking
+    }
+  }
+
+  async function handleSaveGlobal() {
+    const mfgDays = parseInt(globalForm.manufacturing_days)
+    if (Number.isNaN(mfgDays) || mfgDays < 0) {
+      toast.error("Enter valid manufacturing days")
+      return
+    }
+    setGlobalSaving(true)
+    try {
+      await upsertGlobal.mutateAsync({
+        manufacturing_days: mfgDays,
+        buffer_days: parseInt(globalForm.buffer_days) || 0,
+        use_business_days: globalForm.use_business_days,
+      })
+      toast.success("Global lead time saved")
+      await syncMacShipPickupDates({ scope: "global" })
+    } catch {
+      toast.error("Failed to save global lead time")
+    } finally {
+      setGlobalSaving(false)
+    }
+  }
+
+  // --- Per-warehouse form state ---
+  const [warehouseEdits, setWarehouseEdits] = useState<
+    Record<string, { manufacturing_days: string; buffer_days: string; use_business_days: boolean; notes: string }>
+  >({})
+  const [warehouseSaving, setWarehouseSaving] = useState<string | null>(null)
+
+  function getWarehouseRow(warehouseId: string) {
+    if (warehouseEdits[warehouseId]) return warehouseEdits[warehouseId]
+    const existing = leadTimes?.warehouses.find((w) => w.warehouse_id === warehouseId)
+    return {
+      manufacturing_days: existing ? String(existing.manufacturing_days) : "",
+      buffer_days: existing ? String(existing.buffer_days) : "",
+      use_business_days: existing ? existing.use_business_days : true,
+      notes: existing?.notes ?? "",
+    }
+  }
+
+  async function handleSaveWarehouse(warehouseId: string) {
+    const row = getWarehouseRow(warehouseId)
+    const mfgDays = parseInt(row.manufacturing_days)
+    if (Number.isNaN(mfgDays) || mfgDays < 0) {
+      toast.error("Enter valid manufacturing days")
+      return
+    }
+    setWarehouseSaving(warehouseId)
+    try {
+      await upsertWarehouse.mutateAsync({
+        warehouse_id: warehouseId,
+        manufacturing_days: mfgDays,
+        buffer_days: parseInt(row.buffer_days) || 0,
+        use_business_days: row.use_business_days,
+        notes: row.notes || null,
+      })
+      setWarehouseEdits((prev) => {
+        const next = { ...prev }
+        delete next[warehouseId]
+        return next
+      })
+      toast.success("Warehouse lead time saved")
+      await syncMacShipPickupDates({ scope: "warehouse", warehouse_id: warehouseId })
+    } catch {
+      toast.error("Failed to save")
+    } finally {
+      setWarehouseSaving(null)
+    }
+  }
+
+  // --- Product override state ---
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("")
+
+  const { data: mappings = [], isLoading: loadingMappings } = useProductWarehouses({
+    warehouseId: selectedWarehouseId || undefined,
+  })
+
+  const [productEdits, setProductEdits] = useState<
+    Record<string, { manufacturing_days: string; buffer_days: string; use_business_days: boolean; notes: string }>
+  >({})
+  const [productSaving, setProductSaving] = useState<string | null>(null)
+  const [productDeleting, setProductDeleting] = useState<string | null>(null)
+
+  function productOverrideKey(productId: string, warehouseId: string) {
+    return `${productId}:${warehouseId}`
+  }
+
+  function getProductRow(productId: string, warehouseId: string) {
+    const k = productOverrideKey(productId, warehouseId)
+    if (productEdits[k]) return productEdits[k]
+    const existing = leadTimes?.productWarehouse.find(
+      (pw) => pw.product_id === productId && pw.warehouse_id === warehouseId,
+    )
+    return {
+      manufacturing_days: existing ? String(existing.manufacturing_days) : "",
+      buffer_days: existing ? String(existing.buffer_days) : "",
+      use_business_days: existing ? existing.use_business_days : true,
+      notes: existing?.notes ?? "",
+    }
+  }
+
+  async function handleSaveProductOverride(productId: string, warehouseId: string) {
+    const k = productOverrideKey(productId, warehouseId)
+    const row = getProductRow(productId, warehouseId)
+    const mfgDays = parseInt(row.manufacturing_days)
+    if (Number.isNaN(mfgDays) || mfgDays < 0) {
+      toast.error("Enter valid manufacturing days")
+      return
+    }
+    setProductSaving(k)
+    try {
+      await upsertProductWarehouse.mutateAsync({
+        product_id: productId,
+        warehouse_id: warehouseId,
+        manufacturing_days: mfgDays,
+        buffer_days: parseInt(row.buffer_days) || 0,
+        use_business_days: row.use_business_days,
+        notes: row.notes || null,
+      })
+      setProductEdits((prev) => {
+        const next = { ...prev }
+        delete next[k]
+        return next
+      })
+      toast.success("Product override saved")
+      await syncMacShipPickupDates({
+        scope: "product_warehouse",
+        warehouse_id: warehouseId,
+        product_id: productId,
+      })
+    } catch {
+      toast.error("Failed to save")
+    } finally {
+      setProductSaving(null)
+    }
+  }
+
+  async function handleDeleteProductOverride(productId: string, warehouseId: string) {
+    const k = productOverrideKey(productId, warehouseId)
+    setProductDeleting(k)
+    try {
+      await deleteProductWarehouse.mutateAsync({ productId, warehouseId })
+      toast.success("Override removed")
+      await syncMacShipPickupDates({
+        scope: "product_warehouse",
+        warehouse_id: warehouseId,
+        product_id: productId,
+      })
+    } catch {
+      toast.error("Failed to remove override")
+    } finally {
+      setProductDeleting(null)
+    }
+  }
+
+  // Compute effective lead time source label for a product+warehouse
+  function getEffectiveSource(productId: string, warehouseId: string): {
+    label: string
+    variant: "default" | "secondary" | "outline" | "destructive"
+    className: string
+  } {
+    const hasProductOverride = leadTimes?.productWarehouse.some(
+      (pw) => pw.product_id === productId && pw.warehouse_id === warehouseId,
+    )
+    if (hasProductOverride) {
+      return { label: "Product override", variant: "default", className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" }
+    }
+    const hasWarehouseDefault = leadTimes?.warehouses.some((w) => w.warehouse_id === warehouseId)
+    if (hasWarehouseDefault) {
+      return { label: "Warehouse default", variant: "secondary", className: "bg-blue-500/10 text-blue-600 border-blue-500/30" }
+    }
+    if (leadTimes?.global) {
+      return { label: "Global default", variant: "outline", className: "bg-muted text-muted-foreground" }
+    }
+    return { label: "5d fallback", variant: "outline", className: "bg-amber-500/10 text-amber-600 border-amber-500/30" }
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading lead times...
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Section 1: Global Default */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Global Default Lead Time</CardTitle>
+          <CardDescription>
+            Fallback used when no warehouse or product-specific override is set.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="grid gap-1.5">
+              <Label className="text-xs">Manufacturing Days</Label>
+              <Input
+                type="number"
+                min="0"
+                className="h-9 w-24"
+                value={globalForm.manufacturing_days}
+                onChange={(e) =>
+                  setGlobalForm((prev) => ({ ...prev, manufacturing_days: e.target.value }))
+                }
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-xs">Buffer Days</Label>
+              <Input
+                type="number"
+                min="0"
+                className="h-9 w-24"
+                value={globalForm.buffer_days}
+                onChange={(e) =>
+                  setGlobalForm((prev) => ({ ...prev, buffer_days: e.target.value }))
+                }
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-xs">Business Days Only</Label>
+              <div className="flex h-9 items-center">
+                <Switch
+                  checked={globalForm.use_business_days}
+                  onCheckedChange={(checked: boolean) =>
+                    setGlobalForm((prev) => ({ ...prev, use_business_days: checked }))
+                  }
+                />
+              </div>
+            </div>
+            <Button
+              onClick={handleSaveGlobal}
+              disabled={globalSaving}
+              className="h-9"
+            >
+              {globalSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-3.5 w-3.5" />
+                  Save
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 2: Per-Warehouse Defaults */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Per-Warehouse Defaults</CardTitle>
+          <CardDescription>
+            Override the global default for specific warehouses.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {warehouses.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No warehouses configured.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Warehouse</TableHead>
+                  <TableHead>Mfg Days</TableHead>
+                  <TableHead>Buffer Days</TableHead>
+                  <TableHead>Business Days</TableHead>
+                  <TableHead>Notes</TableHead>
+                  <TableHead className="w-16">Save</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {warehouses.map((w) => {
+                  const row = getWarehouseRow(w.id)
+                  const isSaving = warehouseSaving === w.id
+                  return (
+                    <TableRow key={w.id}>
+                      <TableCell className="font-medium">{w.name}</TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min="0"
+                          className="h-9 w-20"
+                          value={row.manufacturing_days}
+                          onChange={(e) =>
+                            setWarehouseEdits((prev) => ({
+                              ...prev,
+                              [w.id]: { ...getWarehouseRow(w.id), manufacturing_days: e.target.value },
+                            }))
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min="0"
+                          className="h-9 w-20"
+                          value={row.buffer_days}
+                          onChange={(e) =>
+                            setWarehouseEdits((prev) => ({
+                              ...prev,
+                              [w.id]: { ...getWarehouseRow(w.id), buffer_days: e.target.value },
+                            }))
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={row.use_business_days}
+                          onCheckedChange={(checked: boolean) =>
+                            setWarehouseEdits((prev) => ({
+                              ...prev,
+                              [w.id]: { ...getWarehouseRow(w.id), use_business_days: checked },
+                            }))
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          className="h-9 w-40"
+                          value={row.notes}
+                          onChange={(e) =>
+                            setWarehouseEdits((prev) => ({
+                              ...prev,
+                              [w.id]: { ...getWarehouseRow(w.id), notes: e.target.value },
+                            }))
+                          }
+                          placeholder="Optional note"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9"
+                          disabled={isSaving}
+                          onClick={() => handleSaveWarehouse(w.id)}
+                        >
+                          {isSaving ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Save className="h-3.5 w-3.5" />
+                          )}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section 3: Product-Specific Overrides */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Product-Specific Overrides</CardTitle>
+          <CardDescription>
+            Fine-grained lead time per product per warehouse. Falls back to warehouse or global default if not set.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="w-72">
+            <Select
+              value={selectedWarehouseId}
+              onValueChange={setSelectedWarehouseId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a warehouse..." />
+              </SelectTrigger>
+              <SelectContent>
+                {warehouses.map((w) => (
+                  <SelectItem key={w.id} value={w.id}>
+                    {w.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {!selectedWarehouseId ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              Select a warehouse to view and edit product overrides.
+            </p>
+          ) : loadingMappings ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+            </div>
+          ) : mappings.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              No products mapped to this warehouse. Go to Product Mapping first.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Mfg Days</TableHead>
+                  <TableHead>Buffer Days</TableHead>
+                  <TableHead>Business Days</TableHead>
+                  <TableHead>Notes</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead className="w-24">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {mappings.map((mapping) => {
+                  const productId = mapping.product_id
+                  const k = productOverrideKey(productId, selectedWarehouseId)
+                  const row = getProductRow(productId, selectedWarehouseId)
+                  const isSaving = productSaving === k
+                  const source = getEffectiveSource(productId, selectedWarehouseId)
+                  const hasOverride = leadTimes?.productWarehouse.some(
+                    (pw) => pw.product_id === productId && pw.warehouse_id === selectedWarehouseId,
+                  )
+                  const productName = mapping.product?.name ?? productId
+
+                  return (
+                    <TableRow key={k}>
+                      <TableCell className="font-medium">{productName}</TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min="0"
+                          className="h-9 w-20"
+                          value={row.manufacturing_days}
+                          onChange={(e) =>
+                            setProductEdits((prev) => ({
+                              ...prev,
+                              [k]: { ...getProductRow(productId, selectedWarehouseId), manufacturing_days: e.target.value },
+                            }))
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min="0"
+                          className="h-9 w-20"
+                          value={row.buffer_days}
+                          onChange={(e) =>
+                            setProductEdits((prev) => ({
+                              ...prev,
+                              [k]: { ...getProductRow(productId, selectedWarehouseId), buffer_days: e.target.value },
+                            }))
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={row.use_business_days}
+                          onCheckedChange={(checked: boolean) =>
+                            setProductEdits((prev) => ({
+                              ...prev,
+                              [k]: { ...getProductRow(productId, selectedWarehouseId), use_business_days: checked },
+                            }))
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          className="h-9 w-36"
+                          value={row.notes}
+                          onChange={(e) =>
+                            setProductEdits((prev) => ({
+                              ...prev,
+                              [k]: { ...getProductRow(productId, selectedWarehouseId), notes: e.target.value },
+                            }))
+                          }
+                          placeholder="Optional"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${source.className}`}
+                        >
+                          {source.label}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9"
+                            disabled={isSaving}
+                            onClick={() => handleSaveProductOverride(productId, selectedWarehouseId)}
+                          >
+                            {isSaving ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Save className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                          {hasOverride && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                              disabled={productDeleting === k}
+                              onClick={() => handleDeleteProductOverride(productId, selectedWarehouseId)}
+                            >
+                              {productDeleting === k ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   )
 }

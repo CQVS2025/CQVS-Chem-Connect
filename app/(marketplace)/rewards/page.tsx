@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { RewardsHero } from "@/components/features/rewards/rewards-hero"
+import { RewardsStatusHero } from "@/components/rewards/rewards-status-hero"
 import { RewardsNav } from "@/components/features/rewards/rewards-nav"
 import { VolumeTiers } from "@/components/features/rewards/volume-tiers"
 import { FirstOrderHook } from "@/components/features/rewards/first-order-hook"
@@ -70,9 +70,13 @@ export default function RewardsPage() {
 
   return (
     <div className="min-h-screen">
-      <RewardsHero onScrollTo={scrollTo} />
+      {/* New: personalised status hero (logged-in) or value prop (logged-out) */}
+      <RewardsStatusHero />
+
+      {/* Sticky section nav — same as before */}
       <RewardsNav activeSection={activeSection} onScrollTo={scrollTo} />
 
+      {/* ALL original sections preserved with full content */}
       <VolumeTiers userSpend={rewards?.current_month_spend ?? 0} />
       <FirstOrderHook />
       <ReferralProgram />
