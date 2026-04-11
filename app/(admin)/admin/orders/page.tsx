@@ -919,12 +919,12 @@ export default function AdminOrdersPage() {
                                           ) : (
                                             <div className="space-y-1">
                                               {(order as AdminOrder).macship_consignment_failed ? (
-                                                <span className="text-xs text-amber-500">⚠ Consignment creation failed — book manually</span>
+                                                <span className="text-xs text-amber-500">⚠ Consignment creation failed - book manually</span>
                                               ) : (
                                                 <span className="text-xs text-muted-foreground">No MacShip consignment</span>
                                               )}
                                               {(order as AdminOrder).macship_lead_time_fallback && (
-                                                <p className="text-xs text-amber-400">⚠ Used 5-day lead time fallback — configure lead times</p>
+                                                <p className="text-xs text-amber-400">⚠ Used 5-day lead time fallback - configure lead times</p>
                                               )}
                                             </div>
                                           )}
@@ -1218,7 +1218,7 @@ function DispatchButton({ order }: { order: AdminOrder }) {
         body: JSON.stringify({ order_id: order.id }),
       })
       if (res.ok) {
-        toast.success("Order dispatched — carrier notified!")
+        toast.success("Order dispatched - carrier notified!")
         queryClient.invalidateQueries({ queryKey: ["orders"] })
       } else {
         const { error } = await res.json()
@@ -1286,7 +1286,7 @@ function PrintLabelsButton({ consignmentId }: { consignmentId: string }) {
         return
       }
 
-      // JSON response — either an error or the "carrier handles own labels" flag
+      // JSON response - either an error or the "carrier handles own labels" flag
       const data = await res.json()
       if (data.carrier_handles_own_labels) {
         toast.info(

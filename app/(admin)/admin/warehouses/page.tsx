@@ -611,18 +611,18 @@ function PackagingSizesTab() {
                     {(s.container_type ?? "").replace("_", " ")}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {s.volume_litres != null ? `${s.volume_litres}L` : "—"}
+                    {s.volume_litres != null ? `${s.volume_litres}L` : "-"}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {s.units_per_pallet ?? (
-                      <span className="text-amber-500" title="Not set — Machship quotes will use defaults">
+                      <span className="text-amber-500" title="Not set - Machship quotes will use defaults">
                         not set
                       </span>
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {s.unit_weight_kg != null ? `${s.unit_weight_kg} kg` : (
-                      <span className="text-amber-500" title="Not set — Machship quotes will use defaults">
+                      <span className="text-amber-500" title="Not set - Machship quotes will use defaults">
                         not set
                       </span>
                     )}
@@ -1102,7 +1102,7 @@ function ProductMappingTab() {
                     </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {product.category ?? "—"}
+                      {product.category ?? "-"}
                     </TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       {product.slug}

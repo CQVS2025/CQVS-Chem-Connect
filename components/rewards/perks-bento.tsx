@@ -64,7 +64,7 @@ const perks = [
     icon: Sparkles,
     title: "New Product Launch",
     description:
-      "Be first to try new formulations with exclusive early-access pricing — up to 20% off launch week.",
+      "Be first to try new formulations with exclusive early-access pricing - up to 20% off launch week.",
     highlight: "Early access",
     span: "sm:col-span-1",
   },
@@ -101,7 +101,7 @@ export function PerksBento() {
               Real perks, not gimmicks.
             </h2>
             <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
-              Every program stacks. No points to track, no apps to download —
+              Every program stacks. No points to track, no apps to download -
               savings land directly on your invoice.
             </p>
           </div>

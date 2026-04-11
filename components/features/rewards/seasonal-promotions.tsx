@@ -94,7 +94,7 @@ export function SeasonalPromotions() {
         <FadeIn>
           <div className="mb-12">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              06 — Seasonal
+              06 - Seasonal
             </div>
             <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               Seasonal Promotions
@@ -137,7 +137,7 @@ export function SeasonalPromotions() {
               const Icon = visual.icon
               const displayPeriod =
                 promo.start_date && promo.end_date
-                  ? `${new Date(promo.start_date).toLocaleDateString("en-AU", { month: "short" })} – ${new Date(promo.end_date).toLocaleDateString("en-AU", { month: "short", year: "numeric" })}`
+                  ? `${new Date(promo.start_date).toLocaleDateString("en-AU", { month: "short" })} - ${new Date(promo.end_date).toLocaleDateString("en-AU", { month: "short", year: "numeric" })}`
                   : visual.period || "Limited time"
 
               return (

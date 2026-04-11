@@ -631,7 +631,7 @@ export async function POST(request: NextRequest) {
 
         // Build Machship items via the whole-cart consolidation helper.
         // Groups lines sharing a packaging size onto shared pallets
-        // (CQVS' "Option B" pricing rule — approved April 2026).
+        // (CQVS' "Option B" pricing rule - approved April 2026).
         const machshipItems = buildConsolidatedCart(
           orderItems.map((oi) => {
             const product = productMap.get(oi.product_id)
@@ -677,7 +677,7 @@ export async function POST(request: NextRequest) {
               postcode: delivery_address_postcode || "",
             },
             specialInstructions: forklift_available === false
-              ? "Tailgate truck required — no forklift on site"
+              ? "Tailgate truck required - no forklift on site"
               : undefined,
             dgsDeclaration: isDg,
             items: machshipItems,
@@ -1007,7 +1007,7 @@ export async function POST(request: NextRequest) {
             if (result) {
               console.log(`[Xero] Invoice created for ${order.order_number}: ${result.invoiceNumber}`)
             } else {
-              console.warn(`[Xero] Invoice NOT created for ${order.order_number} — check /admin/xero (likely not connected) or xero_sync_log table`)
+              console.warn(`[Xero] Invoice NOT created for ${order.order_number} - check /admin/xero (likely not connected) or xero_sync_log table`)
             }
           })
           .catch((err) => {
@@ -1023,7 +1023,7 @@ export async function POST(request: NextRequest) {
           if (result) {
             console.log(`[Xero] PO created for ${order.order_number}: ${result.poNumber}`)
           } else {
-            console.warn(`[Xero] PO NOT created for ${order.order_number} — check /admin/xero (likely not connected, or warehouse missing xero_contact_id) or xero_sync_log table`)
+            console.warn(`[Xero] PO NOT created for ${order.order_number} - check /admin/xero (likely not connected, or warehouse missing xero_contact_id) or xero_sync_log table`)
           }
         })
         .catch((err) => {

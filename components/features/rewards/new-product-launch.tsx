@@ -17,7 +17,7 @@ const upcomingProducts = [
   {
     name: "AluBright",
     description:
-      "Aluminium brightener — restores and protects aluminium surfaces",
+      "Aluminium brightener - restores and protects aluminium surfaces",
     timing: "Coming 2026",
     color: "text-sky-400",
     bgColor: "bg-sky-400/10",
@@ -26,7 +26,7 @@ const upcomingProducts = [
   {
     name: "BrakePrep",
     description:
-      "Brake dust cleaner — fast-drying, residue-free formula",
+      "Brake dust cleaner - fast-drying, residue-free formula",
     timing: "Coming 2026",
     color: "text-violet-400",
     bgColor: "bg-violet-400/10",
@@ -35,7 +35,7 @@ const upcomingProducts = [
   {
     name: "Vision",
     description:
-      "Commercial glass cleaner — streak-free, ammonia-free finish",
+      "Commercial glass cleaner - streak-free, ammonia-free finish",
     timing: "Coming 2026",
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
@@ -95,7 +95,7 @@ export function NewProductLaunch() {
         <FadeIn>
           <div className="mb-12">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              07 — New Products
+              07 - New Products
             </div>
             <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               New Product Launch

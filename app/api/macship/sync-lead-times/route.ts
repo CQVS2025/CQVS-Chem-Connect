@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const serviceSupabase = createServiceRoleClient()
 
     // 1. Find affected pending orders.
-    // We process any order that has a pickup date but hasn't been dispatched —
+    // We process any order that has a pickup date but hasn't been dispatched -
     // this includes orders without a real Machship consignment (dev mock mode),
     // so the recalculated pickup date still gets written to the order record.
     let ordersQuery = serviceSupabase

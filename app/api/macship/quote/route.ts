@@ -26,7 +26,7 @@ function isDgProduct(classification: string | null | undefined): boolean {
 
 // ============================================================
 // POST /api/macship/quote
-// No auth required — called from customer checkout
+// No auth required - called from customer checkout
 // ============================================================
 
 export async function POST(request: NextRequest) {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       )
     }
     if (!delivery_city || delivery_city.trim() === "") {
-      // Machship requires both suburb + postcode — wait for the customer to enter the city
+      // Machship requires both suburb + postcode - wait for the customer to enter the city
       return NextResponse.json({
         serviceable: false,
         shipping_amount: null,
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
         is_partial_fulfillment: true,
         missing_product_ids: selectedWarehouse.missingProductIds,
         message:
-          "None of the items in your cart are available at any warehouse — please contact us for a custom quote",
+          "None of the items in your cart are available at any warehouse - please contact us for a custom quote",
       })
     }
 
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Build Machship items via the whole-cart consolidation helper.
     // This aggregates lines sharing a packaging size onto shared pallets
-    // (CQVS' "Option B" pricing rule — approved April 2026).
+    // (CQVS' "Option B" pricing rule - approved April 2026).
     const machshipItems: MachshipItem[] = buildConsolidatedCart(
       cart_items.map((item) => {
         const product = productMap.get(item.product_id)
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
       supabase,
     )
 
-    // 5. Dev mode — return mock if Machship not configured
+    // 5. Dev mode - return mock if Machship not configured
     if (!isMacShipConfigured()) {
       return NextResponse.json({
         serviceable: true,
@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
       carrier_id: String(bestRoute.carrier.id),
       warehouse_id: selectedWarehouse.warehouse.id,
       warehouse_name: selectedWarehouse.warehouse.name,
-      // Machship doesn't return ETA days directly in the simple route response —
+      // Machship doesn't return ETA days directly in the simple route response -
       // ETA is calculated per consignment after creation
       estimated_transit_days: null,
       pickup_date: pickupResult.pickupDate,

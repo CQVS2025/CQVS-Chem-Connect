@@ -73,7 +73,7 @@ export default function RewardsPage() {
       {/* New: personalised status hero (logged-in) or value prop (logged-out) */}
       <RewardsStatusHero />
 
-      {/* Sticky section nav — same as before */}
+      {/* Sticky section nav - same as before */}
       <RewardsNav activeSection={activeSection} onScrollTo={scrollTo} />
 
       {/* ALL original sections preserved with full content */}

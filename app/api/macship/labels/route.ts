@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     if (!upstream.ok) {
       const text = await upstream.text()
 
-      // Some carriers (e.g. Aramex parcel) don't use Machship-generated labels —
+      // Some carriers (e.g. Aramex parcel) don't use Machship-generated labels -
       // they print their own. Machship returns 500 with this specific message.
       // Return a friendly 200 with a flag so the UI can show a helpful note.
       if (/does not need consignment labels/i.test(text)) {

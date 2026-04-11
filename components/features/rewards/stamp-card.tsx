@@ -29,7 +29,7 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
         <FadeIn>
           <div className="mb-12">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              08 — Stamp Card
+              08 - Stamp Card
             </div>
             <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               Physical Loyalty Stamp Card
@@ -146,7 +146,7 @@ export function StampCard({ stamps = 0 }: StampCardProps) {
 
         <FadeIn delay={0.3}>
           <p className="mt-8 rounded-2xl border border-primary/15 bg-primary/5 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
-            For the bloke running a batching plant who doesn&apos;t check apps —
+            For the bloke running a batching plant who doesn&apos;t check apps -
             a card on the office wall with 6 stamps out of 10 is the most
             effective loyalty tool we can give you.
           </p>

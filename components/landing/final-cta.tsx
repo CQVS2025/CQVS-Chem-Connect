@@ -12,7 +12,7 @@ export function FinalCta() {
 
   return (
     <section className="relative overflow-hidden border-t border-border/60 px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
-      {/* Background — slowly rotating radial gradient */}
+      {/* Background - slowly rotating radial gradient */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 flex items-center justify-center"

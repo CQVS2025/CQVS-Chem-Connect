@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/supabase/admin-check"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
-// GET /api/macship/activity — last 20 MacShip-related orders (admin only)
+// GET /api/macship/activity - last 20 MacShip-related orders (admin only)
 export async function GET() {
   const { error: authError } = await requireAdmin()
   if (authError) return authError

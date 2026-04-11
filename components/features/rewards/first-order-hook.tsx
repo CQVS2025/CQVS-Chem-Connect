@@ -41,13 +41,13 @@ export function FirstOrderHook() {
         <FadeIn>
           <div className="mb-12">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              02 — First Order
+              02 - First Order
             </div>
             <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               First Order Hook
             </h2>
             <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
-              Your first order is risk-free. Two ways to try us — choose what
+              Your first order is risk-free. Two ways to try us - choose what
               works for you.
             </p>
           </div>

@@ -40,7 +40,7 @@ export function FilterToolbar({
   return (
     <div className="sticky top-16 z-20 border-b border-border/60 bg-background/85 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Category chips — horizontal scrollable */}
+        {/* Category chips - horizontal scrollable */}
         <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-4 scrollbar-none sm:pb-4 sm:pt-5">
           <SlidersHorizontal className="mr-1 size-4 shrink-0 text-muted-foreground" />
           {categories.map((cat) => (

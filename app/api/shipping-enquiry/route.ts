@@ -53,14 +53,14 @@ export async function POST(request: NextRequest) {
       customerEmail: customerEmail || "not logged in",
       customerPhone: "",
       companyName: customerName || undefined,
-      productName: "Shipping Enquiry — Unserviceable Postcode",
+      productName: "Shipping Enquiry - Unserviceable Postcode",
       quantity: 1,
       deliveryLocation: `${city || ""} ${state || ""} ${postcode}`.trim(),
       message: `Unserviceable postcode shipping enquiry:\n\nPostcode: ${postcode}\nSuburb: ${city || "not provided"}\nState: ${state || "not provided"}\n\nCart:\n${cart_summary || "not provided"}`,
     })
   } catch (err) {
     console.error("[shipping-enquiry] Failed to send admin notification:", err)
-    // Non-blocking — the enquiry is still acknowledged to the customer
+    // Non-blocking - the enquiry is still acknowledged to the customer
   }
 
   return NextResponse.json({

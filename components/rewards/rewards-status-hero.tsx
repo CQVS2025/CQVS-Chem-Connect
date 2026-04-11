@@ -172,7 +172,7 @@ export function RewardsStatusHero() {
 }
 
 // ============================================================
-// Logged-out version — generic value prop
+// Logged-out version - generic value prop
 // ============================================================
 
 function LoggedOutHero({
@@ -208,7 +208,7 @@ function LoggedOutHero({
           </BlurIn>
 
           <p className="mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Every litre earns rewards. No contracts, no points apps — just real
+            Every litre earns rewards. No contracts, no points apps - just real
             products and real savings back in your hands.
             Save up to <span className="font-semibold text-foreground">AUD {topSavings.toLocaleString()}/mo</span> at the top tier.
           </p>
@@ -220,7 +220,7 @@ function LoggedOutHero({
               asChild
             >
               <Link href="/register">
-                Join free — start saving
+                Join free - start saving
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

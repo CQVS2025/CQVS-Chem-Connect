@@ -6,7 +6,6 @@ import { useEffect, useState } from "react"
 import {
   ArrowRight,
   TrendingDown,
-  Star,
   ShieldCheck,
   Zap,
   Truck,
@@ -76,17 +75,20 @@ export function LandingHero({ tickerProducts }: LandingHeroProps) {
             </FadeIn>
 
             <BlurIn delay={0.15}>
-              <h1 className="mt-6 text-[clamp(2.5rem,6vw,5.25rem)] font-black leading-[0.98] tracking-[-0.035em] text-foreground">
-                Manufacturing-direct{" "}
-                <span className="text-primary">chemicals</span>{" "}
-                for concrete plants &amp; quarries.
+              <h1 className="mt-6 text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
+                <span className="block bg-linear-to-br from-primary via-emerald-400 to-primary bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.15)]">
+                  Bulk Chemicals.
+                </span>
+                <span className="mt-2 block bg-linear-to-br from-emerald-400 via-primary to-emerald-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.15)]">
+                  Unbeatable Prices.
+                </span>
               </h1>
             </BlurIn>
 
             <FadeIn delay={0.3} distance={12}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-                Skip the middleman. Order in 60 seconds. Delivered in 2-5 days
-                from your state — locked-in prices, no hidden surcharges.
+                A manufacturing-direct marketplace for concrete plants and
+                quarries. Skip the middleman and order straight from the source.
               </p>
             </FadeIn>
 
@@ -107,33 +109,16 @@ export function LandingHero({ tickerProducts }: LandingHeroProps) {
             </FadeIn>
 
             <FadeIn delay={0.55} distance={10}>
-              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <Star
-                        key={i}
-                        className="h-4 w-4 fill-amber-400 text-amber-400"
-                      />
-                    ))}
+              <div className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-2">
+                {trustChips.map((chip) => (
+                  <div
+                    key={chip.label}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                  >
+                    <chip.icon className="h-3.5 w-3.5 text-primary/70" />
+                    <span>{chip.label}</span>
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground">4.9</span>{" "}
-                    · trusted by 200+ AU plants
-                  </span>
-                </div>
-                <div className="hidden h-4 w-px bg-border sm:block" />
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                  {trustChips.map((chip) => (
-                    <div
-                      key={chip.label}
-                      className="flex items-center gap-1.5 text-xs text-muted-foreground"
-                    >
-                      <chip.icon className="h-3.5 w-3.5 text-primary/70" />
-                      <span>{chip.label}</span>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             </FadeIn>
           </div>
@@ -223,11 +208,11 @@ function PriceTickerCard({ products }: { products: HeroProduct[] }) {
               </div>
 
               <div className="text-right">
-                <p className="text-lg font-bold text-foreground">
+                <p className="text-lg font-bold text-primary">
                   AUD {product.price.toFixed(2)}
                 </p>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  per {product.unit}
+                <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  /{product.unit}
                 </p>
               </div>
             </div>

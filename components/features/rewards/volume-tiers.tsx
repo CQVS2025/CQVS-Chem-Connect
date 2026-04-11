@@ -75,7 +75,7 @@ export function VolumeTiers({ userSpend = 0 }: VolumeTiersProps) {
         <FadeIn>
           <div className="mb-12">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              01 — Volume Tiers
+              01 - Volume Tiers
             </div>
             <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               Volume Threshold Rewards
@@ -191,7 +191,7 @@ export function VolumeTiers({ userSpend = 0 }: VolumeTiersProps) {
                   <span className="font-semibold text-primary">
                     AUD {remaining.toLocaleString()}
                   </span>{" "}
-                  away from {nextTier.display_name} — {nextTier.reward_description.toLowerCase()}.
+                  away from {nextTier.display_name} - {nextTier.reward_description.toLowerCase()}.
                 </p>
               </CardContent>
             </Card>
@@ -202,7 +202,7 @@ export function VolumeTiers({ userSpend = 0 }: VolumeTiersProps) {
         <FadeIn delay={0.3}>
           <p className="mt-6 rounded-2xl border border-primary/15 bg-primary/5 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
             Spending across two suppliers? Consolidate with CQVS and unlock
-            tier rewards — free product, free freight, and more every month.
+            tier rewards - free product, free freight, and more every month.
           </p>
         </FadeIn>
       </div>

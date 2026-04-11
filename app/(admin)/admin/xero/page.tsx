@@ -116,8 +116,8 @@ function AdminXeroPageInner() {
       setPoAutoApprove(newValue)
       toast.success(
         newValue
-          ? "PO auto-approve enabled — warehouse will be notified automatically"
-          : "PO auto-approve disabled — POs will need manual approval in Xero",
+          ? "PO auto-approve enabled - warehouse will be notified automatically"
+          : "PO auto-approve disabled - POs will need manual approval in Xero",
       )
     } catch {
       toast.error("Failed to update setting")

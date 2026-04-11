@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/shared/motion"
 
 /**
- * "Founding member" callout — replaces the fake testimonial slot.
+ * "Founding member" callout - replaces the fake testimonial slot.
  * Be honest: we don't have customer quotes yet. Convert that into a
  * scarcity / early-access angle instead.
  */

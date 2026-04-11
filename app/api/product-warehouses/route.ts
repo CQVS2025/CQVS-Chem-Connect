@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (error) {
-    // Unique violation — mapping already exists
+    // Unique violation - mapping already exists
     if (error.code === "23505") {
       return NextResponse.json(
         { error: "This product is already mapped to this warehouse" },

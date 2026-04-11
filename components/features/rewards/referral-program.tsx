@@ -34,7 +34,7 @@ const milestones = [
   {
     count: "5+",
     label: "5+ referrals",
-    reward: "Ambassador — permanent 5% discount",
+    reward: "Ambassador - permanent 5% discount",
     condition: "All 5 referred customers must place an order",
     color: "text-yellow-400",
     bgColor: "bg-yellow-400/10",
@@ -101,7 +101,7 @@ export function ReferralProgram() {
         <FadeIn>
           <div className="mb-12">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              03 — Referrals
+              03 - Referrals
             </div>
             <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               Refer a Site, Get Rewarded
@@ -210,7 +210,7 @@ export function ReferralProgram() {
                     }
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    Optional — we&apos;ll send them an intro email about Chem Connect
+                    Optional - we&apos;ll send them an intro email about Chem Connect
                   </p>
                 </div>
                 <div className="space-y-2">

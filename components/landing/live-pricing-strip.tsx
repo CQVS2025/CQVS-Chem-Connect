@@ -28,7 +28,7 @@ export function LivePricingStrip({ products }: LivePricingStripProps) {
         <FadeIn>
           <div className="mb-14 flex flex-col items-center text-center">
             <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              Live Pricing — No Login
+              Live Pricing - No Login
             </span>
             <h2 className="mt-5 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl lg:text-5xl">
               Real prices, today.
@@ -61,16 +61,6 @@ export function LivePricingStrip({ products }: LivePricingStripProps) {
                       className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                     />
 
-                    {/* Floating price tag */}
-                    <div className="absolute right-3 top-3 rounded-xl border border-border/80 bg-card/95 px-3 py-1.5 shadow-lg backdrop-blur-sm">
-                      <span className="text-sm font-bold text-foreground">
-                        AUD {product.price.toFixed(2)}
-                      </span>
-                      <span className="ml-0.5 text-xs text-muted-foreground">
-                        /{product.unit}
-                      </span>
-                    </div>
-
                     {/* Badge */}
                     {product.badge && (
                       <span
@@ -97,6 +87,15 @@ export function LivePricingStrip({ products }: LivePricingStripProps) {
                     <p className="mt-1 text-xs text-muted-foreground">
                       {product.manufacturer} · {product.category}
                     </p>
+
+                    <div className="mt-4 flex items-baseline gap-1">
+                      <span className="text-3xl font-black tracking-tight text-primary sm:text-4xl">
+                        AUD {product.price.toFixed(2)}
+                      </span>
+                      <span className="text-sm font-semibold text-primary/80">
+                        /{product.unit}
+                      </span>
+                    </div>
 
                     <div className="mt-auto flex items-center justify-between pt-5">
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

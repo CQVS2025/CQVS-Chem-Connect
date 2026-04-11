@@ -5,17 +5,17 @@ import { FadeIn, StaggerContainer, StaggerItem } from "@/components/shared/motio
 const steps = [
   {
     icon: Search,
-    title: "Browse & Quote",
+    title: "Browse Products",
     description:
-      "Search the live catalogue. See your locked 30-day price instantly — no quote forms, no waiting.",
+      "Search the live catalogue. See your locked 30-day price instantly, no waiting.",
     micro: "Live pricing",
   },
   {
     icon: MousePointerClick,
-    title: "Order in 60 seconds",
+    title: "Order in 30 seconds",
     description:
       "One-click checkout. Pay by card or upload a PO. Saved templates make repeat orders effortless.",
-    micro: "60s avg checkout",
+    micro: "30s avg checkout",
   },
   {
     icon: Truck,
@@ -39,7 +39,7 @@ export function HowItWorks() {
               How It Works
             </span>
             <h2 className="mt-5 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl lg:text-5xl">
-              From quote to delivery in 3 steps.
+              From browse to delivery in 3 steps.
             </h2>
             <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
               No phone tag. No hidden surcharges. The whole flow takes less time
@@ -52,7 +52,7 @@ export function HowItWorks() {
           className="relative grid gap-8 md:grid-cols-3 md:gap-6 lg:gap-10"
           staggerDelay={0.12}
         >
-          {/* Connector line — desktop only */}
+          {/* Connector line - desktop only */}
           <div
             aria-hidden
             className="pointer-events-none absolute left-[16.66%] right-[16.66%] top-9 hidden h-px bg-gradient-to-r from-transparent via-border to-transparent md:block"

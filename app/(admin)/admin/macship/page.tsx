@@ -111,9 +111,9 @@ export default function AdminMacShipPage() {
         const data = await res.json()
         setStatus(data)
         if (data.configured) {
-          toast.success(`MacShip connected — running in ${data.mode} mode`)
+          toast.success(`MacShip connected - running in ${data.mode} mode`)
         } else {
-          toast.error("MacShip not configured — set API tokens in environment variables")
+          toast.error("MacShip not configured - set API tokens in environment variables")
         }
       } else {
         toast.error("Could not reach MacShip test endpoint")
@@ -137,7 +137,7 @@ export default function AdminMacShipPage() {
           const synced = data.synced ?? 0
           const delivered = data.delivered ?? 0
           toast.success(
-            `Tracking synced — ${synced} polled${delivered > 0 ? `, ${delivered} delivered` : ""}`,
+            `Tracking synced - ${synced} polled${delivered > 0 ? `, ${delivered} delivered` : ""}`,
           )
         }
         await loadFailedUpdates()
@@ -293,7 +293,7 @@ export default function AdminMacShipPage() {
           ) : failedUpdates.length === 0 ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              No failed updates — all good!
+              No failed updates - all good!
             </div>
           ) : (
             <div className="space-y-2">
@@ -354,7 +354,7 @@ export default function AdminMacShipPage() {
             Recent MacShip Activity
           </CardTitle>
           <CardDescription>
-            Last 20 orders with MacShip consignments — creation, dispatch, and tracking status.
+            Last 20 orders with MacShip consignments - creation, dispatch, and tracking status.
           </CardDescription>
         </CardHeader>
         <CardContent>

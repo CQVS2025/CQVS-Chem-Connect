@@ -19,7 +19,7 @@ export async function GET(_request: NextRequest) {
         synced: 0,
         delivered: 0,
         errors: [],
-        message: "MacShip not configured — skipped",
+        message: "MacShip not configured - skipped",
       })
     }
 

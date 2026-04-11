@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Call Machship manifest if a real consignment exists.
     // Otherwise (dev mock mode / Machship setup pending), mark as dispatched
-    // locally only — admin will need to book with the carrier manually.
+    // locally only - admin will need to book with the carrier manually.
     const now = new Date().toISOString()
     let manifestId: string | null = null
 

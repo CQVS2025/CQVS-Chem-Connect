@@ -1417,7 +1417,7 @@ export default function CheckoutPage() {
   )
 
   // Shipping comes from the live Machship quote. We treat the quote as
-  // authoritative — if it's still loading or the postcode isn't serviceable,
+  // authoritative - if it's still loading or the postcode isn't serviceable,
   // shipping is 0 and the "Continue to Payment" button is already gated
   // elsewhere so the customer can't complete checkout without a valid quote.
   const rawShipping =
@@ -1625,7 +1625,7 @@ export default function CheckoutPage() {
 }
 
 // ============================================================
-// Unserviceable postcode CTA — sends enquiry to admin
+// Unserviceable postcode CTA - sends enquiry to admin
 // ============================================================
 
 function UnserviceablePostcodeBlock({
@@ -1650,7 +1650,7 @@ function UnserviceablePostcodeBlock({
           postcode,
           city,
           state,
-          cart_summary: "Submitted from checkout — unserviceable postcode",
+          cart_summary: "Submitted from checkout - unserviceable postcode",
         }),
       })
       if (res.ok) {
@@ -1659,10 +1659,10 @@ function UnserviceablePostcodeBlock({
           "Request sent! Our team will contact you within 1 business day.",
         )
       } else {
-        toast.error("Could not send request — please call us instead")
+        toast.error("Could not send request - please call us instead")
       }
     } catch {
-      toast.error("Could not send request — please call us instead")
+      toast.error("Could not send request - please call us instead")
     } finally {
       setSending(false)
     }
@@ -1683,7 +1683,7 @@ function UnserviceablePostcodeBlock({
         {sent ? (
           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
             <Check className="size-3.5" />
-            Quote requested — we&apos;ll be in touch
+            Quote requested - we&apos;ll be in touch
           </span>
         ) : (
           <Button

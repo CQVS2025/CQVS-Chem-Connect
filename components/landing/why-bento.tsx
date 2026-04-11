@@ -1,10 +1,8 @@
 import {
-  Warehouse,
   ShoppingCart,
   MapPin,
-  Lock,
-  Headphones,
   TrendingDown,
+  Headphones,
   CheckCircle2,
 } from "lucide-react"
 
@@ -23,51 +21,16 @@ export function WhyBento() {
               Built for the way you actually buy.
             </h2>
             <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
-              Five product decisions that turn chemical procurement from a
-              week-long phone game into a 60-second checkout.
+              Product decisions that turn chemical procurement from a week-long
+              phone game into a 60-second checkout.
             </p>
           </div>
         </FadeIn>
 
-        {/* Bento grid: 6 cols × 4 rows on desktop */}
-        <div className="grid auto-rows-[minmax(200px,auto)] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:grid-rows-[minmax(220px,auto)_minmax(220px,auto)]">
-          {/* 1. LIVE INVENTORY — large hero card (col 1-4, row 1) */}
-          <FadeIn className="lg:col-span-4">
-            <BentoCard className="h-full">
-              <BentoIcon icon={Warehouse} />
-              <div className="mt-auto">
-                <BentoTitle>Live inventory across Australia</BentoTitle>
-                <BentoBody>
-                  See real-time stock levels at every warehouse before you order.
-                  No more email back-and-forth to confirm availability.
-                </BentoBody>
-
-                {/* Inline mini stat list */}
-                <div className="mt-5 grid grid-cols-3 gap-3">
-                  {[
-                    { label: "NSW", count: "324" },
-                    { label: "VIC", count: "267" },
-                    { label: "QLD", count: "411" },
-                  ].map((row) => (
-                    <div
-                      key={row.label}
-                      className="rounded-xl border border-border/50 bg-background/40 px-3 py-2.5"
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        {row.label}
-                      </p>
-                      <p className="mt-0.5 text-lg font-bold text-foreground">
-                        {row.count} <span className="text-xs font-medium text-muted-foreground">IBCs</span>
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </BentoCard>
-          </FadeIn>
-
-          {/* 2. ONE-CLICK ORDERING — square (col 5-6, row 1) */}
-          <FadeIn delay={0.08} className="lg:col-span-2">
+        {/* Bento grid */}
+        <div className="grid auto-rows-[minmax(200px,auto)] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+          {/* 1. ONE-CLICK ORDERING */}
+          <FadeIn className="lg:col-span-2">
             <BentoCard className="h-full">
               <BentoIcon icon={ShoppingCart} />
               <div className="mt-auto">
@@ -80,8 +43,8 @@ export function WhyBento() {
             </BentoCard>
           </FadeIn>
 
-          {/* 3. LOCAL WAREHOUSES — square (col 1-2, row 2) */}
-          <FadeIn delay={0.16} className="lg:col-span-2">
+          {/* 2. LOCAL WAREHOUSES */}
+          <FadeIn delay={0.08} className="lg:col-span-2">
             <BentoCard className="h-full">
               <BentoIcon icon={MapPin} />
               <div className="mt-auto">
@@ -94,42 +57,23 @@ export function WhyBento() {
             </BentoCard>
           </FadeIn>
 
-          {/* 4. LOCKED PRICING — wide (col 3-6, row 2) */}
-          <FadeIn delay={0.24} className="lg:col-span-4">
+          {/* 3. MANUFACTURER-DIRECT PRICING */}
+          <FadeIn delay={0.16} className="lg:col-span-2">
             <BentoCard className="h-full">
-              <BentoIcon icon={Lock} />
-              <div className="grid h-full gap-6 sm:grid-cols-5">
-                <div className="sm:col-span-3">
-                  <BentoTitle>Locked 30-day pricing</BentoTitle>
-                  <BentoBody>
-                    The price you see at quote is the price you pay at checkout —
-                    for 30 days. No fuel surcharges. No rate-card surprises.
-                  </BentoBody>
-                </div>
-
-                {/* Mini "stable line" visual */}
-                <div className="relative sm:col-span-2">
-                  <div className="absolute inset-0 flex items-end justify-around gap-2 pb-2">
-                    {[60, 60, 60, 60, 60, 60, 60].map((h, i) => (
-                      <div
-                        key={i}
-                        className="flex-1 rounded-t-md bg-primary/20"
-                        style={{ height: `${h}%` }}
-                      />
-                    ))}
-                    <div className="absolute inset-x-0 bottom-[60%] h-px bg-primary/60" />
-                  </div>
-                  <div className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                    <TrendingDown className="h-2.5 w-2.5" />
-                    No surprises
-                  </div>
-                </div>
+              <BentoIcon icon={TrendingDown} />
+              <div className="mt-auto">
+                <BentoTitle>Manufacturer-direct pricing</BentoTitle>
+                <BentoBody>
+                  Buy straight from the source and cut out the middleman
+                  markup.
+                </BentoBody>
+                <BentoStat>Up to 25% savings</BentoStat>
               </div>
             </BentoCard>
           </FadeIn>
 
-          {/* 5. DIRECT SUPPORT — full width row 3 (col 1-6) */}
-          <FadeIn delay={0.32} className="lg:col-span-6">
+          {/* 4. DIRECT SUPPORT - full width */}
+          <FadeIn delay={0.24} className="lg:col-span-6">
             <BentoCard className="h-full">
               <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-5">
@@ -139,7 +83,7 @@ export function WhyBento() {
                   <div>
                     <BentoTitle>Direct line to chemical specialists</BentoTitle>
                     <BentoBody>
-                      Talk to real chemists — not a call centre. Fast answers on
+                      Talk to real chemists, not a call centre. Fast answers on
                       SDS, compliance, custom formulations and bulk pricing.
                     </BentoBody>
                   </div>

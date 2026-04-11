@@ -70,7 +70,7 @@ export function RewardsHero({ onScrollTo }: RewardsHeroProps) {
 
           {/* Subtitle */}
           <p className="mb-14 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            Every litre earns rewards. No contracts, no points, no apps — just
+            Every litre earns rewards. No contracts, no points, no apps - just
             real products back in your hands.
           </p>
         </FadeIn>

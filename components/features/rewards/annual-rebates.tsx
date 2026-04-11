@@ -58,7 +58,7 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
         <FadeIn>
           <div className="mb-12">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              05 — Rebates
+              05 - Rebates
             </div>
             <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
               Annual Spend &amp; Save Rebates
@@ -118,7 +118,7 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
                           </span>
                         </div>
                         <p className="mb-2 text-sm font-semibold text-foreground">
-                          AUD {tier.min_annual_spend.toLocaleString()} —{" "}
+                          AUD {tier.min_annual_spend.toLocaleString()} -{" "}
                           {tier.max_annual_spend
                             ? `AUD ${tier.max_annual_spend.toLocaleString()}`
                             : "AUD 100k+"}{" "}
@@ -140,7 +140,7 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
                 {[
                   "Store credit (not cash)",
                   "Valid 12 months",
-                  "Calendar year (Jan–Dec)",
+                  "Calendar year (Jan-Dec)",
                   "Credited in January",
                 ].map((note) => (
                   <span
@@ -179,7 +179,7 @@ export function AnnualRebates({ annualSpend = 0 }: AnnualRebatesProps) {
                       <span className="font-semibold text-primary">
                         AUD {remaining.toLocaleString()}
                       </span>{" "}
-                      away from the {nextTier.rebate_percent}% tier — that&apos;s AUD {potentialCredit.toLocaleString()} in credit.
+                      away from the {nextTier.rebate_percent}% tier - that&apos;s AUD {potentialCredit.toLocaleString()} in credit.
                     </p>
                   </CardContent>
                 </Card>

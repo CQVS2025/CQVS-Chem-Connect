@@ -18,7 +18,7 @@ const stackedRewards = [
     emoji: "crown",
     icon: Crown,
     label: "Silver tier",
-    detail: "AUD 5,200/mo — free IBC monthly",
+    detail: "AUD 5,200/mo - free IBC monthly",
     value: "AUD 1,200/mo",
     color: "text-slate-300",
     bgColor: "bg-slate-300/10",
@@ -28,7 +28,7 @@ const stackedRewards = [
     emoji: "package",
     icon: Package,
     label: "Essentials Bundle",
-    detail: "3 products — 10% off",
+    detail: "3 products - 10% off",
     value: "10% off",
     color: "text-primary",
     bgColor: "bg-primary/10",
@@ -38,7 +38,7 @@ const stackedRewards = [
     emoji: "dollar",
     icon: DollarSign,
     label: "Annual rebate",
-    detail: "7.5% tier — AUD 4,680 credit",
+    detail: "7.5% tier - AUD 4,680 credit",
     value: "AUD 4,680/yr",
     color: "text-yellow-400",
     bgColor: "bg-yellow-400/10",
@@ -48,7 +48,7 @@ const stackedRewards = [
     emoji: "card",
     icon: CreditCard,
     label: "Stamp card",
-    detail: "7 stamps — 3 to free IBC",
+    detail: "7 stamps - 3 to free IBC",
     value: "~AUD 2,210",
     color: "text-violet-400",
     bgColor: "bg-violet-400/10",
@@ -58,7 +58,7 @@ const stackedRewards = [
     emoji: "megaphone",
     icon: Megaphone,
     label: "Referrals",
-    detail: "2 mates — 2 free drums",
+    detail: "2 mates - 2 free drums",
     value: "~AUD 700",
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
@@ -170,7 +170,7 @@ export function StackRewards() {
         <FadeIn delay={0.2}>
           <p className="mt-6 rounded-2xl border border-primary/15 bg-primary/5 px-5 py-4 text-center text-sm leading-relaxed italic text-muted-foreground">
             &quot;Every program makes switching more painful. Not because we
-            lock you in — because we make staying worth it.&quot;
+            lock you in - because we make staying worth it.&quot;
           </p>
         </FadeIn>
       </div>

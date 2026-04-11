@@ -42,16 +42,6 @@ export function ProductCard({
             className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           />
 
-          {/* Floating price tag */}
-          <div className="absolute right-3 top-3 rounded-xl border border-border/80 bg-card/95 px-3 py-1.5 shadow-lg backdrop-blur-sm">
-            <span className="text-sm font-bold text-foreground">
-              AUD {price.toFixed(2)}
-            </span>
-            <span className="ml-0.5 text-xs text-muted-foreground">
-              / {unit}
-            </span>
-          </div>
-
           {/* Badge */}
           {badge && (
             <span
@@ -76,6 +66,15 @@ export function ProductCard({
             {name}
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">{manufacturer}</p>
+
+          <div className="mt-4 flex items-baseline gap-1">
+            <span className="text-3xl font-black tracking-tight text-primary sm:text-4xl">
+              AUD {price.toFixed(2)}
+            </span>
+            <span className="text-sm font-semibold text-primary/80">
+              /{unit}
+            </span>
+          </div>
 
           {/* Badges row */}
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
