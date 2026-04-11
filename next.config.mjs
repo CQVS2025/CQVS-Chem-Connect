@@ -28,6 +28,12 @@ const nextConfig = {
     ],
   },
 
+  async rewrites() {
+    return [
+      { source: "/seo-plan", destination: "/seo-plan.html" },
+    ]
+  },
+
   async headers() {
     return [
       {
