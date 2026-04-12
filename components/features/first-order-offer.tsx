@@ -51,6 +51,7 @@ export function FirstOrderOffer({
   const [addedSlug, setAddedSlug] = useState<string | null>(null)
   const [removingSlug, setRemovingSlug] = useState<string | null>(null)
   const [dismissed, setDismissed] = useState(false)
+  const [selectedPackSize, setSelectedPackSize] = useState<Record<string, string>>({})
 
   const [internalOption, setInternalOption] = useState<FirstOrderChoice>(null)
   const [internalTW, setInternalTW] = useState<string | null>(null)
@@ -94,22 +95,36 @@ export function FirstOrderOffer({
   }
 
   async function handleAddTruckWash(product: (typeof truckWashProducts)[0]) {
+    const packSize = selectedPackSize[product.slug]
+    if (!packSize) {
+      toast.error("Please select a pack size first")
+      return
+    }
     setAddingSlug(product.slug)
     try {
       await addToCart.mutateAsync({
         product_id: product.id,
         quantity: 1,
-        packaging_size: product.packaging_sizes?.[product.packaging_sizes.length - 1] ?? "1000L IBC",
+        packaging_size: packSize,
       })
       setChosenTW(product.slug)
       setAddedSlug(product.slug)
-      toast.success(`${product.name} added at 50% off!`)
+      toast.success(`${product.name} (${packSize}) added at 50% off!`)
       setTimeout(() => setAddedSlug(null), 3000)
     } catch {
       toast.error("Failed to add product.")
     } finally {
       setAddingSlug(null)
     }
+  }
+
+  /** Eligible pack sizes for truck wash 50% off (drums + IBCs only) */
+  const ELIGIBLE_PACK_KEYWORDS = ["200l", "1000l", "ibc", "drum"]
+  function getEligiblePackSizes(product: (typeof truckWashProducts)[0]): string[] {
+    return (product.packaging_sizes ?? []).filter((ps) => {
+      const lower = ps.toLowerCase().replace(/\s/g, "")
+      return ELIGIBLE_PACK_KEYWORDS.some((kw) => lower.includes(kw))
+    })
   }
 
   return (
@@ -183,82 +198,140 @@ export function FirstOrderOffer({
             const otherTWAlreadyInCart = (slug: string) => twInCart.some(p => p.slug !== slug)
 
             return (
-              <div className="ml-10.5 space-y-1 pt-1">
+              <div className="ml-10.5 space-y-2 pt-1">
                 {truckWashProducts.map((product) => {
                   const discounted = product.price * 0.5
                   const isInCart = cartProductSlugs.includes(product.slug)
                   const isSelected = chosenTW === product.slug
                   const isAdding = addingSlug === product.slug
                   const isAdded = addedSlug === product.slug
-                  // Can only add if the OTHER truck wash is NOT already in cart
                   const canAdd = !isInCart && !otherTWAlreadyInCart(product.slug)
+                  const eligibleSizes = getEligiblePackSizes(product)
+                  const chosenPack = selectedPackSize[product.slug] ?? ""
 
                   return (
-                    <button
-                      key={product.id}
-                      type="button"
-                      onClick={() => handleTruckWashSelect(product.slug)}
-                      className={cn(
-                        "flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-all cursor-pointer",
-                        isSelected ? "border-violet-400/30 bg-violet-400/5" : "border-white/5 bg-background/30 hover:border-violet-400/20"
-                      )}
-                    >
-                      <div className={cn(
-                        "flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-                        isSelected ? "border-violet-400 bg-violet-400" : "border-white/20"
-                      )}>
-                        {isSelected && <Check className="size-2.5 text-white" />}
-                      </div>
-                      <div className="relative size-8 shrink-0 overflow-hidden rounded bg-white">
-                        <Image src={product.image_url || "/images/cqvs-logo.png"} alt={product.name} fill sizes="32px" className="object-cover" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold truncate">{product.name}</p>
-                        <div className="flex items-center gap-1.5">
-                          {isSelected ? (
-                            <>
-                              <span className="text-[10px] text-muted-foreground line-through">${product.price.toFixed(2)}</span>
-                              <span className="text-xs font-bold text-primary">${discounted.toFixed(2)}/{product.unit}</span>
-                            </>
-                          ) : (
-                            <span className="text-[10px] text-muted-foreground">${product.price.toFixed(2)}/{product.unit}</span>
+                    <div key={product.id} className="space-y-1">
+                      {/* Product row */}
+                      <button
+                        type="button"
+                        onClick={() => handleTruckWashSelect(product.slug)}
+                        className={cn(
+                          "flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-all cursor-pointer",
+                          isSelected ? "border-violet-400/30 bg-violet-400/5" : "border-white/5 bg-background/30 hover:border-violet-400/20"
+                        )}
+                      >
+                        <div className={cn(
+                          "flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                          isSelected ? "border-violet-400 bg-violet-400" : "border-white/20"
+                        )}>
+                          {isSelected && <Check className="size-2.5 text-white" />}
+                        </div>
+                        <div className="relative size-8 shrink-0 overflow-hidden rounded bg-white">
+                          <Image src={product.image_url || "/images/cqvs-logo.png"} alt={product.name} fill sizes="32px" className="object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold truncate">{product.name}</p>
+                          <div className="flex items-center gap-1.5">
+                            {isSelected ? (
+                              <>
+                                <span className="text-[10px] text-muted-foreground line-through">AUD {product.price.toFixed(2)}</span>
+                                <span className="text-xs font-bold text-primary">AUD {discounted.toFixed(2)}/{product.unit}</span>
+                              </>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground">AUD {product.price.toFixed(2)}/{product.unit}</span>
+                            )}
+                          </div>
+                        </div>
+                        {isInCart && (
+                          <span
+                            role="button"
+                            className="flex h-6 items-center gap-0.5 rounded px-2 text-[10px] font-medium text-destructive/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                            onClick={(e) => { e.stopPropagation(); handleRemoveFromCart(product.slug) }}
+                          >
+                            {removingSlug === product.slug ? <Loader2 className="size-3 animate-spin" /> : <><X className="mr-0.5 size-2.5" />Remove</>}
+                          </span>
+                        )}
+                      </button>
+
+                      {/* Pack size selector - shown when this product is selected */}
+                      {isSelected && !isInCart && eligibleSizes.length > 0 && (
+                        <div className="ml-6 space-y-1">
+                          <p className="text-[10px] font-medium text-muted-foreground">
+                            Choose pack size:
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {eligibleSizes.map((size) => (
+                              <button
+                                key={size}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setSelectedPackSize((prev) => ({
+                                    ...prev,
+                                    [product.slug]: prev[product.slug] === size ? "" : size,
+                                  }))
+                                }}
+                                className={cn(
+                                  "rounded-md border px-2.5 py-1 text-[10px] font-medium transition-all cursor-pointer",
+                                  chosenPack === size
+                                    ? "border-violet-400/40 bg-violet-400/15 text-violet-400"
+                                    : "border-border/60 bg-background/30 text-muted-foreground hover:border-violet-400/30"
+                                )}
+                              >
+                                {size}
+                              </button>
+                            ))}
+                          </div>
+                          {canAdd && (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="mt-1.5 h-7 rounded-md px-3 text-[11px] font-semibold"
+                              disabled={!chosenPack || isAdding}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleAddTruckWash(product)
+                              }}
+                            >
+                              {isAdding ? (
+                                <Loader2 className="mr-1 size-3 animate-spin" />
+                              ) : isAdded ? (
+                                <Check className="mr-1 size-3" />
+                              ) : (
+                                <ShoppingCart className="mr-1 size-3" />
+                              )}
+                              {isAdded ? "Added!" : chosenPack ? `Add ${chosenPack} at 50% off` : "Select a size"}
+                            </Button>
+                          )}
+                          {!canAdd && !isInCart && (
+                            <button
+                              type="button"
+                              className="flex items-center gap-0.5 text-[10px] font-medium text-amber-400 hover:text-amber-300 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const otherSlug = TRUCK_WASH_SLUGS.find(s => s !== product.slug && cartProductSlugs.includes(s))
+                                if (otherSlug) handleRemoveFromCart(otherSlug)
+                              }}
+                            >
+                              <X className="mr-0.5 size-2.5" />
+                              Remove other truck wash to switch
+                            </button>
                           )}
                         </div>
-                      </div>
-                      {isInCart ? (
-                        <span
-                          role="button"
-                          className="flex h-6 items-center gap-0.5 rounded px-2 text-[10px] font-medium text-destructive/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
-                          onClick={(e) => { e.stopPropagation(); handleRemoveFromCart(product.slug) }}
-                        >
-                          {removingSlug === product.slug ? <Loader2 className="size-3 animate-spin" /> : <><X className="mr-0.5 size-2.5" />Remove</>}
-                        </span>
-                      ) : canAdd ? (
-                        <span
-                          role="button"
-                          className="flex h-6 items-center gap-0.5 rounded px-2 text-[10px] font-medium text-primary hover:bg-primary/10 transition-colors"
-                          onClick={(e) => { e.stopPropagation(); handleAddTruckWash(product) }}
-                        >
-                          {isAdding ? <Loader2 className="size-3 animate-spin" /> : isAdded ? <Check className="size-3" /> : <><ShoppingCart className="mr-0.5 size-2.5" />Add</>}
-                        </span>
-                      ) : (
-                        <span
-                          role="button"
-                          className="flex h-6 items-center gap-0.5 rounded px-2 text-[10px] font-medium text-amber-400 hover:bg-amber-400/10 transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            const otherSlug = TRUCK_WASH_SLUGS.find(s => s !== product.slug && cartProductSlugs.includes(s))
-                            if (otherSlug) handleRemoveFromCart(otherSlug)
-                          }}
-                        >
-                          <X className="mr-0.5 size-2.5" />Swap
-                        </span>
                       )}
-                    </button>
+
+                      {/* In-cart confirmation */}
+                      {isSelected && isInCart && (
+                        <p className="ml-6 text-[10px] text-emerald-500">
+                          <Check className="mr-0.5 inline size-3" />
+                          In cart at 50% off
+                        </p>
+                      )}
+                    </div>
                   )
                 })}
                 {!chosenTW && (
-                  <p className="text-[10px] text-amber-400 pl-6">Select which one gets 50% off</p>
+                  <p className="text-[10px] text-amber-400 pl-6">Select which truck wash gets 50% off</p>
                 )}
               </div>
             )

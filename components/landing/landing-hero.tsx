@@ -19,6 +19,7 @@ import { FadeIn, BlurIn } from "@/components/shared/motion"
 export interface HeroProduct {
   id: string
   name: string
+  slug: string
   price: number
   unit: string
   image: string | null
@@ -61,9 +62,9 @@ export function LandingHero({ tickerProducts }: LandingHeroProps) {
       />
 
       <div className="relative z-10 mx-auto max-w-7xl">
-        <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+        <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
           {/* LEFT: copy + CTAs */}
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-8">
             <FadeIn delay={0.05} direction="none">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary backdrop-blur-sm">
                 <span className="relative flex h-1.5 w-1.5">
@@ -79,7 +80,7 @@ export function LandingHero({ tickerProducts }: LandingHeroProps) {
                 <span className="block bg-linear-to-br from-primary via-emerald-400 to-primary bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.15)]">
                   Bulk Chemicals.
                 </span>
-                <span className="mt-2 block bg-linear-to-br from-emerald-400 via-primary to-emerald-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.15)]">
+                <span className="mt-2 block whitespace-nowrap bg-linear-to-br from-emerald-400 via-primary to-emerald-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.15)]">
                   Unbeatable Prices.
                 </span>
               </h1>
@@ -124,7 +125,7 @@ export function LandingHero({ tickerProducts }: LandingHeroProps) {
           </div>
 
           {/* RIGHT: live price ticker */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-4">
             <FadeIn delay={0.4} direction="right">
               <PriceTickerCard products={tickerProducts} />
             </FadeIn>
@@ -177,9 +178,10 @@ function PriceTickerCard({ products }: { products: HeroProduct[] }) {
         {/* Items list */}
         <div className="space-y-3">
           {items.slice(0, 3).map((product, idx) => (
-            <div
+            <Link
               key={product.id}
-              className={`relative flex items-center gap-4 rounded-2xl border p-3 transition-all duration-500 ${
+              href={`/products/${product.slug}`}
+              className={`relative flex items-center gap-4 rounded-2xl border p-3 transition-all duration-500 hover:border-primary/60 ${
                 idx === activeIndex
                   ? "border-primary/40 bg-primary/5 shadow-md shadow-primary/10"
                   : "border-border/40 bg-background/40"
@@ -209,13 +211,10 @@ function PriceTickerCard({ products }: { products: HeroProduct[] }) {
 
               <div className="text-right">
                 <p className="text-lg font-bold text-primary">
-                  AUD {product.price.toFixed(2)}
-                </p>
-                <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  /{product.unit}
+                  AUD {product.price.toFixed(2)}<span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">/{product.unit}</span>
                 </p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
@@ -241,6 +240,7 @@ const fallbackProducts: HeroProduct[] = [
   {
     id: "1",
     name: "Eco Wash",
+    slug: "eco-wash",
     price: 1.8,
     unit: "L",
     image: null,
@@ -250,6 +250,7 @@ const fallbackProducts: HeroProduct[] = [
   {
     id: "2",
     name: "Truck Wash Premium",
+    slug: "truck-wash-premium",
     price: 1.95,
     unit: "L",
     image: null,
@@ -259,6 +260,7 @@ const fallbackProducts: HeroProduct[] = [
   {
     id: "3",
     name: "Green Acid Replacement",
+    slug: "green-acid-replacement",
     price: 2.45,
     unit: "L",
     image: null,

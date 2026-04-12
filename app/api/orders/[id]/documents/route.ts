@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { createXeroInvoiceForOrder } from "@/lib/xero/sync"
 
 // GET /api/orders/[id]/documents - list documents for an order
 export async function GET(
@@ -144,18 +143,9 @@ export async function POST(
       }
     }
 
-    // Trigger Xero invoice creation now that docs are uploaded.
-    // Only fires for PO orders that haven't already been synced.
-    // Fire-and-forget so the upload response stays fast.
-    if (
-      order.payment_method === "purchase_order" &&
-      !order.xero_invoice_id &&
-      uploaded.length > 0
-    ) {
-      createXeroInvoiceForOrder(id).catch((err) => {
-        console.error("Xero invoice auto-create failed:", err)
-      })
-    }
+    // NOTE: Xero invoice creation is now handled by the admin approval flow.
+    // PO orders start as "pending_approval" and no Xero documents are created
+    // until the admin clicks Approve. The document upload just stores the files.
 
     return NextResponse.json(uploaded, { status: 201 })
   } catch (err) {

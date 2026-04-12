@@ -218,7 +218,10 @@ export async function POST(request: NextRequest) {
       },
       toName: "Customer",
       items: machshipItems,
-      questionIds: forklift_available === false ? [] : [],
+      // Question ID 7 = "Hydraulic Tailgate required" in Machship.
+      // When customer has no forklift, tailgate delivery is needed which
+      // adds a surcharge (e.g. Hi Trans Tailgate Surcharge ~$180).
+      questionIds: forklift_available === false ? [7] : [],
     }
     console.log("[Machship quote] request:", JSON.stringify(routeRequest))
     const routesResponse = await getRoutes(routeRequest)
@@ -252,21 +255,54 @@ export async function POST(request: NextRequest) {
       r.consignmentTotal.totalSellPrice < best.consignmentTotal.totalSellPrice ? r : best,
     routesResponse.routes[0])
 
+    // Build surcharge breakdown for transparent pricing
+    const allSurcharges = [
+      ...(bestRoute.automaticSurcharges ?? []),
+      ...(bestRoute.electiveSurcharges ?? []),
+    ]
+    const tailgateSurcharge = allSurcharges.find(
+      (s) => /tailgate/i.test(s.name),
+    )
+    const otherSurcharges = allSurcharges.filter(
+      (s) => !/tailgate/i.test(s.name),
+    )
+
+    // ETA from despatch options
+    const despatchOption = bestRoute.despatchOptions?.[0]
+
     return NextResponse.json({
       serviceable: true,
       shipping_amount: bestRoute.consignmentTotal.totalSellPrice,
       carrier_name: bestRoute.carrier.displayName ?? bestRoute.carrier.name,
       carrier_id: String(bestRoute.carrier.id),
+      service_name: bestRoute.carrierService?.name ?? null,
       warehouse_id: selectedWarehouse.warehouse.id,
       warehouse_name: selectedWarehouse.warehouse.name,
-      // Machship doesn't return ETA days directly in the simple route response -
-      // ETA is calculated per consignment after creation
-      estimated_transit_days: null,
       pickup_date: pickupResult.pickupDate,
       is_partial_fulfillment: selectedWarehouse.isPartialFulfillment,
       missing_product_ids: selectedWarehouse.missingProductIds,
       request_id: routesResponse.id,
       is_dg: isDG,
+      // Transparent pricing breakdown
+      pricing: {
+        base_rate: bestRoute.consignmentTotal.consignmentRouteSellPrice,
+        fuel_levy: bestRoute.consignmentTotal.sellFuelLevyPrice,
+        fuel_levy_percent: bestRoute.sellFuelLevyPercentage,
+        tax: bestRoute.consignmentTotal.totalTaxSellPrice,
+        tax_percent: bestRoute.taxPercentage,
+        before_tax: bestRoute.consignmentTotal.totalSellBeforeTax,
+        tailgate_applied: Boolean(tailgateSurcharge),
+        tailgate_amount: tailgateSurcharge?.sellPrice ?? 0,
+        tailgate_name: tailgateSurcharge?.name ?? null,
+        other_surcharges: otherSurcharges.map((s) => ({
+          name: s.name,
+          amount: s.sellPrice,
+        })),
+        total: bestRoute.consignmentTotal.totalSellPrice,
+      },
+      // ETA
+      eta_date: despatchOption?.etaLocal ?? null,
+      eta_business_days: despatchOption?.totalBusinessDays ?? null,
     })
   } catch (err) {
     console.error("[MacShip quote] error:", err)

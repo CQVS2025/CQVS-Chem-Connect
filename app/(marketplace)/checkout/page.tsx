@@ -74,16 +74,40 @@ import { calculateUnitPrice } from "@/lib/pricing"
 
 function resolveItemUnitPrice(item: CartItem): number {
   const prices = item.product.packaging_prices
-  if (!prices || prices.length === 0) return Number(item.product.price) || 0
+  if (!prices || prices.length === 0) {
+    // No packaging_prices configured - use base product price.
+    // For per-litre products, multiply by volume extracted from the size name.
+    return fallbackPrice(item)
+  }
   const match =
     prices.find((p) => p.packaging_size_id === item.packaging_size_id) ??
     prices.find((p) => p.packaging_size?.name === item.packaging_size)
-  if (!match) return Number(item.product.price) || 0
+  if (!match) {
+    // No matching packaging_prices entry for this specific size.
+    // Fall back to base price × volume for per-litre products.
+    return fallbackPrice(item)
+  }
   return calculateUnitPrice(
     item.product.price_type,
     match,
     match.packaging_size,
   )
+}
+
+/** Fallback price when no product_packaging_prices entry exists.
+ *  For per-litre products, multiplies the base price by the volume
+ *  extracted from the packaging size name (e.g. "200L Drum" → 200). */
+function fallbackPrice(item: CartItem): number {
+  const basePrice = Number(item.product.price) || 0
+  if (item.product.price_type === "per_litre") {
+    // Try to get volume from the packaging_size name
+    const volumeMatch = item.packaging_size.match(/(\d+)\s*[Ll]/)
+    if (volumeMatch) {
+      const litres = parseInt(volumeMatch[1], 10)
+      return Math.round(basePrice * litres * 100) / 100
+    }
+  }
+  return basePrice
 }
 
 function uploadOrderDocuments(orderId: string, files: File[]) {
@@ -112,6 +136,34 @@ function formatCurrency(amount: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`
+}
+
+interface MacshipQuoteResult {
+  serviceable: boolean
+  shipping_amount: number | null
+  carrier_name: string | null
+  carrier_id: string | null
+  service_name?: string | null
+  warehouse_id: string | null
+  warehouse_name: string | null
+  pickup_date: string | null
+  is_partial_fulfillment: boolean
+  missing_product_ids: string[]
+  pricing?: {
+    base_rate: number
+    fuel_levy: number
+    fuel_levy_percent: number
+    tax: number
+    tax_percent: number
+    before_tax: number
+    tailgate_applied: boolean
+    tailgate_amount: number
+    tailgate_name: string | null
+    other_surcharges: Array<{ name: string; amount: number }>
+    total: number
+  } | null
+  eta_date?: string | null
+  eta_business_days?: number | null
 }
 
 interface DeliveryAddress {
@@ -156,21 +208,11 @@ interface CheckoutFormProps {
   orderId: string | null
   onOrderCreated: (order: Order) => void
   onDeliveryStateChange: (state: string) => void
-  macshipQuote: {
-    serviceable: boolean
-    shipping_amount: number | null
-    carrier_name: string | null
-    carrier_id: string | null
-    warehouse_id: string | null
-    warehouse_name: string | null
-    estimated_transit_days: number | null
-    pickup_date: string | null
-    is_partial_fulfillment: boolean
-    missing_product_ids: string[]
-  } | null
+  macshipQuote: MacshipQuoteResult | null
   quoteLoading: boolean
   onDeliveryPostcodeChange: (postcode: string) => void
   onDeliveryCityChange: (city: string) => void
+  onDeliveryForkliftChange: (hasForklift: boolean) => void
 }
 
 // ----------------------------------------------------------------
@@ -205,6 +247,7 @@ function CheckoutForm({
   quoteLoading,
   onDeliveryPostcodeChange,
   onDeliveryCityChange,
+  onDeliveryForkliftChange,
 }: CheckoutFormProps) {
   const router = useRouter()
   const stripe = useStripe()
@@ -293,8 +336,9 @@ function CheckoutForm({
       address.state !== "" &&
       address.postcode.trim() !== "" &&
       address.forkliftAvailable !== "" &&
-      macshipQuote?.serviceable !== false,
-    [address, macshipQuote]
+      macshipQuote?.serviceable !== false &&
+      !quoteLoading,
+    [address, macshipQuote, quoteLoading]
   )
 
   const isPaymentValid = useMemo(() => {
@@ -389,6 +433,10 @@ function CheckoutForm({
           delivery_notes: address.notes,
           macship_carrier_id: macshipQuote?.carrier_id,
           macship_quote_amount: macshipQuote?.shipping_amount,
+          macship_shipping_breakdown: macshipQuote?.pricing ?? null,
+          macship_service_name: macshipQuote?.service_name ?? null,
+          macship_eta_date: macshipQuote?.eta_date ?? null,
+          macship_eta_business_days: macshipQuote?.eta_business_days ?? null,
         })
 
         // Upload PO documents if any (non-blocking)
@@ -443,6 +491,10 @@ function CheckoutForm({
           delivery_notes: address.notes,
           macship_carrier_id: macshipQuote?.carrier_id,
           macship_quote_amount: macshipQuote?.shipping_amount,
+          macship_shipping_breakdown: macshipQuote?.pricing ?? null,
+          macship_service_name: macshipQuote?.service_name ?? null,
+          macship_eta_date: macshipQuote?.eta_date ?? null,
+          macship_eta_business_days: macshipQuote?.eta_business_days ?? null,
         })
         orderResult = { id: order.id, client_secret: order.client_secret ?? null }
         onOrderCreated(order)
@@ -654,12 +706,13 @@ function CheckoutForm({
                       </Label>
                       <Select
                         value={address.forkliftAvailable}
-                        onValueChange={(v) =>
+                        onValueChange={(v) => {
                           updateAddress(
                             "forkliftAvailable",
                             v as "yes" | "no",
                           )
-                        }
+                          onDeliveryForkliftChange(v === "yes")
+                        }}
                       >
                         <SelectTrigger id="forklift" className="h-10 w-full">
                           <SelectValue placeholder="Select forklift availability" />
@@ -1176,12 +1229,22 @@ function CheckoutForm({
                     ))}
                   </div>
                 )}
+                {/* Shipping - with transparent breakdown */}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
                   {quoteLoading ? (
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Loader2 className="h-3 w-3 animate-spin" />
                       Calculating...
+                    </span>
+                  ) : freeFreight && macshipQuote?.serviceable && macshipQuote.shipping_amount ? (
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground line-through">
+                        {formatCurrency(macshipQuote.shipping_amount)}
+                      </span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                        Free
+                      </span>
                     </span>
                   ) : macshipQuote?.serviceable && macshipQuote.shipping_amount !== null ? (
                     <span className="font-medium">{formatCurrency(macshipQuote.shipping_amount)}</span>
@@ -1193,17 +1256,73 @@ function CheckoutForm({
                     </span>
                   )}
                 </div>
+                {/* Free freight badge */}
+                {freeFreight && macshipQuote?.serviceable && macshipQuote.shipping_amount && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-emerald-600 dark:text-emerald-400">
+                      First order bonus - free freight applied
+                    </span>
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                      -{formatCurrency(macshipQuote.shipping_amount)}
+                    </span>
+                  </div>
+                )}
+                {/* Shipping breakdown - shown when quote is loaded (even with free freight so customer sees what's waived) */}
+                {macshipQuote?.serviceable && macshipQuote.pricing && (
+                  <div className={`ml-3 space-y-1 border-l-2 border-border/50 pl-3 ${freeFreight ? "opacity-50" : ""}`}>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Base freight</span>
+                      <span>{formatCurrency(macshipQuote.pricing.base_rate)}</span>
+                    </div>
+                    {macshipQuote.pricing.fuel_levy > 0 && (
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Fuel levy ({macshipQuote.pricing.fuel_levy_percent.toFixed(1)}%)</span>
+                        <span>{formatCurrency(macshipQuote.pricing.fuel_levy)}</span>
+                      </div>
+                    )}
+                    {macshipQuote.pricing.tailgate_applied && (
+                      <div className="flex justify-between text-xs text-amber-600 dark:text-amber-400">
+                        <span>{macshipQuote.pricing.tailgate_name ?? "Tailgate surcharge"}</span>
+                        <span>{formatCurrency(macshipQuote.pricing.tailgate_amount)}</span>
+                      </div>
+                    )}
+                    {macshipQuote.pricing.other_surcharges.map((s) => (
+                      <div key={s.name} className="flex justify-between text-xs text-muted-foreground">
+                        <span>{s.name}</span>
+                        <span>{formatCurrency(s.amount)}</span>
+                      </div>
+                    ))}
+                    {macshipQuote.pricing.tax > 0 && (
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Shipping GST ({macshipQuote.pricing.tax_percent}%)</span>
+                        <span>{formatCurrency(macshipQuote.pricing.tax)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {macshipQuote?.carrier_name && macshipQuote.serviceable && (
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">Carrier</span>
-                    <span className="text-muted-foreground">{macshipQuote.carrier_name}</span>
+                    <span className="text-muted-foreground">
+                      {macshipQuote.carrier_name}
+                      {macshipQuote.service_name ? ` - ${macshipQuote.service_name}` : ""}
+                    </span>
                   </div>
                 )}
                 {macshipQuote?.pickup_date && macshipQuote.serviceable && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Est. pickup</span>
+                    <span className="text-muted-foreground">Est. dispatch</span>
                     <span className="text-muted-foreground">
                       {new Date(macshipQuote.pickup_date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+                    </span>
+                  </div>
+                )}
+                {macshipQuote?.eta_date && macshipQuote.serviceable && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Est. delivery</span>
+                    <span className="text-muted-foreground">
+                      {new Date(macshipQuote.eta_date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+                      {macshipQuote.eta_business_days != null ? ` (${macshipQuote.eta_business_days}d)` : ""}
                     </span>
                   </div>
                 )}
@@ -1299,21 +1418,11 @@ export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
   const [deliveryState, setDeliveryState] = useState<string>("")
-  const [macshipQuote, setMacshipQuote] = useState<{
-    serviceable: boolean
-    shipping_amount: number | null
-    carrier_name: string | null
-    carrier_id: string | null
-    warehouse_id: string | null
-    warehouse_name: string | null
-    estimated_transit_days: number | null
-    pickup_date: string | null
-    is_partial_fulfillment: boolean
-    missing_product_ids: string[]
-  } | null>(null)
+  const [macshipQuote, setMacshipQuote] = useState<MacshipQuoteResult | null>(null)
   const [quoteLoading, setQuoteLoading] = useState(false)
   const [deliveryPostcode, setDeliveryPostcode] = useState("")
   const [deliveryCity, setDeliveryCity] = useState("")
+  const [deliveryForklift, setDeliveryForklift] = useState<boolean | null>(null)
 
   const items = cartItems ?? []
 
@@ -1454,7 +1563,12 @@ export default function CheckoutPage() {
   ) / 100
   const total = subtotal - totalDiscount + containerTotal + shipping + gst
 
-  const fetchMacShipQuote = useCallback(async (postcode: string, state: string, city: string) => {
+  const fetchMacShipQuote = useCallback(async (
+    postcode: string,
+    state: string,
+    city: string,
+    forkliftAvailable: boolean | null,
+  ) => {
     if (!postcode || postcode.length < 4 || !state || !city.trim() || items.length === 0) return
     setQuoteLoading(true)
     try {
@@ -1471,7 +1585,9 @@ export default function CheckoutPage() {
             packaging_size_name: item.packaging_size,
             quantity: item.quantity,
           })),
-          forklift_available: true, // we update after form submission
+          // Pass the actual forklift selection so Machship applies
+          // the tailgate surcharge (questionId 7) when no forklift.
+          forklift_available: forkliftAvailable ?? true,
         }),
       })
       if (response.ok) {
@@ -1488,11 +1604,11 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (deliveryPostcode.length >= 4 && deliveryState && deliveryCity.trim()) {
       const timer = setTimeout(() => {
-        fetchMacShipQuote(deliveryPostcode, deliveryState, deliveryCity)
+        fetchMacShipQuote(deliveryPostcode, deliveryState, deliveryCity, deliveryForklift)
       }, 600) // debounce 600ms
       return () => clearTimeout(timer)
     }
-  }, [deliveryPostcode, deliveryState, deliveryCity, fetchMacShipQuote])
+  }, [deliveryPostcode, deliveryState, deliveryCity, deliveryForklift, fetchMacShipQuote])
 
   const handleDeliveryStateChange = useCallback((state: string) => {
     setDeliveryState(state)
@@ -1617,6 +1733,7 @@ export default function CheckoutPage() {
             quoteLoading={quoteLoading}
             onDeliveryPostcodeChange={setDeliveryPostcode}
             onDeliveryCityChange={setDeliveryCity}
+            onDeliveryForkliftChange={(v) => setDeliveryForklift(v)}
           />
         </Elements>
       </m.div>

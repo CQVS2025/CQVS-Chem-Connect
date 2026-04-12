@@ -115,6 +115,12 @@ export async function selectWarehouse(
     )
   }
 
+  // Build composite keys for each cart item: "product_id:packaging_size_id"
+  // (or just "product_id:" if no size — shouldn't happen in practice)
+  const cartKeys = cartItems.map(
+    (i) => `${i.product_id}:${i.packaging_size_id ?? ""}`,
+  )
+  const distinctCartKeys = [...new Set(cartKeys)]
   const distinctProductIds = [
     ...new Set(cartItems.map((i) => i.product_id)),
   ]
@@ -129,10 +135,13 @@ export async function selectWarehouse(
     }
   }
 
-  // 2. For each warehouse, find which cart products it stocks
+  // 2. For each warehouse, find which cart product+size combos it stocks.
+  //    We also fetch packaging_size_id so we can distinguish:
+  //      - NULL  => "all sizes" for this product at this warehouse
+  //      - uuid  => only that specific size
   const { data: mappings, error: mapError } = await supabase
     .from("product_warehouses")
-    .select("product_id, warehouse_id")
+    .select("product_id, warehouse_id, packaging_size_id")
     .in("product_id", distinctProductIds)
     .in(
       "warehouse_id",
@@ -143,21 +152,36 @@ export async function selectWarehouse(
     throw new Error(`product_warehouses query failed: ${mapError.message}`)
   }
 
-  // Build set of products per warehouse
+  // Build set of product+size composite keys per warehouse.
+  // For a mapping with packaging_size_id = NULL ("all sizes"), we expand it
+  // to cover every cart item for that product.
   const warehouseProductSets: Record<string, Set<string>> = {}
   for (const m of mappings ?? []) {
     if (!warehouseProductSets[m.warehouse_id]) {
       warehouseProductSets[m.warehouse_id] = new Set()
     }
-    warehouseProductSets[m.warehouse_id].add(m.product_id)
+    if (m.packaging_size_id === null) {
+      // "All sizes" mapping — add a composite key for every cart item with this product
+      for (const item of cartItems) {
+        if (item.product_id === m.product_id) {
+          warehouseProductSets[m.warehouse_id].add(
+            `${item.product_id}:${item.packaging_size_id ?? ""}`,
+          )
+        }
+      }
+    } else {
+      warehouseProductSets[m.warehouse_id].add(
+        `${m.product_id}:${m.packaging_size_id}`,
+      )
+    }
   }
 
-  // 3. Find warehouses that carry ALL products
+  // 3. Find warehouses that carry ALL cart product+size combos
   const fullWarehouseIds = warehouses
     .map((w) => w.id)
     .filter((id) => {
       const set = warehouseProductSets[id] ?? new Set()
-      return distinctProductIds.every((pid) => set.has(pid))
+      return distinctCartKeys.every((key) => set.has(key))
     })
 
   if (fullWarehouseIds.length > 0) {
@@ -181,14 +205,19 @@ export async function selectWarehouse(
     }
   }
 
-  // 5. No single warehouse has all products — partial fulfillment
-  // Pick the warehouse with the most products; break ties by proximity
+  // 5. No single warehouse has all product+size combos — partial fulfillment
+  // Pick the warehouse that covers the most cart keys; break ties by proximity
+  const countCovered = (warehouseId: string) => {
+    const set = warehouseProductSets[warehouseId] ?? new Set()
+    return distinctCartKeys.filter((k) => set.has(k)).length
+  }
+
   let bestWarehouse = warehouses[0]
-  let bestCount = (warehouseProductSets[warehouses[0].id] ?? new Set()).size
+  let bestCount = countCovered(warehouses[0].id)
   let bestScore = proximityScore(bestWarehouse.address_state, deliveryState)
 
   for (const wh of warehouses.slice(1)) {
-    const count = (warehouseProductSets[wh.id] ?? new Set()).size
+    const count = countCovered(wh.id)
     const score = proximityScore(wh.address_state, deliveryState)
     const isBetter =
       count > bestCount ||
@@ -201,9 +230,11 @@ export async function selectWarehouse(
   }
 
   const selectedSet = warehouseProductSets[bestWarehouse.id] ?? new Set()
-  const missingProductIds = distinctProductIds.filter(
-    (pid) => !selectedSet.has(pid),
-  )
+  // missingProductIds: product IDs where at least one cart size is not covered
+  const missingProductIds = distinctProductIds.filter((pid) => {
+    const keysForProduct = distinctCartKeys.filter((k) => k.startsWith(`${pid}:`))
+    return keysForProduct.some((k) => !selectedSet.has(k))
+  })
 
   return {
     warehouse: bestWarehouse,

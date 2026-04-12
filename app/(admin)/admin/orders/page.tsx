@@ -20,6 +20,7 @@ import {
   Trash2,
   ExternalLink,
   FileText,
+  Zap,
 } from "lucide-react"
 
 import { useQueryClient } from "@tanstack/react-query"
@@ -30,6 +31,7 @@ import {
 } from "@/lib/hooks/use-orders"
 import { useOrderDocuments } from "@/lib/hooks/use-order-documents"
 import type { Order, OrderStatus } from "@/lib/types/order"
+import { ShippingBreakdown } from "@/components/shared/shipping-breakdown"
 
 type AdminOrder = Order & {
   macship_consignment_id?: string | null
@@ -38,6 +40,10 @@ type AdminOrder = Order & {
   macship_tracking_url?: string | null
   macship_consignment_failed?: boolean | null
   macship_lead_time_fallback?: boolean | null
+  macship_shipping_breakdown?: Order["macship_shipping_breakdown"]
+  macship_service_name?: string | null
+  macship_eta_date?: string | null
+  macship_eta_business_days?: number | null
   xero_invoice_id?: string | null
   xero_invoice_number?: string | null
   xero_po_id?: string | null
@@ -112,28 +118,34 @@ import {
 
 const statusTabs: Array<OrderStatus | "all"> = [
   "all",
+  "pending_approval",
   "received",
   "processing",
   "in_transit",
   "delivered",
   "cancelled",
+  "rejected",
 ]
 
 const statusLabels: Record<OrderStatus | "all", string> = {
   all: "All",
+  pending_approval: "Pending Approval",
   received: "Received",
   processing: "Processing",
   in_transit: "In Transit",
   delivered: "Delivered",
   cancelled: "Cancelled",
+  rejected: "Rejected",
 }
 
 const statusBadgeColors: Record<OrderStatus, string> = {
+  pending_approval: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
   received: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
   processing: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
   in_transit: "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400",
   delivered: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
   cancelled: "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400",
+  rejected: "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400",
 }
 
 const paymentMethodLabels: Record<string, string> = {
@@ -264,10 +276,15 @@ export default function AdminOrdersPage() {
   const [trackingNumber, setTrackingNumber] = useState("")
   const [deleteTarget, setDeleteTarget] = useState<Order | null>(null)
 
+  // PO approval state
+  const [approvingOrderId, setApprovingOrderId] = useState<string | null>(null)
+  const [rejectingOrderId, setRejectingOrderId] = useState<string | null>(null)
+
   const adminFilter = activeTab === "all" ? {} : { status: activeTab }
   const { data: orders, isLoading } = useAdminOrders(adminFilter)
   const updateStatus = useUpdateOrderStatus()
   const deleteOrder = useDeleteOrder()
+  const queryClient = useQueryClient()
 
   const filtered = useMemo(() => {
     if (!orders) return []
@@ -298,14 +315,16 @@ export default function AdminOrdersPage() {
 
   const statusCounts = useMemo(() => {
     if (!orders)
-      return { all: 0, received: 0, processing: 0, in_transit: 0, delivered: 0, cancelled: 0 }
+      return { all: 0, pending_approval: 0, received: 0, processing: 0, in_transit: 0, delivered: 0, cancelled: 0, rejected: 0 }
     return {
       all: orders.length,
+      pending_approval: orders.filter((o) => o.status === "pending_approval").length,
       received: orders.filter((o) => o.status === "received").length,
       processing: orders.filter((o) => o.status === "processing").length,
       in_transit: orders.filter((o) => o.status === "in_transit").length,
       delivered: orders.filter((o) => o.status === "delivered").length,
       cancelled: orders.filter((o) => o.status === "cancelled").length,
+      rejected: orders.filter((o) => o.status === "rejected").length,
     }
   }, [orders])
 
@@ -333,6 +352,42 @@ export default function AdminOrdersPage() {
       setStatusDialogOpen(false)
     } catch {
       toast.error("Failed to update order status. Please try again.")
+    }
+  }
+
+  async function handleApproveOrder(order: Order, endpoint: "approve" | "reapprove" = "approve") {
+    setApprovingOrderId(order.id)
+    try {
+      const res = await fetch(`/api/orders/${order.id}/${endpoint}`, { method: "POST" })
+      if (res.ok) {
+        toast.success(`Order ${order.order_number} approved`)
+        queryClient.invalidateQueries({ queryKey: ["orders"] })
+      } else {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error || "Failed to approve order")
+      }
+    } catch {
+      toast.error("Failed to approve order")
+    } finally {
+      setApprovingOrderId(null)
+    }
+  }
+
+  async function handleRejectOrder(order: Order) {
+    setRejectingOrderId(order.id)
+    try {
+      const res = await fetch(`/api/orders/${order.id}/reject`, { method: "POST" })
+      if (res.ok) {
+        toast.success(`Order ${order.order_number} rejected`)
+        queryClient.invalidateQueries({ queryKey: ["orders"] })
+      } else {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error || "Failed to reject order")
+      }
+    } catch {
+      toast.error("Failed to reject order")
+    } finally {
+      setRejectingOrderId(null)
     }
   }
 
@@ -422,6 +477,7 @@ export default function AdminOrdersPage() {
                           <TableHead>Payment</TableHead>
                           <TableHead className="text-right">Items</TableHead>
                           <TableHead className="text-right">Total</TableHead>
+                          <TableHead className="text-right">Approval</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -493,6 +549,68 @@ export default function AdminOrdersPage() {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
                                   })}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {order.status === "pending_approval" && order.payment_method === "purchase_order" && (
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <Button
+                                        size="sm"
+                                        className="h-7 bg-emerald-600 text-white hover:bg-emerald-700 text-xs px-2"
+                                        disabled={approvingOrderId === order.id || rejectingOrderId === order.id}
+                                        onClick={() => handleApproveOrder(order)}
+                                      >
+                                        {approvingOrderId === order.id ? (
+                                          <Loader2 className="h-3 w-3 animate-spin" />
+                                        ) : (
+                                          "Approve"
+                                        )}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        className="h-7 text-xs px-2"
+                                        disabled={approvingOrderId === order.id || rejectingOrderId === order.id}
+                                        onClick={() => handleRejectOrder(order)}
+                                      >
+                                        {rejectingOrderId === order.id ? (
+                                          <Loader2 className="h-3 w-3 animate-spin" />
+                                        ) : (
+                                          "Reject"
+                                        )}
+                                      </Button>
+                                    </div>
+                                  )}
+                                  {order.status === "rejected" && (
+                                    <div className="flex items-center justify-end">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-xs px-2 text-blue-600 border-blue-500/30 hover:bg-blue-500/10"
+                                        disabled={approvingOrderId === order.id}
+                                        onClick={() => handleApproveOrder(order, "reapprove")}
+                                      >
+                                        {approvingOrderId === order.id ? (
+                                          <Loader2 className="h-3 w-3 animate-spin" />
+                                        ) : (
+                                          "Re-approve"
+                                        )}
+                                      </Button>
+                                    </div>
+                                  )}
+                                  {order.payment_method === "purchase_order" &&
+                                    order.status !== "pending_approval" &&
+                                    order.status !== "rejected" && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                      <CheckCircle2 className="size-3" />
+                                      Approved
+                                    </span>
+                                  )}
+                                  {order.payment_method === "stripe" && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-600 dark:text-blue-400">
+                                      <Zap className="size-3" />
+                                      Auto
+                                    </span>
+                                  )}
                                 </TableCell>
                                 <TableCell className="text-right">
                                   <DropdownMenu>
@@ -614,7 +732,7 @@ export default function AdminOrdersPage() {
                               {/* Expanded details */}
                               {expandedOrder === order.id && (
                                 <TableRow key={`${order.id}-details`}>
-                                  <TableCell colSpan={9}>
+                                  <TableCell colSpan={10}>
                                     <div className="space-y-4 rounded-lg bg-muted/50 p-4">
                                       {/* Order items */}
                                       <div>
@@ -715,14 +833,15 @@ export default function AdminOrdersPage() {
                                               </div>
                                             </>
                                           )}
-                                          <div className="flex justify-between text-muted-foreground">
-                                            <span>Shipping</span>
-                                            <span>
-                                              {order.shipping > 0
-                                                ? `AUD ${order.shipping.toLocaleString("en-AU", { minimumFractionDigits: 2 })}`
-                                                : "Free"}
-                                            </span>
-                                          </div>
+                                          <ShippingBreakdown
+                                            shipping={order.shipping}
+                                            breakdown={(order as AdminOrder).macship_shipping_breakdown}
+                                            carrierName={null}
+                                            serviceName={(order as AdminOrder).macship_service_name}
+                                            pickupDate={(order as AdminOrder).macship_pickup_date}
+                                            etaDate={(order as AdminOrder).macship_eta_date}
+                                            etaBizDays={(order as AdminOrder).macship_eta_business_days}
+                                          />
                                           <div className="flex justify-between text-muted-foreground">
                                             <span>GST</span>
                                             <span>
@@ -1057,7 +1176,7 @@ export default function AdminOrdersPage() {
                         {!isLoading && filtered.length === 0 && (
                           <TableRow>
                             <TableCell
-                              colSpan={9}
+                              colSpan={10}
                               className="text-center text-muted-foreground py-8"
                             >
                               No orders found.
@@ -1104,11 +1223,13 @@ export default function AdminOrdersPage() {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="pending_approval">Pending Approval</SelectItem>
                     <SelectItem value="received">Received</SelectItem>
                     <SelectItem value="processing">Processing</SelectItem>
                     <SelectItem value="in_transit">In Transit</SelectItem>
                     <SelectItem value="delivered">Delivered</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

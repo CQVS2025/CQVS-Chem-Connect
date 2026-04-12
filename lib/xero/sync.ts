@@ -617,52 +617,9 @@ export async function createXeroPurchaseOrderForOrder(
       response: po,
     })
 
-    // Check if auto-approve is enabled in admin settings
-    const { data: autoApproveSetting } = await supabase
-      .from("admin_settings")
-      .select("value")
-      .eq("key", "xero_po_auto_approve")
-      .single()
-
-    if (autoApproveSetting?.value === "true") {
-      try {
-        // 1. Approve the PO (changes status from "Draft" to "Authorised")
-        await xero.approvePurchaseOrder(po.PurchaseOrderID)
-        await logXeroSync({
-          entityType: "purchase_order",
-          entityId: orderId,
-          action: "approve",
-          status: "success",
-          xeroId: po.PurchaseOrderID,
-        })
-
-        // 2. Email the PO to the warehouse contact
-        await xero.emailPurchaseOrder(po.PurchaseOrderID)
-        await logXeroSync({
-          entityType: "purchase_order_email",
-          entityId: orderId,
-          action: "send",
-          status: "success",
-          xeroId: po.PurchaseOrderID,
-        })
-      } catch (autoErr) {
-        // Non-blocking — PO was created, just the auto-approve/email failed
-        const autoMessage =
-          autoErr instanceof Error ? autoErr.message : "Unknown error"
-        console.error(
-          `[Xero] PO auto-approve/email failed for ${po.PurchaseOrderNumber} (non-blocking):`,
-          autoMessage,
-        )
-        await logXeroSync({
-          entityType: "purchase_order",
-          entityId: orderId,
-          action: "auto_approve_email",
-          status: "error",
-          errorMessage: `${autoMessage} - PO was created but auto-approve/email failed. Approve manually in Xero.`,
-          xeroId: po.PurchaseOrderID,
-        })
-      }
-    }
+    // PO is created as "Awaiting Approval" in Xero.
+    // Admin approves manually in Xero when ready to notify the warehouse.
+    // No auto-approve, no auto-email — simple and predictable.
 
     return {
       poId: po.PurchaseOrderID,

@@ -38,19 +38,23 @@ import { useOrders } from "@/lib/hooks/use-orders"
 import type { Order, OrderStatus } from "@/lib/types/order"
 
 const statusBadgeColors: Record<OrderStatus, string> = {
+  pending_approval: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
   received: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
   processing: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
   in_transit: "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400",
   delivered: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
   cancelled: "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400",
+  rejected: "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400",
 }
 
 const statusLabels: Record<OrderStatus, string> = {
+  pending_approval: "Pending Approval",
   received: "Received",
   processing: "Processing",
   in_transit: "In Transit",
   delivered: "Delivered",
   cancelled: "Cancelled",
+  rejected: "Rejected",
 }
 
 const quickActions = [

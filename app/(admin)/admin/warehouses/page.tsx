@@ -50,6 +50,7 @@ import {
   useRemoveProductWarehouse,
   useWarehousePricing,
   useUpsertWarehousePricing,
+  useProductsWithPackagingSizes,
 } from "@/lib/hooks/use-warehouses"
 import {
   usePackagingSizes,
@@ -64,7 +65,6 @@ import {
   useUpsertProductWarehouseLeadTime,
   useDeleteProductWarehouseLeadTime,
 } from "@/lib/hooks/use-lead-times"
-import { useProducts } from "@/lib/hooks/use-products"
 import type { Warehouse, PackagingSize } from "@/lib/supabase/types"
 
 const AU_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]
@@ -988,7 +988,7 @@ function ContainerCostsTab() {
 // ----------------------------------------------------------------
 function ProductMappingTab() {
   const { data: warehouses = [] } = useWarehouses()
-  const { data: allProducts = [] } = useProducts()
+  const { data: allProducts = [], isLoading: loadingProducts } = useProductsWithPackagingSizes()
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("")
 
   const { data: mappings = [], isLoading: loadingMappings } = useProductWarehouses({
@@ -998,23 +998,41 @@ function ProductMappingTab() {
   const addMapping = useAddProductWarehouse()
   const removeMapping = useRemoveProductWarehouse()
 
-  const mappedProductIds = useMemo(
-    () => new Set(mappings.map((m) => m.product_id)),
-    [mappings],
-  )
+  // Build a set of composite keys "product_id:packaging_size_id" for fast lookup.
+  // A null packaging_size_id row means "all sizes" for that product.
+  const mappedKeys = useMemo(() => {
+    const keys = new Set<string>()
+    for (const m of mappings) {
+      if (m.packaging_size_id === null) {
+        // "All sizes" legacy mapping — key as "product_id:null"
+        keys.add(`${m.product_id}:null`)
+      } else {
+        keys.add(`${m.product_id}:${m.packaging_size_id}`)
+      }
+    }
+    return keys
+  }, [mappings])
 
-  async function handleToggle(productId: string, isCurrentlyMapped: boolean) {
+  const isBusy = addMapping.isPending || removeMapping.isPending
+
+  async function handleToggleSize(
+    productId: string,
+    packagingSizeId: string,
+    isCurrentlyMapped: boolean,
+  ) {
     if (!selectedWarehouseId) return
     try {
       if (isCurrentlyMapped) {
         await removeMapping.mutateAsync({
           productId,
           warehouseId: selectedWarehouseId,
+          packagingSizeId,
         })
       } else {
         await addMapping.mutateAsync({
           product_id: productId,
           warehouse_id: selectedWarehouseId,
+          packaging_size_id: packagingSizeId,
         })
       }
     } catch {
@@ -1022,8 +1040,34 @@ function ProductMappingTab() {
     }
   }
 
-  const mappedCount = mappedProductIds.size
-  const totalCount = allProducts.length
+  async function handleToggleLegacy(productId: string, isCurrentlyMapped: boolean) {
+    if (!selectedWarehouseId) return
+    try {
+      if (isCurrentlyMapped) {
+        // Remove the "all sizes" mapping (packaging_size_id = null)
+        await removeMapping.mutateAsync({
+          productId,
+          warehouseId: selectedWarehouseId,
+          packagingSizeId: null,
+        })
+      } else {
+        await addMapping.mutateAsync({
+          product_id: productId,
+          warehouse_id: selectedWarehouseId,
+          packaging_size_id: null,
+        })
+      }
+    } catch {
+      toast.error("Failed to update mapping")
+    }
+  }
+
+  const isLoading = loadingProducts || loadingMappings
+
+  // Count distinct mapped products for the summary line
+  const mappedProductCount = useMemo(() => {
+    return new Set(mappings.map((m) => m.product_id)).size
+  }, [mappings])
 
   return (
     <Card>
@@ -1031,7 +1075,9 @@ function ProductMappingTab() {
         <div className="flex flex-col gap-1">
           <CardTitle>Product Mapping</CardTitle>
           <CardDescription>
-            Configure which products are available at each warehouse. This controls MacShip warehouse selection.
+            Configure which products (and specific packaging sizes) are available at each warehouse.
+            This controls MacShip warehouse selection. Products with configured pricing sizes are shown
+            per-size; others appear as a single row (applies to all sizes).
           </CardDescription>
         </div>
       </CardHeader>
@@ -1054,9 +1100,9 @@ function ProductMappingTab() {
               </SelectContent>
             </Select>
           </div>
-          {selectedWarehouseId && (
+          {selectedWarehouseId && !isLoading && (
             <p className="text-sm text-muted-foreground">
-              {mappedCount} of {totalCount} products mapped
+              {mappedProductCount} of {allProducts.length} products with at least one mapping
             </p>
           )}
         </div>
@@ -1065,7 +1111,7 @@ function ProductMappingTab() {
           <p className="py-8 text-center text-sm text-muted-foreground">
             Select a warehouse above to configure its product availability.
           </p>
-        ) : loadingMappings ? (
+        ) : isLoading ? (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> Loading products...
           </div>
@@ -1074,7 +1120,7 @@ function ProductMappingTab() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">Available</TableHead>
-                <TableHead>Product Name</TableHead>
+                <TableHead>Product / Packaging Size</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Slug</TableHead>
               </TableRow>
@@ -1088,26 +1134,77 @@ function ProductMappingTab() {
                 </TableRow>
               )}
               {allProducts.map((product) => {
-                const isMapped = mappedProductIds.has(product.id)
-                const isBusy =
-                  (addMapping.isPending || removeMapping.isPending)
+                const activeSizes = (product.packaging_prices ?? []).filter(
+                  (pp) => pp.is_available,
+                )
+
+                if (activeSizes.length === 0) {
+                  // Legacy: no packaging sizes configured — single "all sizes" row
+                  const isMapped = mappedKeys.has(`${product.id}:null`)
+                  return (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={isMapped}
+                          disabled={isBusy}
+                          onCheckedChange={() => handleToggleLegacy(product.id, isMapped)}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {product.name}
+                        <span className="ml-2 text-xs text-muted-foreground">(all sizes)</span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {product.category ?? "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        {product.slug}
+                      </TableCell>
+                    </TableRow>
+                  )
+                }
+
+                // Product has packaging sizes — show a group header then per-size rows
                 return (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={isMapped}
-                        disabled={isBusy}
-                        onCheckedChange={() => handleToggle(product.id, isMapped)}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {product.category ?? "-"}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {product.slug}
-                    </TableCell>
-                  </TableRow>
+                  <>
+                    {/* Group header row */}
+                    <TableRow key={`${product.id}:header`} className="bg-muted/40">
+                      <TableCell />
+                      <TableCell
+                        colSpan={3}
+                        className="py-2 font-semibold text-sm"
+                      >
+                        {product.name}
+                      </TableCell>
+                    </TableRow>
+                    {/* Per-size rows */}
+                    {activeSizes.map((pp) => {
+                      const key = `${product.id}:${pp.packaging_size_id}`
+                      const isMapped = mappedKeys.has(key)
+                      return (
+                        <TableRow key={key}>
+                          <TableCell className="pl-8">
+                            <Checkbox
+                              checked={isMapped}
+                              disabled={isBusy}
+                              onCheckedChange={() =>
+                                handleToggleSize(product.id, pp.packaging_size_id, isMapped)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="pl-8 text-sm">
+                            {pp.packaging_size?.name ?? pp.packaging_size_id}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {product.category ?? "-"}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">
+                            {product.slug}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </>
                 )
               })}
             </TableBody>

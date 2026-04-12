@@ -156,16 +156,54 @@ export interface MachshipConsignmentTotal {
   totalCostPrice: number
   totalSellBeforeTax: number
   totalCostBeforeTax: number
+  totalBaseSellPrice: number
+  totalBaseCostPrice: number
+  totalTaxSellPrice: number
+  totalTaxCostPrice: number
+  sellFuelLevyPrice: number
+  costFuelLevyPrice: number
+  consignmentRouteSellPrice: number
+  consignmentRouteCostPrice: number
+  totalConsignmentCarrierSurchargesSellPrice: number
+  totalConsignmentCarrierSurchargesCostPrice: number
+}
+
+export interface MachshipSurcharge {
+  name: string
+  costPrice: number
+  sellPrice: number
+  quantity: number
+}
+
+export interface MachshipCarrierServiceLite {
+  id: number
+  name: string
+  abbreviation: string
+  displayName: string
+}
+
+export interface MachshipDespatchOption {
+  despatchDateLocal: string
+  etaLocal: string
+  totalBusinessDays: number
+  totalDays: number
 }
 
 export interface MachshipSimpleRoute {
   requestId: string
   carrier: MachshipCarrierLite
+  carrierService?: MachshipCarrierServiceLite
   consignmentTotal: MachshipConsignmentTotal
   totalWeight: number
   totalCubic: number
   priceDisplay: number
   isHourly: boolean
+  fuelLevyPercentage: number
+  sellFuelLevyPercentage: number
+  taxPercentage: number
+  automaticSurcharges?: MachshipSurcharge[]
+  electiveSurcharges?: MachshipSurcharge[]
+  despatchOptions?: MachshipDespatchOption[]
 }
 
 export interface MachshipRoutesResponse {

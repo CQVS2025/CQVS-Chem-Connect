@@ -135,8 +135,10 @@ export interface ProductWarehouseMapping {
   id: string
   product_id: string
   warehouse_id: string
+  packaging_size_id: string | null
   product?: { id: string; name: string; slug: string }
   warehouse?: { id: string; name: string }
+  packaging_size?: { id: string; name: string } | null
 }
 
 export function useProductWarehouses(
@@ -158,8 +160,11 @@ export function useProductWarehouses(
 export function useAddProductWarehouse() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { product_id: string; warehouse_id: string }) =>
-      post<ProductWarehouseMapping>("/product-warehouses", data),
+    mutationFn: (data: {
+      product_id: string
+      warehouse_id: string
+      packaging_size_id?: string | null
+    }) => post<ProductWarehouseMapping>("/product-warehouses", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product-warehouses"] })
     },
@@ -172,15 +177,51 @@ export function useRemoveProductWarehouse() {
     mutationFn: ({
       productId,
       warehouseId,
+      packagingSizeId,
     }: {
       productId: string
       warehouseId: string
-    }) =>
-      del<void>("/product-warehouses", undefined, {
-        params: { product_id: productId, warehouse_id: warehouseId },
-      }),
+      packagingSizeId?: string | null
+    }) => {
+      const params: Record<string, string> = {
+        product_id: productId,
+        warehouse_id: warehouseId,
+      }
+      if (packagingSizeId) {
+        params.packaging_size_id = packagingSizeId
+      }
+      return del<void>("/product-warehouses", undefined, { params })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product-warehouses"] })
     },
+  })
+}
+
+// ============================================================
+// Products with packaging sizes (for product-warehouse mapping UI)
+// ============================================================
+
+export interface ProductWithPackagingSizes {
+  id: string
+  name: string
+  slug: string
+  category?: string | null
+  packaging_prices: Array<{
+    id: string
+    packaging_size_id: string
+    is_available: boolean
+    packaging_size: { id: string; name: string }
+  }>
+}
+
+export function useProductsWithPackagingSizes() {
+  return useQuery({
+    queryKey: ["products", "with-packaging-sizes"],
+    queryFn: () =>
+      get<ProductWithPackagingSizes[]>("/products", {
+        params: { includePricing: "true" },
+      }),
+    staleTime: 5 * 60 * 1000,
   })
 }

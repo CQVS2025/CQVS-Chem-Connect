@@ -34,6 +34,10 @@ interface CreateOrderInput {
   delivery_notes?: string
   macship_carrier_id?: string | null
   macship_quote_amount?: number | null
+  macship_shipping_breakdown?: Record<string, unknown> | null
+  macship_service_name?: string | null
+  macship_eta_date?: string | null
+  macship_eta_business_days?: number | null
 }
 
 interface ConfirmPaymentInput {

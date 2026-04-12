@@ -8,7 +8,7 @@ import { requireAdmin } from "@/lib/supabase/admin-check"
  *   ?warehouse_id=X  - returns all products mapped to this warehouse
  *   ?product_id=X    - returns all warehouses for this product
  *
- * Returns: Array of { id, product_id, warehouse_id, product, warehouse }
+ * Returns: Array of { id, product_id, warehouse_id, packaging_size_id, product, warehouse, packaging_size }
  * Admin required.
  */
 export async function GET(request: NextRequest) {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   let query = supabase
     .from("product_warehouses")
     .select(
-      "id, product_id, warehouse_id, product:products(id, name, slug), warehouse:warehouses(id, name)",
+      "id, product_id, warehouse_id, packaging_size_id, product:products(id, name, slug), warehouse:warehouses(id, name), packaging_size:packaging_sizes(id, name)",
     )
 
   if (warehouseId) {
@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/product-warehouses
  *
- * Create a product↔warehouse mapping.
- * Body: { product_id, warehouse_id }
+ * Create a product↔warehouse mapping (optionally for a specific packaging size).
+ * Body: { product_id, warehouse_id, packaging_size_id? }
  * Admin required.
  */
 export async function POST(request: NextRequest) {
@@ -68,14 +68,19 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  const insertPayload: Record<string, string> = {
+    product_id: body.product_id,
+    warehouse_id: body.warehouse_id,
+  }
+  if (body.packaging_size_id) {
+    insertPayload.packaging_size_id = body.packaging_size_id
+  }
+
   const { data, error } = await supabase
     .from("product_warehouses")
-    .insert({
-      product_id: body.product_id,
-      warehouse_id: body.warehouse_id,
-    })
+    .insert(insertPayload)
     .select(
-      "id, product_id, warehouse_id, product:products(id, name, slug), warehouse:warehouses(id, name)",
+      "id, product_id, warehouse_id, packaging_size_id, product:products(id, name, slug), warehouse:warehouses(id, name), packaging_size:packaging_sizes(id, name)",
     )
     .single()
 
@@ -83,7 +88,7 @@ export async function POST(request: NextRequest) {
     // Unique violation - mapping already exists
     if (error.code === "23505") {
       return NextResponse.json(
-        { error: "This product is already mapped to this warehouse" },
+        { error: "This product/size is already mapped to this warehouse" },
         { status: 409 },
       )
     }
@@ -94,9 +99,11 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * DELETE /api/product-warehouses?product_id=X&warehouse_id=Y
+ * DELETE /api/product-warehouses?product_id=X&warehouse_id=Y[&packaging_size_id=Z]
  *
  * Remove a product↔warehouse mapping.
+ * If packaging_size_id is provided, only that specific size mapping is removed.
+ * If not provided, all mappings for that product+warehouse are removed.
  * Admin required.
  */
 export async function DELETE(request: NextRequest) {
@@ -106,6 +113,7 @@ export async function DELETE(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const productId = searchParams.get("product_id")
   const warehouseId = searchParams.get("warehouse_id")
+  const packagingSizeId = searchParams.get("packaging_size_id")
 
   if (!productId || !warehouseId) {
     return NextResponse.json(
@@ -114,11 +122,20 @@ export async function DELETE(request: NextRequest) {
     )
   }
 
-  const { error } = await supabase
+  let query = supabase
     .from("product_warehouses")
     .delete()
     .eq("product_id", productId)
     .eq("warehouse_id", warehouseId)
+
+  if (packagingSizeId) {
+    // Delete only the specific size mapping
+    query = query.eq("packaging_size_id", packagingSizeId)
+  }
+  // If no packagingSizeId provided, delete ALL rows for this product+warehouse
+  // (includes both null and non-null packaging_size_id rows)
+
+  const { error } = await query
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

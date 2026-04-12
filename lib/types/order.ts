@@ -22,11 +22,13 @@ export interface OrderStatusHistory {
 }
 
 export type OrderStatus =
+  | "pending_approval"
   | "received"
   | "processing"
   | "in_transit"
   | "delivered"
   | "cancelled"
+  | "rejected"
 
 export type PaymentMethod = "stripe" | "purchase_order"
 
@@ -76,6 +78,22 @@ export interface Order {
   macship_quote_amount: number | null
   macship_consignment_failed: boolean | null
   macship_lead_time_fallback: boolean | null
+  macship_shipping_breakdown: {
+    base_rate: number
+    fuel_levy: number
+    fuel_levy_percent: number
+    tax: number
+    tax_percent: number
+    before_tax: number
+    tailgate_applied: boolean
+    tailgate_amount: number
+    tailgate_name: string | null
+    other_surcharges: Array<{ name: string; amount: number }>
+    total: number
+  } | null
+  macship_service_name: string | null
+  macship_eta_date: string | null
+  macship_eta_business_days: number | null
   created_at: string
   updated_at: string
   items: OrderItem[]

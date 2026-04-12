@@ -160,6 +160,10 @@ export async function POST(request: NextRequest) {
     } = body
     const macship_carrier_id = body.macship_carrier_id as string | undefined
     const macship_quote_amount = body.macship_quote_amount as number | undefined
+    const macship_shipping_breakdown = body.macship_shipping_breakdown as Record<string, unknown> | null | undefined
+    const macship_service_name = body.macship_service_name as string | null | undefined
+    const macship_eta_date = body.macship_eta_date as string | null | undefined
+    const macship_eta_business_days = body.macship_eta_business_days as number | null | undefined
 
     if (!payment_method || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -479,7 +483,7 @@ export async function POST(request: NextRequest) {
       .from("orders")
       .insert({
         user_id: user.id,
-        status: "received",
+        status: payment_method === "purchase_order" ? "pending_approval" : "received",
         payment_method,
         payment_status: "pending",
         po_number: po_number || null,
@@ -504,6 +508,10 @@ export async function POST(request: NextRequest) {
         delivery_address_state: delivery_address_state || null,
         delivery_address_postcode: delivery_address_postcode || null,
         delivery_notes: delivery_notes || null,
+        macship_shipping_breakdown: macship_shipping_breakdown ?? null,
+        macship_service_name: macship_service_name ?? null,
+        macship_eta_date: macship_eta_date ?? null,
+        macship_eta_business_days: macship_eta_business_days ?? null,
       })
       .select()
       .single()
@@ -679,6 +687,8 @@ export async function POST(request: NextRequest) {
             specialInstructions: forklift_available === false
               ? "Tailgate truck required - no forklift on site"
               : undefined,
+            // Question ID 7 = "Hydraulic Tailgate required" in Machship.
+            questionIds: forklift_available === false ? [7] : [],
             dgsDeclaration: isDg,
             items: machshipItems,
           })
@@ -739,58 +749,25 @@ export async function POST(request: NextRequest) {
 
     // Send order confirmation email to customer (non-blocking)
     if (payment_method === "purchase_order") {
-      sendOrderConfirmationEmail(customerEmail, {
-        customerName,
-        orderNumber: order.order_number,
-        items: orderItems.map((item) => ({
-          name: item.product_name,
-          qty: item.quantity,
-          unitPrice: item.unit_price,
-          total: item.total_price,
-          shippingFee: effectiveShipping === 0 ? 0 : (shippingMap.get(item.product_id) ?? 0),
-        })),
-        subtotal,
-        shipping: effectiveShipping,
-        gst,
-        processingFee,
-        total,
-        paymentMethod: "Purchase Order",
-        poNumber: po_number,
-      })
-
-      // Send invoice/receipt for PO orders
-      sendReceiptEmail(customerEmail, {
-        customerName,
-        companyName: userProfile?.company_name || undefined,
-        customerEmail,
-        orderNumber: order.order_number,
-        date: new Date().toLocaleDateString("en-AU", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        }),
-        items: orderItems.map((item) => ({
-          name: item.product_name,
-          qty: item.quantity,
-          unit: item.unit,
-          packagingSize: item.packaging_size,
-          unitPrice: item.unit_price,
-          total: item.total_price,
-          shippingFee: effectiveShipping === 0 ? 0 : (shippingMap.get(item.product_id) ?? 0),
-        })),
-        subtotal,
-        shipping: effectiveShipping,
-        gst,
-        processingFee,
-        total,
-        paymentMethod: "Purchase Order",
-        poNumber: po_number,
-        deliveryAddress: [
-          delivery_address_street,
-          delivery_address_city,
-          delivery_address_state,
-          delivery_address_postcode,
-        ].filter(Boolean).join(", ") || undefined,
+      // PO orders are pending approval - send "under review" message instead of receipt
+      sendEmail({
+        to: customerEmail,
+        subject: `Order #${order.order_number} Received - Under Review`,
+        heading: "Your Order is Under Review",
+        preheader: `Order #${order.order_number} has been received and is awaiting approval.`,
+        sections: [
+          {
+            title: "What happens next?",
+            content: `
+              <p>Hi ${customerName},</p>
+              <p>Thank you for your order. Our team is reviewing it and will approve it within 24 hours.</p>
+              <p><strong>Order Number:</strong> ${order.order_number}</p>
+              ${po_number ? `<p><strong>PO Number:</strong> ${po_number}</p>` : ""}
+              <p>Once approved, you will receive an invoice and your order will be processed for delivery.</p>
+              <p>If you have any questions, please don&apos;t hesitate to contact us.</p>
+            `,
+          },
+        ],
       })
     }
 
@@ -999,37 +976,23 @@ export async function POST(request: NextRequest) {
     }
 
     // --- Xero Integration (non-blocking) ---
-    // Create Xero invoice for PO orders, and Xero PO to warehouse for all orders
-    if (payment_method === "purchase_order") {
-      import("@/lib/xero/sync").then(({ createXeroInvoiceForOrder }) => {
-        createXeroInvoiceForOrder(order.id)
+    // PO orders: skip Xero invoice AND Xero PO here - they are created when admin approves.
+    // Card orders: create Xero PO to warehouse only (no invoice needed for card payments).
+    if (payment_method !== "purchase_order") {
+      import("@/lib/xero/sync").then(({ createXeroPurchaseOrderForOrder }) => {
+        createXeroPurchaseOrderForOrder(order.id)
           .then((result) => {
             if (result) {
-              console.log(`[Xero] Invoice created for ${order.order_number}: ${result.invoiceNumber}`)
+              console.log(`[Xero] PO created for ${order.order_number}: ${result.poNumber}`)
             } else {
-              console.warn(`[Xero] Invoice NOT created for ${order.order_number} - check /admin/xero (likely not connected) or xero_sync_log table`)
+              console.warn(`[Xero] PO NOT created for ${order.order_number} - check /admin/xero (likely not connected, or warehouse missing xero_contact_id) or xero_sync_log table`)
             }
           })
           .catch((err) => {
-            console.error("[Xero] invoice creation failed (non-blocking):", err)
+            console.error("[Xero] PO creation failed (non-blocking):", err)
           })
       })
     }
-
-    // Create Xero PO to warehouse for all orders (PO and card)
-    import("@/lib/xero/sync").then(({ createXeroPurchaseOrderForOrder }) => {
-      createXeroPurchaseOrderForOrder(order.id)
-        .then((result) => {
-          if (result) {
-            console.log(`[Xero] PO created for ${order.order_number}: ${result.poNumber}`)
-          } else {
-            console.warn(`[Xero] PO NOT created for ${order.order_number} - check /admin/xero (likely not connected, or warehouse missing xero_contact_id) or xero_sync_log table`)
-          }
-        })
-        .catch((err) => {
-          console.error("[Xero] PO creation failed (non-blocking):", err)
-        })
-    })
 
     return NextResponse.json(
       {

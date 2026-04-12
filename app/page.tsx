@@ -134,6 +134,7 @@ function toHeroTickerProducts(items: FeaturedProduct[]): HeroProduct[] {
   return items.slice(0, 3).map((p, i) => ({
     id: p.id,
     name: p.name,
+    slug: p.slug,
     price: p.price,
     unit: p.unit,
     image: p.image,
