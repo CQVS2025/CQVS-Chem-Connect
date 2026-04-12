@@ -194,6 +194,8 @@ interface CheckoutFormProps {
   bundleDiscount: number
   firstOrderDiscount: number
   freeFreight: boolean
+  freeFreightSavings: number
+  freeFreightCap: number
   rawShipping: number
   promoDiscount: number
   qualifiedPromos: QualifiedPromotion[]
@@ -229,6 +231,8 @@ function CheckoutForm({
   bundleDiscount,
   firstOrderDiscount,
   freeFreight,
+  freeFreightSavings,
+  freeFreightCap: FREE_FREIGHT_CAP,
   rawShipping,
   promoDiscount,
   qualifiedPromos,
@@ -1246,6 +1250,8 @@ function CheckoutForm({
                         Free
                       </span>
                     </span>
+                  ) : freeFreight && shipping > 0 && macshipQuote?.serviceable ? (
+                    <span className="font-medium">{formatCurrency(shipping)}</span>
                   ) : macshipQuote?.serviceable && macshipQuote.shipping_amount !== null ? (
                     <span className="font-medium">{formatCurrency(macshipQuote.shipping_amount)}</span>
                   ) : macshipQuote?.serviceable === false ? (
@@ -1257,13 +1263,13 @@ function CheckoutForm({
                   )}
                 </div>
                 {/* Free freight badge */}
-                {freeFreight && macshipQuote?.serviceable && macshipQuote.shipping_amount && (
+                {freeFreight && freeFreightSavings > 0 && (
                   <div className="flex justify-between text-xs">
                     <span className="text-emerald-600 dark:text-emerald-400">
-                      First order bonus - free freight applied
+                      First order bonus - free freight (up to {formatCurrency(FREE_FREIGHT_CAP)})
                     </span>
                     <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                      -{formatCurrency(macshipQuote.shipping_amount)}
+                      -{formatCurrency(freeFreightSavings)}
                     </span>
                   </div>
                 )}
@@ -1551,12 +1557,33 @@ export default function CheckoutPage() {
     ),
     [promotions, itemsWithPricing, subtotalAfterBundles]
   )
-  const promoDiscount = useMemo(() => calculatePromotionDiscount(qualifiedPromos), [qualifiedPromos])
+  const rawPromoDiscount = useMemo(() => calculatePromotionDiscount(qualifiedPromos), [qualifiedPromos])
+  // Option A (confirmed by Jonny): only one 50% discount per item.
+  // If the first-order truck wash discount is already applied to a product,
+  // the promo discount on that same product is skipped. Since both are
+  // typically 50% of the same truck wash item, we subtract the truck wash
+  // discount amount from the promo total to avoid double-dipping.
+  const promoDiscount = useMemo(() => {
+    if (truckWashDiscount > 0 && rawPromoDiscount > 0) {
+      // Both discounts active - cap the promo so the truck wash product
+      // doesn't get discounted twice. The first-order bonus takes priority.
+      return Math.max(0, rawPromoDiscount - truckWashDiscount)
+    }
+    return rawPromoDiscount
+  }, [rawPromoDiscount, truckWashDiscount])
   const promoFreeFreight = useMemo(() => hasPromotionFreeFreight(qualifiedPromos), [qualifiedPromos])
 
   const freeFreight = (isFirstOrder && firstOrderChoice === "free_freight") || promoFreeFreight
   // Apply free-freight discount: waive the live quote entirely
-  const shipping = freeFreight ? 0 : rawShipping
+  // Free freight is capped at $500 (confirmed by Jonny, April 2026).
+  // If shipping exceeds the cap, customer pays the difference.
+  const FREE_FREIGHT_CAP = 500
+  const shipping = freeFreight
+    ? Math.max(0, Math.round((rawShipping - FREE_FREIGHT_CAP) * 100) / 100)
+    : rawShipping
+  const freeFreightSavings = freeFreight
+    ? Math.min(rawShipping, FREE_FREIGHT_CAP)
+    : 0
   const totalDiscount = bundleDiscount + truckWashDiscount + promoDiscount
   const gst = Math.round(
     (subtotal - totalDiscount + containerTotal + shipping) * 0.1 * 100,
@@ -1715,6 +1742,8 @@ export default function CheckoutPage() {
             bundleDiscount={bundleDiscount}
             firstOrderDiscount={truckWashDiscount}
             freeFreight={freeFreight}
+            freeFreightSavings={freeFreightSavings}
+            freeFreightCap={FREE_FREIGHT_CAP}
             rawShipping={rawShipping}
             promoDiscount={promoDiscount}
             qualifiedPromos={qualifiedPromos}

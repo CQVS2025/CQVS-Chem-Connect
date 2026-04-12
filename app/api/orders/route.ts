@@ -446,7 +446,12 @@ export async function POST(request: NextRequest) {
       .map(p => p.headline || p.name)
       .join(", ") || null
 
-    const effectiveShipping = (firstOrderFreeFreight || promoFreeFreight) ? 0 : shipping
+    // Free freight is capped at $500 (confirmed by Jonny, April 2026).
+    const FREE_FREIGHT_CAP = 500
+    const isFreeFreight = firstOrderFreeFreight || promoFreeFreight
+    const effectiveShipping = isFreeFreight
+      ? Math.max(0, Math.round((shipping - FREE_FREIGHT_CAP) * 100) / 100)
+      : shipping
     const totalDiscount = bundleDiscount + firstOrderDiscount + promoDiscount
     const gst = Math.round(
       (subtotal - totalDiscount + containerTotal + effectiveShipping) * GST_RATE * 100,
