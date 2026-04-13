@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Marketing Module - Requirements Confirmation</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 850px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #16a34a; margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .box-purple { border-left-color: #8b5cf6; background: #f5f3ff; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 5px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 44px 0; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .b-confirm { background: #dbeafe; color: #1e40af; }
+  .b-question { background: #fef3c7; color: #92400e; }
+  .b-option { background: #f0fdf4; color: #166534; }
+  .b-cost { background: #fce7f3; color: #9d174d; }
+  .question-block { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin: 10px 0; border-left: 4px solid #f59e0b; }
+  .question-block h4 { margin-top: 0; color: #92400e; }
+  .answer-area { background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 4px; padding: 10px 14px; margin: 8px 0; min-height: 36px; font-size: 12px; color: #9ca3af; }
+  .check { display: inline-block; width: 14px; height: 14px; border: 2px solid #d1d5db; border-radius: 3px; margin-right: 8px; vertical-align: middle; }
+  .checklist { padding-left: 0; list-style: none; }
+  .checklist li { display: flex; align-items: flex-start; gap: 6px; margin: 8px 0; }
+  .option-card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px 18px; margin: 12px 0; }
+  .option-card h4 { margin-top: 0; }
+  .vs { text-align: center; color: #9ca3af; font-weight: 700; font-size: 13px; margin: 8px 0; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Marketing Module - Requirements Confirmation</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib | April 2026</p>
+</div>
+
+<div class="box">
+  <strong>Purpose:</strong> Before we start building the marketing module, we need to confirm exactly what you and the team want to achieve. This document captures what we discussed in our last call and lists the questions we need answered to recommend the best and most cost-effective solution for CQVS.
+</div>
+
+<div class="box-blue box">
+  <strong>How to use this document:</strong> Please go through each section, answer the questions (tick boxes or write your answer), and send it back. This will help me scope the work accurately, avoid unnecessary features, and keep costs low.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">1.</span> What I Understood From Our Call</h2>
+
+<p>Here is a summary of what I understood you want. Please confirm if this is correct or let me know what's different.</p>
+
+<table>
+  <tr><th style="width: 40%;">What You Said</th><th>My Understanding</th><th style="width: 80px;">Correct?</th></tr>
+  <tr>
+    <td>"I want to be able to do text messages and emails all through ChemConnect admin"</td>
+    <td>A new section in the admin dashboard where you can create and send marketing emails and SMS to your contacts</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"I have a list of contacts I want to outreach to"</td>
+    <td>You have an existing contact list (CSV, spreadsheet, or similar) that you want to import into ChemConnect</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"Daily, weekly, monthly - whatever I want"</td>
+    <td>You want to control the frequency and scheduling of campaigns yourself from the admin panel</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"I can use Claude to generate HTML emails and paste that code in"</td>
+    <td>You'll create email designs externally (using AI or a designer) and paste the HTML into ChemConnect - you don't need a drag-and-drop email builder inside the admin</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"I want it coming from my CQVS email - I don't want it going into spam"</td>
+    <td>All marketing emails should be sent from a @cqvs.com.au address with proper domain authentication so they land in the inbox, not spam</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"Configure everything from admin"</td>
+    <td>No need to log into GoHighLevel or any other external tool - everything is managed from ChemConnect admin panel</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">2.</span> Questions I Need Answered</h2>
+
+<p>These answers will directly shape what I build and which platform I recommend.</p>
+
+<!-- Q1 -->
+<h3>2.1 Contact List & Audience</h3>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 1</span> Who are these contacts?</h4>
+  <p>Are they existing ChemConnect customers, cold leads (people who haven't bought from you), or a mix of both?</p>
+  <ul class="checklist">
+    <li><span class="check"></span> Existing customers from ChemConnect (people who have already ordered)</li>
+    <li><span class="check"></span> External leads / prospects (people who haven't used ChemConnect yet)</li>
+    <li><span class="check"></span> Both - mix of existing customers and new leads</li>
+  </ul>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 2</span> How big is the contact list?</h4>
+  <p>This affects which sending platform I choose and the monthly cost.</p>
+  <ul class="checklist">
+    <li><span class="check"></span> Under 500 contacts</li>
+    <li><span class="check"></span> 500 - 2,000 contacts</li>
+    <li><span class="check"></span> 2,000 - 10,000 contacts</li>
+    <li><span class="check"></span> 10,000+ contacts</li>
+  </ul>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 3</span> What format is the contact list in?</h4>
+  <p>I need to know so I can build the right import tool.</p>
+  <ul class="checklist">
+    <li><span class="check"></span> Excel / CSV spreadsheet</li>
+    <li><span class="check"></span> Inside GoHighLevel already</li>
+    <li><span class="check"></span> In another CRM or system (which one? _______________)</li>
+    <li><span class="check"></span> I'll be adding contacts manually one by one</li>
+  </ul>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 4</span> What info do you have for each contact?</h4>
+  <p>Tick everything that applies:</p>
+  <ul class="checklist">
+    <li><span class="check"></span> Name</li>
+    <li><span class="check"></span> Email address</li>
+    <li><span class="check"></span> Phone number (for SMS)</li>
+    <li><span class="check"></span> Company name</li>
+    <li><span class="check"></span> Location / State</li>
+    <li><span class="check"></span> Industry or category</li>
+    <li><span class="check"></span> Other: _______________</li>
+  </ul>
+</div>
+
+<!-- Q2 -->
+<h3>2.2 Email Campaigns</h3>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 5</span> What kind of emails do you want to send?</h4>
+  <ul class="checklist">
+    <li><span class="check"></span> <strong>One-off blasts</strong> - "Send this email to all contacts now" (e.g., product launch, promotion, newsletter)</li>
+    <li><span class="check"></span> <strong>Scheduled sends</strong> - "Send this email next Tuesday at 9 AM"</li>
+    <li><span class="check"></span> <strong>Recurring campaigns</strong> - "Send a weekly newsletter every Monday"</li>
+    <li><span class="check"></span> <strong>Automated sequences (drip campaigns)</strong> - "When a new contact is added, send welcome email on Day 1, follow-up on Day 3, offer on Day 7"</li>
+  </ul>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 6</span> Do you need email analytics?</h4>
+  <p>How important is it to see how your emails perform?</p>
+  <ul class="checklist">
+    <li><span class="check"></span> <strong>Basic</strong> - Just know if it was sent successfully (delivered vs bounced)</li>
+    <li><span class="check"></span> <strong>Standard</strong> - Open rates, click rates, bounce rates</li>
+    <li><span class="check"></span> <strong>Advanced</strong> - All of the above + who opened, who clicked which link, unsubscribe tracking</li>
+  </ul>
+</div>
+
+<!-- Q3 -->
+<h3>2.3 SMS Campaigns</h3>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 7</span> How do you plan to use SMS?</h4>
+  <ul class="checklist">
+    <li><span class="check"></span> <strong>Promotional blasts</strong> - "Send this promo text to all contacts"</li>
+    <li><span class="check"></span> <strong>Follow-ups</strong> - "Text people who didn't open the email"</li>
+    <li><span class="check"></span> <strong>Two-way conversations</strong> - Contacts can reply and you see their replies in admin</li>
+    <li><span class="check"></span> <strong>Not needed right now</strong> - Focus on email first, add SMS later</li>
+  </ul>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 8</span> Roughly how many SMS per month do you expect to send?</h4>
+  <p>SMS has a per-message cost, so this affects the budget.</p>
+  <ul class="checklist">
+    <li><span class="check"></span> Under 500 / month</li>
+    <li><span class="check"></span> 500 - 2,000 / month</li>
+    <li><span class="check"></span> 2,000+ / month</li>
+    <li><span class="check"></span> Not sure yet</li>
+  </ul>
+</div>
+
+<!-- Q4 -->
+<h3>2.4 Contact Segmentation</h3>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 9</span> Do you need to send different messages to different groups?</h4>
+  <p>For example: send one email to customers in NSW and a different one to customers in QLD. Or send a promo only to people who haven't ordered in 3 months.</p>
+  <ul class="checklist">
+    <li><span class="check"></span> <strong>No</strong> - Send the same email/SMS to everyone</li>
+    <li><span class="check"></span> <strong>Simple groups</strong> - I want to tag contacts (e.g., "VIP", "New Lead", "Sydney") and send to specific tags</li>
+    <li><span class="check"></span> <strong>Smart segments</strong> - Filter by behaviour (e.g., "ordered in last 30 days", "opened last email")</li>
+  </ul>
+</div>
+
+<!-- Q5 -->
+<h3>2.5 Workflow & Team</h3>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 10</span> Who will be using the marketing module?</h4>
+  <ul class="checklist">
+    <li><span class="check"></span> Just me (Jonny)</li>
+    <li><span class="check"></span> Me and 1-2 other team members</li>
+    <li><span class="check"></span> A dedicated marketing person / team</li>
+  </ul>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 11</span> How often do you plan to send campaigns?</h4>
+  <ul class="checklist">
+    <li><span class="check"></span> A few times a month</li>
+    <li><span class="check"></span> Weekly</li>
+    <li><span class="check"></span> Multiple times per week</li>
+    <li><span class="check"></span> Daily</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">3.</span> Platform Options & Cost Comparison</h2>
+
+<p>Based on your answers above, I will recommend the best option. Here is a preview of what I am considering:</p>
+
+<div class="option-card" style="border-left: 4px solid #16a34a;">
+  <h4><span class="badge b-option">Option A</span> Mailgun + Twilio (Built Into ChemConnect)</h4>
+  <p>I build the entire marketing system into ChemConnect admin using the tools already in place.</p>
+  <table>
+    <tr><th>Component</th><th>What It Does</th><th>Cost</th></tr>
+    <tr><td><strong>Mailgun</strong> (already integrated)</td><td>Sends all marketing emails from @cqvs.com.au</td><td>~$35/month (up to 50,000 emails)</td></tr>
+    <tr><td><strong>Twilio</strong></td><td>Sends SMS messages</td><td>~$0.0575 per SMS (AU) + $1.50/month for phone number</td></tr>
+    <tr><td><strong>ChemConnect Admin</strong></td><td>Contact management, campaign builder, scheduling, analytics - all custom-built</td><td>Included in development</td></tr>
+  </table>
+  <div class="box" style="margin-top: 10px;">
+    <strong>Best for:</strong> Full control, lowest monthly cost, everything in one admin panel, no dependency on expensive third-party marketing platforms.<br>
+    <strong>Estimated monthly cost:</strong> <span class="badge b-cost">~$35 - $60 / month</span> depending on volume.
+  </div>
+</div>
+
+<div class="vs">- vs -</div>
+
+<div class="option-card" style="border-left: 4px solid #3b82f6;">
+  <h4><span class="badge b-confirm">Option B</span> GoHighLevel (Via API, Controlled From ChemConnect)</h4>
+  <p>I connect GoHighLevel's API to ChemConnect admin. GHL handles the sending and tracking; ChemConnect admin is the interface you use.</p>
+  <table>
+    <tr><th>Component</th><th>What It Does</th><th>Cost</th></tr>
+    <tr><td><strong>GoHighLevel</strong></td><td>CRM, email sending, SMS, automation workflows, analytics</td><td>$97 - $497 / month</td></tr>
+    <tr><td><strong>ChemConnect Admin</strong></td><td>Dashboard that connects to GHL API for control</td><td>Included in development</td></tr>
+  </table>
+  <div class="box-blue box" style="margin-top: 10px;">
+    <strong>Best for:</strong> If you need advanced automation workflows (drip campaigns, multi-step sequences), built-in CRM features, or plan to scale to a large marketing operation.<br>
+    <strong>Estimated monthly cost:</strong> <span class="badge b-cost">~$97 - $497 / month</span>
+  </div>
+</div>
+
+<div class="vs">- vs -</div>
+
+<div class="option-card" style="border-left: 4px solid #8b5cf6;">
+  <h4><span class="badge b-question">Option C</span> Mailgun + Twilio + Simpler Alternative to GHL</h4>
+  <p>If you need some automation (drip sequences) but GoHighLevel is too expensive, there are mid-range options I can explore:</p>
+  <table>
+    <tr><th>Platform</th><th>What It Does</th><th>Cost</th></tr>
+    <tr><td><strong>Brevo (formerly Sendinblue)</strong></td><td>Email + SMS marketing with automation workflows</td><td>Free up to 300 emails/day, then ~$25/month</td></tr>
+    <tr><td><strong>Mailchimp</strong></td><td>Email marketing with basic automation</td><td>Free up to 500 contacts, then ~$13/month</td></tr>
+    <tr><td><strong>Loops.so</strong></td><td>Modern email platform with API-first approach</td><td>Free up to 1,000 contacts</td></tr>
+  </table>
+  <div class="box-purple box" style="margin-top: 10px;">
+    <strong>Best for:</strong> Middle ground - you get some automation features without the GoHighLevel price tag. I would still control it from ChemConnect admin via API.<br>
+    <strong>Estimated monthly cost:</strong> <span class="badge b-cost">~$25 - $75 / month</span>
+  </div>
+</div>
+
+<div class="box-amber box" style="margin-top: 24px;">
+  <strong>My recommendation depends on your answers above.</strong> If your needs are straightforward (send emails and SMS to a list, schedule them, track delivery), <strong>Option A</strong> will save you hundreds of dollars per month and give you full control. If you need complex automation workflows, I'll discuss Options B or C with you.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">4.</span> Compliance & Deliverability (Important)</h2>
+
+<p>Since you mentioned wanting emails to land in the inbox and not spam, here are things I need to set up regardless of which platform I choose:</p>
+
+<table>
+  <tr><th>Requirement</th><th>What It Is</th><th>Status</th></tr>
+  <tr>
+    <td><strong>SPF Record</strong></td>
+    <td>DNS record that tells email providers "Mailgun is allowed to send email on behalf of cqvs.com.au"</td>
+    <td><span class="badge b-question">Needs Check</span></td>
+  </tr>
+  <tr>
+    <td><strong>DKIM Signing</strong></td>
+    <td>Cryptographic signature that proves the email hasn't been tampered with</td>
+    <td><span class="badge b-question">Needs Check</span></td>
+  </tr>
+  <tr>
+    <td><strong>DMARC Policy</strong></td>
+    <td>DNS record that tells providers how to handle emails that fail SPF/DKIM checks</td>
+    <td><span class="badge b-question">Needs Check</span></td>
+  </tr>
+  <tr>
+    <td><strong>Unsubscribe Link</strong></td>
+    <td>Australian Spam Act 2003 requires every marketing email to have a working unsubscribe mechanism</td>
+    <td><span class="badge b-question">Must Build</span></td>
+  </tr>
+  <tr>
+    <td><strong>Sender Identity</strong></td>
+    <td>Marketing emails must clearly identify the sender (CQVS) and include a physical address</td>
+    <td><span class="badge b-question">Must Include</span></td>
+  </tr>
+</table>
+
+<div class="box-red box">
+  <strong>Legal note:</strong> Under the Australian Spam Act 2003, sending marketing emails or SMS without consent or without an unsubscribe option can result in fines. I will build unsubscribe handling and consent tracking into the system regardless of which platform is used.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">5.</span> What Sending From @cqvs.com.au Means</h2>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 12</span> Which email address should marketing emails come from?</h4>
+  <p>Examples:</p>
+  <ul class="checklist">
+    <li><span class="check"></span> marketing@cqvs.com.au</li>
+    <li><span class="check"></span> hello@cqvs.com.au</li>
+    <li><span class="check"></span> jonny@cqvs.com.au</li>
+    <li><span class="check"></span> Other: _______________</li>
+  </ul>
+  <p style="font-size: 12px; color: #6b7280;">I will need DNS access to your cqvs.com.au domain to configure the email authentication records. Please confirm who manages your domain DNS (e.g., GoDaddy, Cloudflare, your hosting provider).</p>
+  <div class="answer-area">DNS managed by: _______________</div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">6.</span> Next Steps</h2>
+
+<ol style="font-size: 14px; line-height: 2;">
+  <li>Please fill out this document and send it back to me</li>
+  <li>I will review your answers and recommend the best platform option with a detailed cost breakdown</li>
+  <li>We'll have a short call to confirm the plan and agree on scope</li>
+  <li>Development begins as a new milestone after the current MacShip + Xero + Lead Times work is complete</li>
+</ol>
+
+<div class="box" style="margin-top: 20px;">
+  <strong>Timeline:</strong> This marketing module will be scoped as a separate milestone. I will provide a development estimate after receiving your answers. The current priority remains completing and testing the MacShip + Xero + Lead Times integration (due this week).
+</div>
+
+<div class="footer">
+  <p>Chem Connect by CQVS - Marketing Module Requirements Confirmation</p>
+  <p>Prepared by Sohaib | April 2026</p>
+  <p>Please return this document with your answers so I can proceed with the best solution for your business.</p>
+</div>
+
+</body>
+</html>

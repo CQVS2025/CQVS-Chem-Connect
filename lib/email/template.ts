@@ -11,6 +11,8 @@ export interface EmailTemplateOptions {
     url: string
   }
   footerNote?: string
+  /** Override the support email shown in the footer. If not provided, uses the default. */
+  supportEmail?: string
 }
 
 const LOGO_URL =
@@ -178,12 +180,12 @@ export function buildEmailHtml(options: EmailTemplateOptions): string {
                   <td style="padding: 16px 0 0 0; font-size: 12px; color: ${COLORS.mutedText}; font-family: Arial, Helvetica, sans-serif; line-height: 1.5; text-align: center;">
                     Chem Connect by CQVS<br />
                     Premium Chemical Supply Solutions<br />
-                    <span style="color: ${COLORS.primary};">www.chemconnect.com.au</span>
+                    ${options.supportEmail ? `<a href="mailto:${options.supportEmail}" style="color: ${COLORS.primary}; text-decoration: none;">${options.supportEmail}</a> | ` : ""}<span style="color: ${COLORS.primary};">www.chemconnect.com.au</span>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding: 16px 0 0 0; font-size: 11px; color: #64748B; font-family: Arial, Helvetica, sans-serif; line-height: 1.4; text-align: center;">
-                    This is an automated message from Chem Connect. Please do not reply directly to this email.
+                    This is an automated message from Chem Connect.${options.supportEmail ? ` For support, email <a href="mailto:${options.supportEmail}" style="color: #64748B;">${options.supportEmail}</a>.` : " Please do not reply directly to this email."}
                   </td>
                 </tr>
               </table>

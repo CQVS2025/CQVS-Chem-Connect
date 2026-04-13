@@ -1,4 +1,4 @@
-import { sendEmail } from "./send"
+import { sendEmail, getAdminEmail } from "./send"
 import { buildReceiptHtml } from "./receipt"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
@@ -38,6 +38,8 @@ export async function sendReceiptEmail(
   data: ReceiptEmailData,
 ): Promise<void> {
   try {
+    const supportEmail = await getAdminEmail()
+
     const receiptHtml = buildReceiptHtml({
       orderNumber: data.orderNumber,
       date: data.date,
@@ -54,6 +56,7 @@ export async function sendReceiptEmail(
       poNumber: data.poNumber,
       stripeReceiptUrl: data.stripeReceiptUrl,
       deliveryAddress: data.deliveryAddress,
+      supportEmail: supportEmail || undefined,
     })
 
     const isPO = data.paymentMethod === "Purchase Order"
@@ -87,7 +90,7 @@ export async function sendReceiptEmail(
         url: `${APP_URL}/dashboard/orders`,
       },
       footerNote: isPO
-        ? "A member of our team will contact you to confirm your order and arrange payment. If you have any questions, please contact support@chemconnect.com.au."
+        ? "A member of our team will contact you to confirm your order and arrange payment. If you have any questions, please reach out to our support team."
         : data.stripeReceiptUrl
           ? `You can also view your Stripe payment receipt at: ${data.stripeReceiptUrl}`
         : undefined,

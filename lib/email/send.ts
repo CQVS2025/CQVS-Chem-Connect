@@ -34,6 +34,15 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
     return false
   }
 
+  // Fetch the support email from admin settings so it appears in the footer
+  let supportEmail = ""
+  try {
+    const settings = await getAdminSettings()
+    supportEmail = settings.support_email || ""
+  } catch {
+    // Non-blocking - footer will just not show the support email
+  }
+
   const html = buildEmailHtml({
     subject,
     heading,
@@ -41,6 +50,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
     sections,
     ctaButton,
     footerNote,
+    supportEmail,
   })
 
   const form = new URLSearchParams()
