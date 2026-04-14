@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Marketing Module - GoHighLevel Alternative Plan</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #3b82f6; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #3b82f6; margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #eff6ff; color: #1e40af; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #3b82f6; background: #eff6ff; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-green { border-left-color: #16a34a; background: #f0fdf4; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .box-purple { border-left-color: #8b5cf6; background: #f5f3ff; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 5px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #3b82f6; margin: 44px 0; }
+  .section-num { color: #3b82f6; font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .b-ghl { background: #dbeafe; color: #1e40af; }
+  .b-cost { background: #fce7f3; color: #9d174d; }
+  .b-pro { background: #dcfce7; color: #166534; }
+  .b-con { background: #fee2e2; color: #991b1b; }
+  .screen-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin: 14px 0; background: #ffffff; border-left: 4px solid #3b82f6; }
+  .screen-card h3 { margin-top: 0; color: #3b82f6; }
+  .flow-step { display: flex; gap: 12px; margin: 10px 0; align-items: flex-start; }
+  .flow-n { background: #3b82f6; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .flow-c { flex: 1; font-size: 13px; }
+  .highlight { background: #fef3c7; padding: 1px 6px; border-radius: 3px; font-weight: 600; color: #92400e; }
+  .arch-diagram { background: #1f2937; color: #e5e7eb; padding: 18px 22px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8; margin: 14px 0; white-space: pre; overflow-x: auto; }
+  .compare-table th { background: #3b82f6; color: white; }
+  .yes-no-cell { font-weight: 700; font-size: 13px; }
+  .yes { color: #16a34a; }
+  .no { color: #dc2626; }
+  .partial { color: #f59e0b; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Marketing Module - GoHighLevel Alternative Plan</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib | April 2026</p>
+</div>
+
+<div class="box">
+  <strong>Purpose:</strong> This is a companion document to the Marketing Module Design Walkthrough. It answers one specific question: <em>"If we go with GoHighLevel instead of Mailgun + Twilio, can we still achieve everything discussed - and how would it work?"</em>
+</div>
+
+<div class="box-amber box">
+  <strong>Short answer:</strong> Yes, all the features we discussed can be achieved with GoHighLevel. The trade-off is cost, data ownership, and how much of the experience lives inside ChemConnect vs inside GoHighLevel's interface. This document walks through exactly how each feature would be built using GoHighLevel as the engine.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">1.</span> What Is GoHighLevel, In This Context?</h2>
+
+<div class="screen-card">
+  <p>GoHighLevel (GHL) is a <strong>complete marketing platform</strong> that already has everything built in:</p>
+  <ul>
+    <li>A contact &amp; CRM system</li>
+    <li>An email sending engine with open / click / bounce tracking</li>
+    <li>An SMS sending engine with two-way replies</li>
+    <li>A visual workflow builder for drip sequences</li>
+    <li>Analytics and reporting dashboards</li>
+    <li>Landing page builder, forms, calendars, and more (which you wouldn't necessarily use)</li>
+  </ul>
+
+  <p>GoHighLevel provides a full <strong>REST API</strong> so other systems (like ChemConnect) can control it. That means instead of building all the marketing features from scratch, I would build a <strong>ChemConnect admin layer</strong> that sits on top of GHL and uses GHL's engine to do the heavy lifting.</p>
+
+  <div class="box-green box">
+    <strong>Think of it this way:</strong> With Mailgun + Twilio, I'm building a car from scratch. With GoHighLevel, the car is already built - I'm building a custom dashboard and steering wheel that lets you drive it from inside ChemConnect.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">2.</span> The Overall Architecture</h2>
+
+<div class="screen-card">
+  <h3>How the system is wired together</h3>
+
+  <div class="arch-diagram">
+  +------------------------------------------------+
+  |          ChemConnect Admin Panel               |
+  |  (The UI you interact with - Marketing tab)    |
+  +------------------------------------------------+
+                       |
+                       | API calls
+                       v
+  +------------------------------------------------+
+  |       ChemConnect <-> GoHighLevel Bridge       |
+  |  (I build this layer - authentication, sync,   |
+  |   caching, error handling, mapping fields)     |
+  +------------------------------------------------+
+                       |
+                       | REST API + Webhooks
+                       v
+  +------------------------------------------------+
+  |              GoHighLevel Platform              |
+  |  (Contacts, Campaigns, Workflows, Analytics -  |
+  |   does all the actual sending &amp; tracking)    |
+  +------------------------------------------------+
+                       |
+                       | Sends actual emails &amp; SMS
+                       v
+  +------------------------------------------------+
+  |       Recipients (your contacts &amp; leads)      |
+  +------------------------------------------------+
+</div>
+
+  <p><strong>Key points:</strong></p>
+  <ul>
+    <li>You never log into GoHighLevel directly - all interaction happens through ChemConnect admin</li>
+    <li>ChemConnect sends instructions to GHL via API ("send this campaign", "enroll this contact in this sequence")</li>
+    <li>GHL sends data back via webhooks ("this email was opened", "this SMS was replied to") so ChemConnect can display it in the admin</li>
+    <li>Your contacts live in <strong>both places</strong> - in ChemConnect's database AND in GHL - and they need to stay in sync</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">3.</span> How Each Feature Works With GoHighLevel</h2>
+
+<p>For every feature from the main plan, here's how it would be built using GoHighLevel instead.</p>
+
+<!-- 3.1 CONTACTS -->
+<div class="screen-card">
+  <h3>3.1 Contact Management &amp; CSV Import</h3>
+  <p><strong>With GoHighLevel:</strong></p>
+  <ol>
+    <li>When you upload a CSV in ChemConnect admin, the system maps the columns and creates each contact via GHL's "Create Contact" API</li>
+    <li>Tags, custom fields (Company, State, Industry), and email/phone are all pushed into GHL's contact record</li>
+    <li>GHL becomes the <strong>master contact database</strong> - ChemConnect keeps a local copy that syncs automatically</li>
+    <li>Existing ChemConnect customers get pushed to GHL too, so every customer exists in both systems</li>
+    <li>If you edit a contact in ChemConnect, it updates in GHL. If it's updated in GHL, a webhook pushes the change back to ChemConnect</li>
+  </ol>
+  <div class="box">
+    <strong>Development work required:</strong> Build the two-way sync engine, CSV import UI, field-mapping logic, conflict resolution (what if the same contact is updated in both places?), and a sync-status dashboard so you know if contacts are out of sync.
+  </div>
+</div>
+
+<!-- 3.2 BLASTS -->
+<div class="screen-card">
+  <h3>3.2 One-off Email &amp; SMS Blasts</h3>
+  <p><strong>With GoHighLevel:</strong></p>
+  <ol>
+    <li>In ChemConnect admin, you build the campaign (pick audience, write message, schedule)</li>
+    <li>When you hit "Send", ChemConnect calls GHL's "Create Bulk Action" API</li>
+    <li>GHL takes over: it looks up the audience segment, does the batching, sends through its email servers, and tracks every event</li>
+    <li>GHL reports back to ChemConnect via webhooks - "delivered to X", "opened by Y", "bounced from Z"</li>
+    <li>ChemConnect displays all this in its own analytics UI - you never see the GHL interface</li>
+  </ol>
+  <div class="box">
+    <strong>Development work required:</strong> Campaign creation UI, audience-filter builder that maps to GHL tags/segments, API integration for bulk sends, event-webhook receiver, event-to-campaign matching logic, and status display.
+  </div>
+  <div class="box-green box">
+    <strong>What I don't have to build:</strong> The actual send engine, batching, retry logic, rate limiting, and send-queue management. GHL handles all of that.
+  </div>
+</div>
+
+<!-- 3.3 SCHEDULING -->
+<div class="screen-card">
+  <h3>3.3 Scheduled &amp; Recurring Sends</h3>
+  <p><strong>With GoHighLevel:</strong></p>
+  <ol>
+    <li>When you schedule a campaign in ChemConnect, it creates a scheduled campaign inside GHL via API with the exact send time</li>
+    <li>GHL's internal scheduler handles the actual execution at the right moment</li>
+    <li>For <strong>recurring sends</strong> (weekly newsletter), GHL has native support - I just configure the recurring rule through its API</li>
+    <li>ChemConnect shows the schedule and lets you edit, pause, or cancel - all of which translate to GHL API calls behind the scenes</li>
+  </ol>
+  <div class="box-green box">
+    <strong>What I don't have to build:</strong> The 24/7 scheduler service, timezone handling, recurring-rule engine, missed-send recovery. GHL's platform handles all of that natively.
+  </div>
+  <div class="box">
+    <strong>Development work required:</strong> Scheduling UI, recurring-rule mapping to GHL's format, schedule-status sync, edit/pause/cancel actions via API.
+  </div>
+</div>
+
+<!-- 3.4 DRIP SEQUENCES -->
+<div class="screen-card">
+  <h3>3.4 Automated Drip Sequences With Branching Logic</h3>
+  <p><strong>This is where GoHighLevel really shines.</strong></p>
+  <ol>
+    <li>GHL has a mature <strong>Workflow Builder</strong> with drag-and-drop steps, delays, branching, and conditional logic already built in</li>
+    <li><strong>Option 1 (simpler):</strong> You build the sequence directly inside GoHighLevel's workflow builder (one-time setup in GHL), and ChemConnect just triggers enrollments via API when a contact gets tagged "Lead", "VIP", etc.</li>
+    <li><strong>Option 2 (more work):</strong> I build a mini workflow builder inside ChemConnect that translates your drag-and-drop flow into GHL's workflow format via API. This keeps you out of GHL entirely but requires more development time</li>
+    <li>Either way, GHL executes the sequence - delays, condition checks, branching, and exit rules all handled by GHL's engine</li>
+    <li>Progress and events are synced back to ChemConnect so you can see each contact's journey</li>
+  </ol>
+  <div class="box-green box">
+    <strong>What I don't have to build:</strong> The sequence execution engine, per-contact enrollment tracking, branching logic, timezone-aware delays, goal tracking. GHL has all of it.
+  </div>
+  <div class="box-amber box">
+    <strong>Trade-off to decide:</strong> If you're OK building sequences inside GoHighLevel's builder (Option 1), development is minimal but you'll occasionally log into GHL. If you want the builder inside ChemConnect (Option 2), it's more development work but a fully unified experience.
+  </div>
+</div>
+
+<!-- 3.5 HTML EMAIL -->
+<div class="screen-card">
+  <h3>3.5 Paste Claude-Generated HTML Into Campaigns</h3>
+  <p><strong>With GoHighLevel:</strong></p>
+  <ol>
+    <li>ChemConnect's campaign editor has an HTML textarea just like before - you paste your Claude-generated HTML</li>
+    <li>When you send, ChemConnect sends the raw HTML to GHL as the email body</li>
+    <li>GHL automatically handles CSS inlining, link-tracking rewrites, tracking pixel injection, and unsubscribe link insertion</li>
+    <li>GHL also has a built-in drag-and-drop email builder if you ever want to skip HTML and just drag blocks (optional - exposed inside ChemConnect via an iframe if you want it)</li>
+  </ol>
+  <div class="box-green box">
+    <strong>What I don't have to build:</strong> CSS inliner, link-rewriter, tracking-pixel injector, spam-score checker. All built into GHL.
+  </div>
+</div>
+
+<!-- 3.6 SMS INBOX -->
+<div class="screen-card">
+  <h3>3.6 Two-Way SMS Inbox</h3>
+  <p><strong>With GoHighLevel:</strong></p>
+  <ol>
+    <li>GHL provisions the phone number and handles all SMS sending/receiving through its own Twilio backend</li>
+    <li>When a customer replies, GHL receives it first, then notifies ChemConnect via webhook</li>
+    <li>ChemConnect stores the message in a conversation thread tied to the contact (so the SMS inbox in admin is populated)</li>
+    <li>When you reply from ChemConnect, the message is sent through GHL's API, which delivers it via its SMS backend</li>
+    <li>STOP / UNSUBSCRIBE keyword handling is automatic in GHL - the contact is auto-flagged as opted out</li>
+  </ol>
+  <div class="box-green box">
+    <strong>What I don't have to build:</strong> Twilio webhook handling, STOP keyword detection, phone number provisioning, carrier compliance. All handled by GHL.
+  </div>
+  <div class="box">
+    <strong>Development work required:</strong> Conversation-thread UI in ChemConnect, webhook receiver to ingest messages from GHL, outbound message API wrapper, unread-badge system, and contact-to-conversation linking.
+  </div>
+</div>
+
+<!-- 3.7 ANALYTICS -->
+<div class="screen-card">
+  <h3>3.7 Tracking Opens, Clicks, Replies, Unsubscribes</h3>
+  <p><strong>With GoHighLevel:</strong></p>
+  <ol>
+    <li>GHL natively tracks every event: delivered, opened, clicked, bounced, unsubscribed, replied</li>
+    <li>GHL pushes each event to ChemConnect via webhook the moment it happens</li>
+    <li>ChemConnect stores the events in its own database so analytics can be shown inside the admin without calling GHL every time</li>
+    <li>Campaign reports, per-contact timelines, and dashboard widgets are all built in ChemConnect using this event data</li>
+    <li>Suppression list (bounces / unsubscribes / spam complaints) syncs from GHL so you never accidentally email a dead address</li>
+  </ol>
+  <div class="box">
+    <strong>Development work required:</strong> Webhook receiver, event database &amp; indexing, analytics UI with charts, per-contact activity timeline, suppression list sync.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">4.</span> What Development Work Is Still Required</h2>
+
+<div class="screen-card">
+  <p>Even though GHL provides the engine, this is <strong>not a plug-and-play integration</strong>. There's still significant development work to wire it into ChemConnect so you get a unified experience.</p>
+
+  <h4>Required Development Work</h4>
+  <table>
+    <tr><th>Area</th><th>What Needs to Be Built</th></tr>
+    <tr><td><strong>OAuth &amp; API Authentication</strong></td><td>Secure connection between ChemConnect and GHL, token refresh handling, credential management</td></tr>
+    <tr><td><strong>Contact Two-Way Sync</strong></td><td>Keep contacts in sync between both systems, handle conflicts, deletions, merges</td></tr>
+    <tr><td><strong>Campaign UI</strong></td><td>Build the admin UI for creating campaigns, filtering audiences, writing messages, scheduling - that translates to GHL API calls</td></tr>
+    <tr><td><strong>Workflow Trigger Integration</strong></td><td>Logic in ChemConnect that fires triggers to GHL (new customer, abandoned cart, etc.) so sequences can be kicked off automatically</td></tr>
+    <tr><td><strong>Webhook Receivers</strong></td><td>Endpoints to receive events from GHL (opened, clicked, replied, etc.) and process them</td></tr>
+    <tr><td><strong>SMS Inbox UI</strong></td><td>Full conversation-thread interface built inside ChemConnect, powered by GHL webhooks</td></tr>
+    <tr><td><strong>Analytics &amp; Reporting</strong></td><td>Dashboard and per-campaign reports built on top of GHL event data</td></tr>
+    <tr><td><strong>Contact Profile Integration</strong></td><td>Unified view on the customer page showing orders + marketing history + email/SMS activity</td></tr>
+    <tr><td><strong>Error Handling &amp; Sync Monitoring</strong></td><td>Alert system if GHL API fails, sync gets out of date, or webhooks stop firing</td></tr>
+    <tr><td><strong>Permissions Layer</strong></td><td>Marketing Admin vs Marketing Editor roles inside ChemConnect (GHL's own roles aren't exposed)</td></tr>
+    <tr><td><strong>Compliance Layer</strong></td><td>Australian Spam Act consent tracking, audit logs, data export on request - even though GHL handles unsubscribe, consent tracking in your jurisdiction is still your responsibility</td></tr>
+    <tr><td><strong>Data Migration Plan</strong></td><td>Strategy for what happens if you ever want to leave GHL - exporting contacts, histories, sequences back out</td></tr>
+  </table>
+
+  <div class="box-purple box">
+    <strong>Realistic scope:</strong> Going with GoHighLevel reduces development by roughly <strong>40-50%</strong> compared to Option A (Mailgun + Twilio). The scheduling engine, sequence engine, send infrastructure, and SMS plumbing are all off my plate. But the integration layer, UI, sync engine, and compliance work still need to be built - this is not a weekend project.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">5.</span> Feature Parity - Side-By-Side Comparison</h2>
+
+<table class="compare-table">
+  <tr><th>Feature</th><th>Mailgun + Twilio (Option A)</th><th>GoHighLevel (This Plan)</th></tr>
+  <tr><td>CSV contact import</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes</td></tr>
+  <tr><td>Auto-import existing ChemConnect customers</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes (via sync)</td></tr>
+  <tr><td>Tags and smart segmentation</td><td class="yes-no-cell yes">Yes (custom built)</td><td class="yes-no-cell yes">Yes (native to GHL)</td></tr>
+  <tr><td>One-off email blasts</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes</td></tr>
+  <tr><td>Scheduled sends</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes</td></tr>
+  <tr><td>Recurring campaigns</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes</td></tr>
+  <tr><td>Drip sequences with branching</td><td class="yes-no-cell yes">Yes (custom engine)</td><td class="yes-no-cell yes">Yes (built into GHL)</td></tr>
+  <tr><td>HTML email paste &amp; preview</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes</td></tr>
+  <tr><td>Two-way SMS inbox</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes</td></tr>
+  <tr><td>Open / click / bounce tracking</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes</td></tr>
+  <tr><td>Unsubscribe handling</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes</td></tr>
+  <tr><td>STOP keyword auto-handling (SMS)</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes</td></tr>
+  <tr><td>All activity visible in ChemConnect admin</td><td class="yes-no-cell yes">Yes</td><td class="yes-no-cell yes">Yes</td></tr>
+  <tr><td>Data owned inside your own database</td><td class="yes-no-cell yes">Yes (ChemConnect DB)</td><td class="yes-no-cell partial">Partial (shared with GHL)</td></tr>
+  <tr><td>Independent of third-party subscription</td><td class="yes-no-cell yes">Yes (usage-based only)</td><td class="yes-no-cell no">No (monthly GHL fee required)</td></tr>
+  <tr><td>Landing pages, forms, calendars (extra GHL features)</td><td class="yes-no-cell no">Not included</td><td class="yes-no-cell yes">Included (whether you use them or not)</td></tr>
+</table>
+
+<div class="box">
+  <strong>Bottom line on features:</strong> Both options achieve every feature you asked for. The difference is in <em>who owns the data</em>, <em>monthly cost</em>, and <em>extra features you're paying for whether you use them or not</em>.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">6.</span> Cost Breakdown - The Full Picture</h2>
+
+<div class="screen-card">
+  <h3>GoHighLevel pricing tiers</h3>
+  <table>
+    <tr><th>Plan</th><th>Monthly Cost (USD)</th><th>AUD Equivalent (approx.)</th><th>Notes</th></tr>
+    <tr><td><strong>Starter</strong></td><td>$97 / mo</td><td>~$150 AUD / mo</td><td>Single business, basic limits - suitable for your volume</td></tr>
+    <tr><td><strong>Unlimited</strong></td><td>$297 / mo</td><td>~$455 AUD / mo</td><td>Multiple brands, higher limits</td></tr>
+    <tr><td><strong>Pro / SaaS</strong></td><td>$497 / mo</td><td>~$760 AUD / mo</td><td>Agency-level - not needed for you</td></tr>
+  </table>
+  <p style="font-size:12px; color:#6b7280;">Prices are subject to change. Currency conversion approximate.</p>
+
+  <h3>Additional GoHighLevel Usage Charges</h3>
+  <table>
+    <tr><th>Item</th><th>Cost</th></tr>
+    <tr><td>Email sending</td><td>~$0.001 per email (charged on top of the subscription)</td></tr>
+    <tr><td>SMS sending (AU)</td><td>~$0.08-$0.12 per SMS (charged on top of the subscription)</td></tr>
+    <tr><td>Phone number rental</td><td>~$3-$5 / mo per number</td></tr>
+  </table>
+
+  <h3>Estimated Monthly Total for Your Volume</h3>
+  <table>
+    <tr><th>Item</th><th>Cost (AUD est.)</th></tr>
+    <tr><td>GoHighLevel Starter plan</td><td>~$150 / mo</td></tr>
+    <tr><td>Email usage (2,000 emails &times; 4 campaigns = 8,000/mo)</td><td>~$10 / mo</td></tr>
+    <tr><td>SMS usage (~1,000 SMS/mo)</td><td>~$80-$120 / mo</td></tr>
+    <tr><td>Phone number</td><td>~$5 / mo</td></tr>
+    <tr style="background: #eff6ff; font-weight: 700;"><td>Total ongoing monthly cost</td><td><span class="badge b-cost">~$245-$285 / mo AUD</span></td></tr>
+  </table>
+
+  <div class="box-amber box">
+    <strong>Compare this to Option A (Mailgun + Twilio):</strong> Mailgun + Twilio for the same volume is approximately <strong>$70-$110 AUD / month</strong>. That's a difference of <strong>~$175-$215 per month</strong>, or around <strong>$2,100-$2,600 AUD per year</strong>.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">7.</span> Pros &amp; Cons of Going With GoHighLevel</h2>
+
+<table>
+  <tr><th><span class="badge b-pro">Pros</span></th><th><span class="badge b-con">Cons</span></th></tr>
+  <tr>
+    <td>
+      <ul>
+        <li>Faster development time (~40-50% less work than Option A)</li>
+        <li>Mature, battle-tested marketing engine - less risk of bugs in send logic or sequences</li>
+        <li>GHL handles deliverability, compliance infrastructure, and carrier relationships</li>
+        <li>Visual workflow builder is already built and polished</li>
+        <li>If you ever need landing pages, funnels, or calendars later, they're included</li>
+        <li>Email &amp; SMS infrastructure maintained by GHL - no ongoing Twilio / Mailgun tuning needed</li>
+        <li>Future features (e.g., AI-powered message suggestions) can be added by GHL and you benefit without extra dev work</li>
+      </ul>
+    </td>
+    <td>
+      <ul>
+        <li>Ongoing subscription cost: ~$245-$285/month AUD (Option A is ~$70-$110/month)</li>
+        <li>Vendor lock-in - your contacts and sequences live in their system; harder to switch later</li>
+        <li>Data ownership is split - some data lives inside GHL's database, not yours</li>
+        <li>Depends on GHL's uptime and pricing decisions (they've raised prices before)</li>
+        <li>Learning curve to understand GHL's data model for the integration</li>
+        <li>Paying for many features you won't use (landing pages, calendars, funnels, etc.)</li>
+        <li>Some advanced customisation is limited by what GHL's API exposes</li>
+        <li>If GHL ever shuts down or changes its API, significant rework required</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">8.</span> When Does GoHighLevel Actually Make Sense?</h2>
+
+<div class="screen-card">
+  <p>GoHighLevel is the right choice <strong>if any of these apply:</strong></p>
+  <ul>
+    <li>You plan to use landing pages, funnels, calendars, or booking features in the near future - these are built in</li>
+    <li>You want to get to market faster and are willing to pay more monthly to reduce initial development time</li>
+    <li>You expect to scale to tens of thousands of contacts where GHL's infrastructure wins out</li>
+    <li>You want a mature, proven sequence engine out of the box rather than a custom-built one</li>
+    <li>You plan to run multiple brands or businesses through the same marketing system</li>
+  </ul>
+
+  <p>GoHighLevel is <strong>not the right choice</strong> if:</p>
+  <ul>
+    <li>Keeping monthly costs low matters more than initial build time</li>
+    <li>You want all data to live inside your own ChemConnect database</li>
+    <li>You want to avoid third-party subscriptions and vendor lock-in</li>
+    <li>You value independence &amp; the ability to customise anything in the future</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">9.</span> Hybrid Approach - Worth Considering</h2>
+
+<div class="screen-card">
+  <h3>A third option: Start with GoHighLevel, move to Option A later</h3>
+  <p>Since GHL reduces initial build time, one approach is:</p>
+  <ol>
+    <li><strong>Phase 1 (now):</strong> Build the ChemConnect marketing admin using GoHighLevel as the engine. Go live faster. Pay the monthly cost while you learn what you actually need.</li>
+    <li><strong>Phase 2 (6-12 months later):</strong> Once you know exactly what features you use and the volume is predictable, migrate to Option A (Mailgun + Twilio) for long-term cost savings.</li>
+  </ol>
+  <div class="box-amber box">
+    <strong>Caveat:</strong> Migrating later means a second round of development work to replace the GHL integration. It's a valid strategy if speed-to-market is the priority right now, but the total cost of "GHL now + migrate later" is higher than "build Option A once". Worth weighing up.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">10.</span> My Honest Recommendation</h2>
+
+<div class="box-green box">
+  <p><strong>Based on what you described on the call and the answers in your requirements document:</strong></p>
+  <ul>
+    <li>500-2,000 contacts (small-to-medium scale)</li>
+    <li>500-2,000 SMS per month</li>
+    <li>Multiple campaigns per week</li>
+    <li>You + 1-2 team members</li>
+    <li>Single brand (CQVS / ChemConnect)</li>
+    <li>No need for landing pages or funnels inside this module</li>
+  </ul>
+
+  <p><strong>Option A (Mailgun + Twilio) is the better fit.</strong> You'll save ~$2,100-$2,600 AUD per year, own all your marketing data, avoid vendor lock-in, and the extra upfront build time pays itself back within a few months.</p>
+
+  <p><strong>GoHighLevel would make sense</strong> if you see yourself expanding into landing pages, funnels, multiple brands, or if initial time-to-market is more important than ongoing cost. Given what you've described, that doesn't seem to be the priority.</p>
+</div>
+
+<div class="box-blue box">
+  <strong>Final decision is yours.</strong> This document gives you the full picture so you can pick what's best for CQVS. Either path works - I can build a solid marketing module on either one. Just let me know which direction you want to go and I'll prepare a detailed build plan and quote for that option.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">11.</span> Next Steps</h2>
+
+<ol style="font-size: 14px; line-height: 2;">
+  <li>Review this document alongside the main Marketing Module Design Walkthrough</li>
+  <li>Decide: <strong>Option A (Mailgun + Twilio)</strong>, <strong>Option B (GoHighLevel)</strong>, or <strong>Hybrid (GHL now, migrate later)</strong></li>
+  <li>Let me know your choice - happy to jump on a call if you want to talk through it</li>
+  <li>I'll prepare a detailed build plan with milestones, timing, and final quote for the chosen option</li>
+  <li>Development begins as a new milestone after MacShip + Xero + Lead Times is signed off this week</li>
+</ol>
+
+<div class="footer">
+  <p>Chem Connect by CQVS - Marketing Module GoHighLevel Alternative Plan</p>
+  <p>Prepared by Sohaib | April 2026</p>
+  <p>Companion document to the Marketing Module Design Walkthrough.</p>
+</div>
+
+</body>
+</html>

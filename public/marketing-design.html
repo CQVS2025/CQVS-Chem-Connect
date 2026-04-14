@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Marketing Module - Design Walkthrough</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #16a34a; margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .box-purple { border-left-color: #8b5cf6; background: #f5f3ff; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 5px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 44px 0; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .b-tab { background: #dbeafe; color: #1e40af; }
+  .b-step { background: #f0fdf4; color: #166534; }
+  .b-cost { background: #fce7f3; color: #9d174d; }
+  .screen-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin: 14px 0; background: #ffffff; border-left: 4px solid #16a34a; }
+  .screen-card h3 { margin-top: 0; color: #16a34a; }
+  .ui-mock { background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 6px; padding: 14px 18px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px; color: #374151; white-space: pre-wrap; line-height: 1.6; }
+  .tab-strip { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+  .tab-item { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .tab-item.active { background: #16a34a; color: white; }
+  .step-flow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+  .step-chip { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .arrow { color: #9ca3af; font-size: 18px; font-weight: 700; }
+  .flow-step { display: flex; gap: 12px; margin: 10px 0; align-items: flex-start; }
+  .flow-n { background: #16a34a; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .flow-c { flex: 1; font-size: 13px; }
+  .highlight { background: #fef3c7; padding: 1px 6px; border-radius: 3px; font-weight: 600; color: #92400e; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Marketing Module - Design Walkthrough</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib | April 2026</p>
+</div>
+
+<div class="box">
+  <strong>Purpose:</strong> You asked what this is going to look, feel, and behave like. This document walks you through the marketing module as you'll actually see and use it in the ChemConnect admin - screen by screen, tab by tab.
+</div>
+
+<div class="box-blue box">
+  <strong>Based on your answers</strong> in the requirements document: mix of existing customers + new leads, 500-2,000 contacts, CSV import, all email campaign types (one-off, scheduled, recurring, drip), advanced analytics, two-way SMS, smart segmentation, 2-3 users, sending from jonny@cqvs.com.au via GoDaddy DNS.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">1.</span> The Big Picture</h2>
+
+<p>A new <strong>"Marketing"</strong> section will appear in the ChemConnect admin sidebar, sitting alongside Orders, Warehouses, Products, etc. Click it and you get four tabs:</p>
+
+<div class="tab-strip">
+  <span class="tab-item active">Contacts</span>
+  <span class="tab-item">Campaigns</span>
+  <span class="tab-item">Sequences</span>
+  <span class="tab-item">Inbox &amp; Analytics</span>
+</div>
+
+<p>Everything you need is inside these four tabs. No switching between tools, no other logins. The rest of this document walks you through each one.</p>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">2.</span> Tab 1 - Contacts</h2>
+
+<div class="screen-card">
+  <h3>Your audience lives here</h3>
+  <p>A clean, searchable table with everyone you want to market to. Columns: <strong>Name, Email, Phone, Company, State, Industry, Tags, Last Activity</strong>.</p>
+
+  <div class="ui-mock">[ Search: ___________ ]   [ Filter: State v ]  [ Tags v ]  [ + Import CSV ]  [ + Add Contact ]
+
+┌──────────────────────────────────────────────────────────────────────┐
+│ Name            Email              Phone        Company    State Tag │
+├──────────────────────────────────────────────────────────────────────┤
+│ John Smith      john@abc.com       0412...      ABC Pty    NSW  VIP │
+│ Sarah Jones     sarah@xyz.com      0433...      XYZ Ltd    QLD  Lead│
+│ Mike Chen       mike@acme.com      0455...      Acme Co    VIC  Cust│
+└──────────────────────────────────────────────────────────────────────┘</div>
+
+  <h4>How you add contacts</h4>
+  <ul>
+    <li><strong>CSV Import</strong> - click "Import CSV", drop your spreadsheet, map the columns (Name -> Name, Email -> Email, etc.), click Import. Done.</li>
+    <li><strong>Existing ChemConnect customers appear automatically</strong> - anyone who has ordered is pulled in and tagged "Customer" so you don't have to manually import them.</li>
+    <li><strong>Manual add</strong> - quick form for adding one contact at a time.</li>
+  </ul>
+
+  <h4>Tags & smart segments</h4>
+  <ul>
+    <li>Tag contacts manually: "VIP", "New Lead", "Cold", "Sydney", etc.</li>
+    <li>Or build <strong>smart segments</strong> that update themselves - e.g., "customers in NSW who ordered in last 60 days" or "leads who opened the last email but didn't buy"</li>
+  </ul>
+
+  <h4>Click any contact</h4>
+  <p>See their full profile: every email they've received, every SMS thread, every order, every click, every open. One unified view per person.</p>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">3.</span> Tab 2 - Campaigns (Send Emails &amp; SMS)</h2>
+
+<div class="screen-card">
+  <h3>Create, schedule, and send</h3>
+  <p>This tab lists every campaign you've ever sent or scheduled, with status and stats. Click <strong>"+ New Campaign"</strong> and a simple 4-step wizard opens:</p>
+
+  <div class="step-flow">
+    <span class="step-chip">1. WHO</span>
+    <span class="arrow">&rarr;</span>
+    <span class="step-chip">2. WHAT</span>
+    <span class="arrow">&rarr;</span>
+    <span class="step-chip">3. WHEN</span>
+    <span class="arrow">&rarr;</span>
+    <span class="step-chip">4. REVIEW &amp; SEND</span>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-n">1</div>
+    <div class="flow-c">
+      <strong>WHO - pick your audience</strong><br>
+      All contacts, a specific tag ("VIP"), or a smart segment ("customers in NSW who haven't ordered in 90 days"). You'll see the exact count: "This campaign will reach 342 contacts."
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-n">2</div>
+    <div class="flow-c">
+      <strong>WHAT - write the message</strong><br>
+      <em>For email:</em> paste your HTML (you said you'll generate it with Claude). Live preview shows exactly what recipients see. Subject line, preview text, from name all editable.<br>
+      <em>For SMS:</em> simple textbox with a character counter.
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-n">3</div>
+    <div class="flow-c">
+      <strong>WHEN - timing</strong><br>
+      Three options:
+      <ul>
+        <li><strong>Send now</strong> - fires immediately</li>
+        <li><strong>Schedule</strong> - pick a date and time ("Next Tuesday at 9 AM")</li>
+        <li><strong>Recurring</strong> - "Every Monday at 9 AM" for weekly newsletters</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-n">4</div>
+    <div class="flow-c">
+      <strong>REVIEW &amp; SEND</strong><br>
+      Final preview + audience count. One click to send or schedule.
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">4.</span> Tab 3 - Sequences (Drip Campaigns)</h2>
+
+<div class="screen-card">
+  <h3>Automated flows that run forever</h3>
+  <p>This is where you build "set it and forget it" sequences. You design the flow once, and it runs automatically whenever a contact hits the trigger.</p>
+
+  <h4>Example: "New Lead Nurture Sequence"</h4>
+  <div class="ui-mock">TRIGGER: New contact added with tag "Lead"
+
+  Day 1  ---> Send Email: "Welcome to CQVS"
+  Day 3  ---> Send Email: "Our product range explained"
+  Day 5  ---> IF email not opened -> Send SMS follow-up
+           -> IF email opened but no order -> Send Email: "Any questions?"
+  Day 7  ---> Send Email: "10% discount - 48 hour offer"
+  Day 14 ---> IF no order placed -> Move to "Cold" tag
+           -> IF order placed -> Move to "Customer" tag, exit sequence</div>
+
+  <h4>How you build it</h4>
+  <ul>
+    <li>Visual builder - drag steps, add delays, add branching conditions</li>
+    <li>Conditions available: "opened email", "clicked link", "replied to SMS", "placed order", "didn't open", "on tag X"</li>
+    <li>Test mode - run it against yourself first before turning it on</li>
+    <li>On/Off toggle per sequence so you can pause any flow anytime</li>
+  </ul>
+
+  <div class="box">
+    <strong>This is the feature that usually costs $97+/month elsewhere.</strong> Since your volume is 500-2,000 contacts, building this directly into ChemConnect avoids paying for GoHighLevel's infrastructure tier that's built for marketing agencies.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">5.</span> Tab 4 - Inbox &amp; Analytics</h2>
+
+<div class="screen-card">
+  <h3>Two-Way SMS Inbox</h3>
+  <p>When a contact replies to a text you sent, it lands here like a WhatsApp-style conversation thread. You can reply straight from the admin - no forwarding, no separate app.</p>
+
+  <div class="ui-mock">┌─────────────────────────────────────────────────────────────┐
+│ SMS Inbox                                                   │
+├─────────────────────────────────────────────────────────────┤
+│ * Sarah Jones (0433...)     "Yes I'm interested, when..."  │
+│   Mike Chen (0455...)       "Thanks, will place order..."  │
+│   John Smith (0412...)      "Please remove me from list"   │
+└─────────────────────────────────────────────────────────────┘
+
+[Click a thread -> full conversation view with reply box]</div>
+
+  <h3>Campaign Analytics</h3>
+  <p>For every campaign, you see:</p>
+  <table>
+    <tr><th>Metric</th><th>What It Tells You</th></tr>
+    <tr><td><strong>Delivered</strong></td><td>Made it to the recipient's inbox</td></tr>
+    <tr><td><strong>Opened</strong></td><td>They opened it - with the exact list of who opened</td></tr>
+    <tr><td><strong>Clicked</strong></td><td>Which links were clicked, and by whom</td></tr>
+    <tr><td><strong>Bounced</strong></td><td>Invalid addresses (auto-removed)</td></tr>
+    <tr><td><strong>Unsubscribed</strong></td><td>Who opted out (auto-excluded from future sends)</td></tr>
+    <tr><td><strong>Replied (SMS)</strong></td><td>Who texted back - click-through to the conversation</td></tr>
+  </table>
+
+  <h3>Marketing Dashboard</h3>
+  <p>Top-of-page widgets:</p>
+  <ul>
+    <li>Emails sent this month / SMS sent this month</li>
+    <li>Open rate trend (last 30 days graph)</li>
+    <li>Top-performing campaigns</li>
+    <li>Total contacts, new this month, unsubscribed this month</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">6.</span> How Each Feature Works Behind The Scenes</h2>
+
+<p>You asked me to explain how all this actually works. Here's a plain-English walkthrough of each feature - what's happening under the hood when you click a button, and the work involved in building it. This isn't a small bolt-on - it's a proper system with many moving parts that all have to be engineered, connected, tested, and maintained.</p>
+
+<!-- 6.1 ONE-OFF BLASTS -->
+<div class="screen-card">
+  <h3>6.1 Sending one-off email &amp; SMS blasts to everyone or a filtered group</h3>
+
+  <p><strong>What happens when you click "Send":</strong></p>
+  <ol>
+    <li>The system reads your audience filter (e.g., "everyone in NSW with the tag VIP") and builds the exact recipient list from your contact database</li>
+    <li>It confirms the final count back to you: <em>"This campaign will reach 342 contacts"</em></li>
+    <li>A background worker takes over - it breaks the list into small batches (typically 500 at a time) so the admin UI doesn't freeze while thousands of messages go out</li>
+    <li>For each batch, it hands the message off to Mailgun (email) or Twilio (SMS) one by one, with safety throttling to avoid triggering spam filters</li>
+    <li>Every send attempt is logged to the database so you can see exactly what happened with each contact</li>
+    <li>If any individual send fails (e.g., invalid email), the system records it, flags the contact, and continues with the rest - one bad record never kills the whole campaign</li>
+  </ol>
+
+  <div class="box-amber box">
+    <strong>Work involved to build this:</strong> Audience query engine, filter builder UI with live preview counts, batching logic, background job system with retry handling, rate-limit protection, per-contact send logging, error recovery flow, campaign status tracking (draft / sending / sent / failed), and an admin UI to view live send progress.
+  </div>
+</div>
+
+<!-- 6.2 SCHEDULING -->
+<div class="screen-card">
+  <h3>6.2 Scheduling emails &amp; SMS for future dates or recurring sends</h3>
+
+  <p><strong>What happens when you schedule "Next Tuesday 9 AM":</strong></p>
+  <ol>
+    <li>The campaign is saved as a "scheduled" item with your exact send date &amp; time</li>
+    <li>A <strong>scheduler service</strong> runs in the background <strong>24/7</strong> - it wakes up every minute and asks: <em>"Is there any campaign due to send right now?"</em></li>
+    <li>When the time arrives, the scheduler automatically flips the campaign to "sending" status and kicks off the exact same blast process from 6.1</li>
+    <li>For <strong>recurring campaigns</strong> ("every Monday 9 AM"), once a send completes, the scheduler calculates the next run date and re-queues it - indefinitely, until you pause it</li>
+    <li>If your server is offline when a scheduled send is due, it catches up automatically when the server comes back - so no campaign ever gets lost</li>
+    <li>You can edit, pause, or cancel any scheduled campaign right up until the send moment</li>
+  </ol>
+
+  <div class="box-amber box">
+    <strong>Work involved to build this:</strong> 24/7 scheduler service that never sleeps, timezone-aware scheduling (Australian time), recurring-rule engine (daily / weekly / monthly / custom intervals), missed-send recovery logic, scheduled-campaign calendar view in admin, pause / resume / cancel controls, conflict detection (don't send the same thing twice), and full audit logging.
+  </div>
+</div>
+
+<!-- 6.3 DRIP SEQUENCES -->
+<div class="screen-card">
+  <h3>6.3 Automated drip sequences with branching logic</h3>
+
+  <p><strong>This is the single most complex piece of the whole module.</strong> A drip sequence is a "robot" that follows your contacts around for weeks or months and makes decisions based on their behaviour.</p>
+
+  <p><strong>How it works:</strong></p>
+  <ol>
+    <li>You design the flow once in the visual builder - drag-and-drop steps, delays, and branching conditions like <em>"if they opened the email"</em> or <em>"if they didn't reply"</em></li>
+    <li>The system stores your flow as a blueprint</li>
+    <li>When a contact hits the trigger (e.g., "New Lead tag added"), the system creates a personal timeline for that contact and starts walking them through the steps</li>
+    <li>Every minute, the engine checks: <em>"Which contacts are due for their next step right now?"</em> and executes it - sending the email, waiting the delay, or evaluating the branching condition</li>
+    <li>At each branching point, the engine looks up whether that contact opened, clicked, replied, or ordered, then routes them down the correct path</li>
+    <li>Hundreds of contacts can be on different steps of different sequences at the same time - the engine keeps track of each one individually</li>
+    <li>If a contact unsubscribes or completes a goal mid-sequence (e.g., places an order), they're automatically removed from the flow</li>
+  </ol>
+
+  <div class="box-red box">
+    <strong>Work involved to build this:</strong> Visual drag-and-drop flow builder (similar to tools like Zapier), flow-definition data model, per-contact enrollment tracking, a step-execution engine that runs 24/7, branching-condition evaluator (queries Mailgun/Twilio data to check opens, clicks, replies), delay &amp; timing logic with timezone awareness, exit conditions, goal tracking, test-mode simulator, pause / resume controls per sequence, versioning (so updating a sequence doesn't break contacts already inside it), and full execution history per contact. <strong>This alone is equivalent to building a mini-Zapier inside ChemConnect.</strong>
+  </div>
+</div>
+
+<!-- 6.4 HTML PASTE -->
+<div class="screen-card">
+  <h3>6.4 Paste Claude-generated HTML directly into campaigns</h3>
+
+  <p><strong>What happens when you paste HTML:</strong></p>
+  <ol>
+    <li>You paste your HTML into the campaign editor. A live preview window shows exactly how your email will look in Gmail, Outlook, Apple Mail, etc.</li>
+    <li>Before sending, the system runs your HTML through a safety and deliverability processor that:
+      <ul>
+        <li>Scans for errors or broken code</li>
+        <li>Converts modern CSS into the old-style inline CSS that email clients actually understand (many email apps like Outlook don't support modern styling)</li>
+        <li>Automatically rewrites every link to go through Mailgun's click tracker (so you see who clicked what)</li>
+        <li>Injects an invisible open-tracking pixel at the bottom</li>
+        <li>Inserts your unsubscribe link in the footer automatically</li>
+        <li>Adds the CQVS sender identity and physical address required by law</li>
+        <li>Replaces personalisation tags like <code>{{first_name}}</code> with each recipient's actual name</li>
+      </ul>
+    </li>
+    <li>A spam-score checker flags anything that might trigger spam filters (certain words, too many images, bad link ratios) before you send</li>
+    <li>You can save reusable templates so you don't have to paste fresh HTML every time</li>
+  </ol>
+
+  <div class="box-amber box">
+    <strong>Work involved to build this:</strong> HTML editor with syntax highlighting, live multi-client email preview (Gmail / Outlook / mobile / dark mode), CSS inlining engine, link-rewriting system, tracking-pixel injection, personalisation-tag parser and replacement, spam-score analysis, template library with save / load / duplicate, version history, and an HTML sanitiser to block malicious code.
+  </div>
+</div>
+
+<!-- 6.5 SMS INBOX -->
+<div class="screen-card">
+  <h3>6.5 Receiving SMS replies in a built-in inbox</h3>
+
+  <p>This is one of the most technically involved parts because it needs to work <strong>in real-time</strong>.</p>
+
+  <p><strong>How it works:</strong></p>
+  <ol>
+    <li>Twilio assigns you a dedicated business phone number that customers will see when they receive your SMS</li>
+    <li>I configure Twilio to notify ChemConnect the instant anyone replies to that number</li>
+    <li>When Sarah texts back "Yes I'm interested", within a second or two:
+      <ul>
+        <li>Twilio hands the message to ChemConnect</li>
+        <li>ChemConnect matches the phone number to Sarah's contact record</li>
+        <li>The message is saved into a conversation thread tied to her profile</li>
+        <li>A red-dot notification appears in your admin inbox</li>
+      </ul>
+    </li>
+    <li>You open the inbox and see a WhatsApp-style conversation view</li>
+    <li>When you type a reply and hit send, ChemConnect hands your message to Twilio, which delivers it to Sarah's phone</li>
+    <li>Every message (inbound and outbound) is permanently logged and attached to her contact profile</li>
+    <li>Unknown numbers (people not in your contact list) automatically create a new contact record so you never lose a lead</li>
+    <li>Opt-out keywords like "STOP" or "UNSUBSCRIBE" are detected automatically - the contact is removed from all future campaigns without you having to do anything (legally required)</li>
+  </ol>
+
+  <div class="box-red box">
+    <strong>Work involved to build this:</strong> Real-time webhook receiver with security verification, phone-number matching to contacts, conversation-thread data model, WhatsApp-style inbox UI with unread indicators, real-time notifications in admin, outbound reply system, auto-creation of new contacts from unknown numbers, STOP / UNSUBSCRIBE keyword detection, conversation search and filtering, thread assignment (if multiple team members), and full audit logging of every inbound and outbound message.
+  </div>
+</div>
+
+<!-- 6.6 ANALYTICS -->
+<div class="screen-card">
+  <h3>6.6 Tracking who opened, clicked, replied, or unsubscribed</h3>
+
+  <p>Every email has hundreds of tiny events happening behind the scenes. Here's what the system is listening for:</p>
+
+  <table>
+    <tr><th>Event</th><th>What It Means</th><th>Tracked By</th></tr>
+    <tr><td><strong>Delivered</strong></td><td>The email successfully reached the recipient's mail server</td><td>Mailgun -&gt; ChemConnect</td></tr>
+    <tr><td><strong>Opened</strong></td><td>The recipient actually opened the email (detected via an invisible tracking pixel)</td><td>Mailgun -&gt; ChemConnect</td></tr>
+    <tr><td><strong>Clicked</strong></td><td>They clicked a specific link - I record which link and when</td><td>Mailgun -&gt; ChemConnect</td></tr>
+    <tr><td><strong>Bounced</strong></td><td>Invalid email address - the contact is auto-flagged so you don't keep sending to a dead address</td><td>Mailgun -&gt; ChemConnect</td></tr>
+    <tr><td><strong>Unsubscribed</strong></td><td>They clicked the unsubscribe link - auto-excluded from all future sends</td><td>Mailgun -&gt; ChemConnect</td></tr>
+    <tr><td><strong>Spam complaint</strong></td><td>They marked it as spam - flagged for review, harms your sender reputation</td><td>Mailgun -&gt; ChemConnect</td></tr>
+    <tr><td><strong>SMS delivered / failed</strong></td><td>The text message reached the phone or failed</td><td>Twilio -&gt; ChemConnect</td></tr>
+    <tr><td><strong>SMS replied</strong></td><td>The contact texted back (see 6.5)</td><td>Twilio -&gt; ChemConnect</td></tr>
+  </table>
+
+  <p><strong>How it flows:</strong></p>
+  <ol>
+    <li>Every time any of the above happens, Mailgun or Twilio instantly notifies ChemConnect over a secure, verified connection</li>
+    <li>ChemConnect records the event, the contact, the campaign, the timestamp, and any extra data (which link, which device, etc.)</li>
+    <li>The analytics dashboard and per-campaign reports calculate live metrics from this data - open rate, click rate, bounce rate, best-performing links, active-hour heatmaps, and more</li>
+    <li>This data also feeds the sequence engine (6.3) so it knows whether to branch a contact down the "opened" path or the "didn't open" path</li>
+  </ol>
+
+  <div class="box-amber box">
+    <strong>Work involved to build this:</strong> Secure webhook endpoints for Mailgun and Twilio with signature verification, event database and indexing, real-time event processing pipeline, per-campaign analytics queries, dashboard with multiple chart types and date filtering, per-contact activity timeline, CSV export of campaign reports, suppression list management (bounces, unsubs, spam complaints auto-excluded from future sends), and a sender-reputation monitor.
+  </div>
+</div>
+
+<!-- 6.7 THE GLUE -->
+<div class="screen-card" style="border-left-color: #8b5cf6;">
+  <h3>6.7 The Foundation Layer (Not Visible, But Essential)</h3>
+
+  <p>On top of the features above, there's a foundation layer of work that has to be built just to hold everything together. None of it is "fancy" but all of it is required:</p>
+
+  <ul>
+    <li><strong>Database design</strong> - new tables for contacts, tags, segments, campaigns, sequences, enrollments, events, SMS messages, templates, suppression lists, and audit logs (roughly 12-15 new database tables)</li>
+    <li><strong>Secure API integration</strong> with Mailgun and Twilio, including credential management, webhook signature verification, and error handling for when those services go down</li>
+    <li><strong>Role-based permissions</strong> - Marketing Admin vs Marketing Editor access control</li>
+    <li><strong>GDPR &amp; Australian Spam Act compliance</strong> - consent tracking, unsubscribe handling, data export on request, retention policies</li>
+    <li><strong>CSV import engine</strong> - column mapping, duplicate detection, validation, error reporting</li>
+    <li><strong>Auto-sync with ChemConnect customer table</strong> - so existing customers appear in contacts automatically</li>
+    <li><strong>Testing mode</strong> - safe sandbox to test campaigns without sending real emails</li>
+    <li><strong>Performance &amp; scalability</strong> - the system needs to handle a 2,000-contact blast without slowing the rest of ChemConnect down</li>
+    <li><strong>Monitoring &amp; alerts</strong> - so I know if Mailgun is rate-limiting, if a sequence is stuck, or if a scheduled send fails</li>
+    <li><strong>Documentation &amp; admin help screens</strong> - so you and your team can use it without training</li>
+  </ul>
+
+  <div class="box-purple box">
+    <strong>The honest picture:</strong> The UI you see (four tabs and some buttons) is the visible 20% of the work. The other 80% is the invisible scheduling engines, event pipelines, compliance handling, and integrations that make everything reliable. This module is a <strong>significant build</strong> - comparable in scope to the MacShip + Xero + Lead Times integration I'm wrapping up now, and arguably larger because it touches more of the platform.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">7.</span> Deliverability - Making Sure You Don't Land in Spam</h2>
+
+<div class="screen-card">
+  <p>Since you're sending from <span class="highlight">jonny@cqvs.com.au</span> and your DNS is at <span class="highlight">GoDaddy</span>, I'll configure the following once - and then every email you send will be properly authenticated.</p>
+
+  <table>
+    <tr><th>DNS Record</th><th>What It Does</th></tr>
+    <tr><td><strong>SPF</strong></td><td>Tells Gmail/Outlook "Mailgun is allowed to send emails for cqvs.com.au"</td></tr>
+    <tr><td><strong>DKIM</strong></td><td>Cryptographic signature that proves the email really came from you (not a spammer pretending)</td></tr>
+    <tr><td><strong>DMARC</strong></td><td>Policy that tells mail providers what to do if authentication fails (reject fake emails)</td></tr>
+  </table>
+
+  <p>Plus, every email will automatically include:</p>
+  <ul>
+    <li><strong>Unsubscribe link</strong> in the footer (legally required under Australian Spam Act 2003)</li>
+    <li><strong>CQVS sender identity</strong> with your business address</li>
+    <li><strong>One-click unsubscribe</strong> - clicking it automatically removes them from your list, no admin action needed</li>
+  </ul>
+
+  <div class="box">
+    <strong>I'll need a 5-minute screen-share on GoDaddy</strong> to add the SPF/DKIM/DMARC records to cqvs.com.au. After that, deliverability is set up permanently.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">8.</span> Permissions - You &amp; 1-2 Team Members</h2>
+
+<div class="screen-card">
+  <p>You mentioned 2-3 people will use this. I'll add two simple roles:</p>
+  <table>
+    <tr><th>Role</th><th>Can Do</th></tr>
+    <tr><td><strong>Marketing Admin</strong> (you)</td><td>Everything - create, edit, delete campaigns, manage contacts, view analytics, edit sequences</td></tr>
+    <tr><td><strong>Marketing Editor</strong> (team members)</td><td>Create and edit campaigns, manage contacts - but can't delete sequences or change deliverability settings</td></tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">9.</span> My Recommendation &amp; Cost Summary</h2>
+
+<div class="box" style="border-left-color: #16a34a;">
+  <strong>Recommended: Option A - Mailgun + Twilio built into ChemConnect</strong><br>
+  Based on your answers (500-2,000 contacts, 500-2,000 SMS/month, multiple campaigns per week), this sits comfortably inside Mailgun + Twilio. Everything described in this document is built directly into ChemConnect admin.
+</div>
+
+<table>
+  <tr><th>Service</th><th>What It's For</th><th>Monthly Cost</th></tr>
+  <tr><td><strong>Mailgun</strong> (already integrated)</td><td>Sends all marketing emails, handles opens/clicks/bounces/unsubscribes</td><td>~$35/mo (up to 50,000 emails)</td></tr>
+  <tr><td><strong>Twilio</strong></td><td>Sends SMS + handles two-way replies via webhooks</td><td>~$5-$35/mo (depends on SMS volume) + $1.50 phone number</td></tr>
+  <tr><td><strong>ChemConnect Admin</strong></td><td>All the UI - contacts, campaigns, sequences, inbox, analytics</td><td>Included in development</td></tr>
+  <tr style="background: #f0fdf4;"><td colspan="2"><strong>Total Estimated Monthly Cost</strong></td><td><span class="badge b-cost">~$40 - $70 / month</span></td></tr>
+</table>
+
+<div class="box-amber box">
+  <strong>Why not GoHighLevel?</strong> GoHighLevel costs $97-$497/month and is built for marketing agencies managing dozens of clients. For a single business sending to 500-2,000 contacts, you'd be paying for infrastructure you won't use. Mailgun + Twilio gives you the same capability for a fraction of the cost, and you own the data inside ChemConnect instead of inside a third-party CRM.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">10.</span> Summary - What You'll Be Able To Do</h2>
+
+<div class="box">
+  <ul>
+    <li>Import your CSV of 500-2,000 contacts in minutes</li>
+    <li>See existing ChemConnect customers automatically included</li>
+    <li>Send one-off email/SMS blasts to everyone or a filtered group</li>
+    <li>Schedule emails and SMS for future dates</li>
+    <li>Build automated drip sequences with branching logic</li>
+    <li>Paste Claude-generated HTML directly into campaigns</li>
+    <li>Receive SMS replies in a built-in inbox</li>
+    <li>See who opened, who clicked, who replied, who unsubscribed</li>
+    <li>Send from jonny@cqvs.com.au with proper spam protection</li>
+    <li>Give 1-2 team members access with limited permissions</li>
+    <li>All for ~$40-70/month instead of $97-497/month</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">11.</span> Next Steps</h2>
+
+<ol style="font-size: 14px; line-height: 2;">
+  <li>Confirm you're happy with this design and Option A pricing</li>
+  <li>I'll prepare a detailed build plan with milestones and timing</li>
+  <li>Development begins as a new milestone after MacShip + Xero + Lead Times is signed off this week</li>
+  <li>Once built, we'll do a 5-minute GoDaddy DNS setup together and import your first contact list</li>
+</ol>
+
+<div class="box-blue box" style="margin-top: 20px;">
+  If anything in this document doesn't match what you had in mind, just mark it up and send it back - easier to adjust now than mid-build. Happy to jump on a quick call if you'd prefer to walk through it live.
+</div>
+
+<div class="footer">
+  <p>Chem Connect by CQVS - Marketing Module Design Walkthrough</p>
+  <p>Prepared by Sohaib | April 2026</p>
+</div>
+
+</body>
+</html>

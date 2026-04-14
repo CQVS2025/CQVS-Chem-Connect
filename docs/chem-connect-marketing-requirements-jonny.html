@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chem Connect Marketing Requirements - Jonny Harper - 14 April 2026</title>
+<style>
+  :root {
+    --navy:   #1d3557;
+    --teal:   #2a9d8f;
+    --sky:    #4cc9f0;
+    --accent: #e76f51;
+    --light:  #eaf4fb;
+    --mid:    #d0eaf7;
+    --border: #c3dce8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #dde8f0;
+    padding: 40px 20px 60px;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 24px rgba(29,53,87,0.10);
+    padding: 0 0 48px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, #2c5282 100%);
+    padding: 32px 52px 26px;
+    margin-bottom: 32px;
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+  .brand-name {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #fff;
+  }
+  .brand-sub {
+    font-size: 13px;
+    color: var(--sky);
+    font-weight: 400;
+  }
+  .header-meta {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    text-align: right;
+  }
+  .doc-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-top: 6px;
+    color: rgba(255,255,255,0.9);
+  }
+  .doc-prepared {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 3px;
+  }
+
+  /* ── INTRO BLOCKS ── */
+  .intro-block {
+    background: var(--light);
+    border: 1px solid var(--mid);
+    border-left: 4px solid var(--teal);
+    border-radius: 4px;
+    padding: 13px 16px;
+    margin-bottom: 12px;
+    font-size: 13.5px;
+  }
+  .intro-block strong { font-weight: 600; color: var(--navy); }
+
+  /* ── SECTION ── */
+  .section {
+    margin-top: 36px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid var(--mid);
+    padding-bottom: 8px;
+    margin-bottom: 18px;
+  }
+  .section-num {
+    background: var(--navy);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .subsection-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--teal);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 24px 0 12px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed var(--mid);
+  }
+
+  /* ── TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    font-size: 13.5px;
+  }
+  th {
+    background: var(--navy);
+    color: #fff;
+    border: 1px solid #2c5282;
+    padding: 9px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12.5px;
+    letter-spacing: 0.2px;
+  }
+  td {
+    border: 1px solid var(--border);
+    padding: 9px 12px;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: var(--light); }
+  tr:hover td { background: #f0f8ff; }
+
+  /* ── QUESTION CARD ── */
+  .question-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  .question-head {
+    background: linear-gradient(90deg, var(--light) 0%, #f7fbff 100%);
+    border-bottom: 1px solid var(--mid);
+    padding: 10px 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .q-num {
+    background: var(--teal);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+  .q-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--navy);
+  }
+  .q-body {
+    padding: 12px 16px;
+  }
+  .q-helper {
+    font-size: 12.5px;
+    color: #666;
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+
+  /* ── OPTIONS ── */
+  .option-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 4px;
+    transition: background 0.12s;
+    border: 1px solid transparent;
+  }
+  .option-row:hover {
+    background: var(--light);
+    border-color: var(--mid);
+  }
+  .option-row input[type="radio"],
+  .option-row input[type="checkbox"] {
+    margin-top: 2px;
+    flex-shrink: 0;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    accent-color: var(--teal);
+  }
+  .option-row label {
+    font-size: 13.5px;
+    cursor: pointer;
+    line-height: 1.45;
+  }
+  .option-row label strong { font-weight: 600; color: var(--navy); }
+
+  /* ── TEXT INPUT ── */
+  .text-input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: #1a1a1a;
+    background: #fafeff;
+    margin-top: 4px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .text-input:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(42,157,143,0.12);
+    background: #fff;
+  }
+  .inline-input {
+    display: inline-block;
+    width: 200px;
+    border: none;
+    border-bottom: 1px solid #aaa;
+    padding: 1px 4px;
+    font-size: 13.5px;
+    font-family: inherit;
+    background: transparent;
+  }
+  .inline-input:focus { outline: none; border-bottom-color: var(--teal); }
+
+  /* ── YES/NO CELL ── */
+  .yes-no {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .yes-no label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 13.5px;
+  }
+  .yes-no input { accent-color: var(--teal); cursor: pointer; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    background: #f7fbff;
+    border-left: 4px solid var(--teal);
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 13px;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout.blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .callout strong { font-weight: 600; color: var(--navy); }
+
+  /* ── OPTION B / PLATFORM BOXES ── */
+  .platform-divider {
+    text-align: center;
+    font-size: 13px;
+    color: #888;
+    margin: 10px 0;
+    font-style: italic;
+  }
+
+  /* ── STATUS BADGE ── */
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 10px;
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+  }
+  .badge.green { background: #d1fae5; color: #065f46; border-color: #34d399; }
+
+  /* ── NEXT STEPS ── */
+  .steps-list {
+    counter-reset: steps;
+    list-style: none;
+    padding: 0;
+  }
+  .steps-list li {
+    counter-increment: steps;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 13.5px;
+  }
+  .steps-list li::before {
+    content: counter(steps);
+    background: var(--teal);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── FOOTER ── */
+  .doc-footer {
+    margin-top: 36px;
+    border-top: 2px solid var(--mid);
+    padding-top: 14px;
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+  }
+
+  /* ── DOWNLOAD BAR ── */
+  .download-bar {
+    position: sticky;
+    bottom: 0;
+    background: linear-gradient(90deg, var(--navy) 0%, #2c5282 100%);
+    padding: 14px 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+    margin-top: 36px;
+  }
+  .download-bar span {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+  }
+  .btn-download {
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    padding: 10px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(42,157,143,0.35);
+  }
+  .btn-download:hover { background: #238b7e; transform: translateY(-1px); }
+
+  /* ── PRINT / EXPORT CLEAN ── */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { border: none; }
+    .download-bar { display: none; }
+    .header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* ── PLATFORM CARDS ── */
+  .platform-card {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 4px;
+  }
+  .platform-card.selected {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(42,157,143,0.15);
+  }
+  .platform-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: #f7fbff;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .platform-card.selected .platform-card-header {
+    background: linear-gradient(90deg, #e6f7f5, #f0fdfb);
+  }
+  .platform-card-header:hover { background: var(--light); }
+  .platform-label {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--navy);
+  }
+  .platform-cost {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+  }
+  .platform-badge-cost {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 10px;
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #34d399;
+    white-space: nowrap;
+  }
+  .platform-card-body {
+    padding: 16px 18px;
+  }
+
+  /* ── NOTES TEXTAREA ── */
+  .notes-area {
+    width: 100%;
+    min-height: 70px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 8px 10px;
+    font-size: 13.5px;
+    font-family: inherit;
+    resize: vertical;
+    margin-top: 6px;
+  }
+  .notes-area:focus { outline: none; border-color: #1a1a1a; }
+  .notes-label { font-size: 12px; color: #888; margin-top: 8px; }
+</style>
+<style>body{background:#fff;} .page{box-shadow:none;}</style>
+</head>
+<body>
+<div class="page" id="mainDoc">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="brand-name">Chem Connect <span class="brand-sub">by CQVS</span></div>
+        <div class="doc-title">Marketing Module - Requirements Confirmation</div>
+        <div class="doc-prepared">Prepared by Sohaib | April 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 0 52px;">
+
+  <!-- INTRO -->
+  <div class="intro-block" style="margin-left:0;margin-right:0;">
+    <strong>Purpose:</strong> Before we start building the marketing module, we need to confirm exactly what you and the team want to achieve. This document captures what we discussed in our last call and lists the questions we need answered to recommend the best and most cost-effective solution for CQVS.
+  </div>
+  <div class="intro-block" style="margin-left:0;margin-right:0;">
+    <strong>How to use this document:</strong> Please go through each section, answer the questions (tick boxes or write your answer), and send it back. This will help me scope the work accurately, avoid unnecessary features, and keep costs low.
+  </div>
+
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 1 -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">1</span>
+      <span class="section-title">What I Understood From Our Call</span>
+    </div>
+    <p style="font-size:13.5px; margin-bottom:14px;">Here is a summary of what I understood you want. Please confirm if this is correct or let me know what's different.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:38%">What You Said</th>
+          <th style="width:42%">My Understanding</th>
+          <th style="width:20%">Correct?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><em>"I want to be able to do text messages and emails all through ChemConnect admin"</em></td>
+          <td>A new section in the admin dashboard where you can create and send marketing emails and SMS to your contacts</td>
+          <td>
+            <div class="yes-no">
+              <label><span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span> Yes</label>
+              <label><span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span> No</label>
+            </div>
+            <span style="border-bottom: 1px solid rgb(170, 170, 170); min-width: 100px; display: inline-block; padding: 0px 4px; font-size: 13.5px;">—</span>
+          </td>
+        </tr>
+        <tr>
+          <td><em>"I have a list of contacts I want to outreach to"</em></td>
+          <td>You have an existing contact list (CSV, spreadsheet, or similar) that you want to import into ChemConnect</td>
+          <td>
+            <div class="yes-no">
+              <label><span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span> Yes</label>
+              <label><span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span> No</label>
+            </div>
+            <span style="border-bottom: 1px solid rgb(170, 170, 170); min-width: 100px; display: inline-block; padding: 0px 4px; font-size: 13.5px;">—</span>
+          </td>
+        </tr>
+        <tr>
+          <td><em>"Daily, weekly, monthly - whatever I want"</em></td>
+          <td>You want to control the frequency and scheduling of campaigns yourself from the admin panel</td>
+          <td>
+            <div class="yes-no">
+              <label><span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span> Yes</label>
+              <label><span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span> No</label>
+            </div>
+            <span style="border-bottom: 1px solid rgb(170, 170, 170); min-width: 100px; display: inline-block; padding: 0px 4px; font-size: 13.5px;">—</span>
+          </td>
+        </tr>
+        <tr>
+          <td><em>"I can use Claude to generate HTML emails and paste that code in"</em></td>
+          <td>You'll create email designs externally (using AI or a designer) and paste the HTML into ChemConnect - you don't need a drag-and-drop email builder inside the admin</td>
+          <td>
+            <div class="yes-no">
+              <label><span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span> Yes</label>
+              <label><span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span> No</label>
+            </div>
+            <span style="border-bottom: 1px solid rgb(170, 170, 170); min-width: 100px; display: inline-block; padding: 0px 4px; font-size: 13.5px;">—</span>
+          </td>
+        </tr>
+        <tr>
+          <td><em>"I want it coming from my CQVS email - I don't want it going into spam"</em></td>
+          <td>All marketing emails should be sent from a @cqvs.com.au address with proper domain authentication so they land in the inbox, not spam</td>
+          <td>
+            <div class="yes-no">
+              <label><span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span> Yes</label>
+              <label><span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span> No</label>
+            </div>
+            <span style="border-bottom: 1px solid rgb(170, 170, 170); min-width: 100px; display: inline-block; padding: 0px 4px; font-size: 13.5px;">—</span>
+          </td>
+        </tr>
+        <tr>
+          <td><em>"Configure everything from admin"</em></td>
+          <td>No need to log into GoHighLevel or any other external tool - everything is managed from ChemConnect admin panel</td>
+          <td>
+            <div class="yes-no">
+              <label><span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span> Yes</label>
+              <label><span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span> No</label>
+            </div>
+            <span style="border-bottom: 1px solid rgb(170, 170, 170); min-width: 100px; display: inline-block; padding: 0px 4px; font-size: 13.5px;">—</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 2 -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">2</span>
+      <span class="section-title">Questions I Need Answered</span>
+    </div>
+    <p style="font-size:13.5px; margin-bottom:18px;">These answers will directly shape what I build and which platform I recommend.</p>
+
+    <!-- 2.1 -->
+    <div class="subsection-title">2.1 Contact List &amp; Audience</div>
+
+    <!-- Q1 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 1</span>
+        <span class="q-title">Who are these contacts?</span>
+      </div>
+      <div class="q-body">
+        <p class="q-helper">Are they existing ChemConnect customers, cold leads (people who haven't bought from you), or a mix of both?</p>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Existing customers from ChemConnect (people who have already ordered)</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>External leads / prospects (people who haven't used ChemConnect yet)</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Both - mix of existing customers and new leads</label>
+        </label>
+        
+        
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 2</span>
+        <span class="q-title">How big is the contact list?</span>
+      </div>
+      <div class="q-body">
+        <p class="q-helper">This affects which sending platform I choose and the monthly cost.</p>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Under 500 contacts</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span>
+          <label>500 - 2,000 contacts</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>2,000 - 10,000 contacts</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>10,000+ contacts</label>
+        </label>
+        
+        
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 3</span>
+        <span class="q-title">What format is the contact list in?</span>
+      </div>
+      <div class="q-body">
+        <p class="q-helper">I need to know so I can build the right import tool.</p>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span>
+          <label>Excel / CSV spreadsheet</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Inside GoHighLevel already</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>In another CRM or system (which one? <span style="border-bottom: 1px solid rgb(170, 170, 170); min-width: 100px; display: inline-block; padding: 0px 4px; font-size: 13.5px;">—</span>)</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>I'll be adding contacts manually one by one</label>
+        </label>
+        
+        
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 4</span>
+        <span class="q-title">What info do you have for each contact?</span>
+      </div>
+      <div class="q-body">
+        <p class="q-helper">Tick everything that applies:</p>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 2px; margin-right: 4px; vertical-align: middle; text-align: center; line-height: 14px; color: rgb(255, 255, 255); font-size: 10px; font-weight: bold;">✓</span>
+          <label>Name</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 2px; margin-right: 4px; vertical-align: middle; text-align: center; line-height: 14px; color: rgb(255, 255, 255); font-size: 10px; font-weight: bold;">✓</span>
+          <label>Email address</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 2px; margin-right: 4px; vertical-align: middle; text-align: center; line-height: 14px; color: rgb(255, 255, 255); font-size: 10px; font-weight: bold;">✓</span>
+          <label>Phone number (for SMS)</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 2px; margin-right: 4px; vertical-align: middle; text-align: center; line-height: 14px; color: rgb(255, 255, 255); font-size: 10px; font-weight: bold;">✓</span>
+          <label>Company name</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 2px; margin-right: 4px; vertical-align: middle; text-align: center; line-height: 14px; color: rgb(255, 255, 255); font-size: 10px; font-weight: bold;">✓</span>
+          <label>Location / State</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 2px; margin-right: 4px; vertical-align: middle; text-align: center; line-height: 14px; color: rgb(255, 255, 255); font-size: 10px; font-weight: bold;">✓</span>
+          <label>Industry or category</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 2px; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Other: <span style="border-bottom: 1px solid rgb(170, 170, 170); min-width: 100px; display: inline-block; padding: 0px 4px; font-size: 13.5px;">—</span></label>
+        </label>
+        
+        
+      </div>
+    </div>
+
+    <!-- 2.2 -->
+    <div class="subsection-title">2.2 Email Campaigns</div>
+
+    <!-- Q5 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 5</span>
+        <span class="q-title">What kind of emails do you want to send?</span>
+      </div>
+      <div class="q-body">
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 2px; margin-right: 4px; vertical-align: middle;"></span>
+          <label><strong>One-off blasts</strong> - "Send this email to all contacts now" (e.g., product launch, promotion, newsletter)</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 2px; margin-right: 4px; vertical-align: middle;"></span>
+          <label><strong>Scheduled sends</strong> - "Send this email next Tuesday at 9 AM"</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 2px; margin-right: 4px; vertical-align: middle;"></span>
+          <label><strong>Recurring campaigns</strong> - "Send a weekly newsletter every Monday"</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 2px; margin-right: 4px; vertical-align: middle; text-align: center; line-height: 14px; color: rgb(255, 255, 255); font-size: 10px; font-weight: bold;">✓</span>
+          <label><strong>Automated sequences (drip campaigns)</strong> - "When a new contact is added, send welcome email on Day 1, follow-up on Day 3, offer on Day 7"</label>
+        </label>
+        <p class="notes-label">Additional notes:</p>
+        <div style="background: rgb(244, 250, 249); border-width: 1px 1px 1px 3px; border-style: solid; border-color: rgb(195, 220, 232) rgb(195, 220, 232) rgb(195, 220, 232) rgb(42, 157, 143); border-image: initial; border-radius: 3px; padding: 8px 12px; font-size: 13px; margin-top: 6px; white-space: pre-wrap; color: rgb(26, 26, 26);">All of them.</div>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 6</span>
+        <span class="q-title">Do you need email analytics?</span>
+      </div>
+      <div class="q-body">
+        <p class="q-helper">How important is it to see how your emails perform?</p>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label><strong>Basic</strong> - Just know if it was sent successfully (delivered vs bounced)</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label><strong>Standard</strong> - Open rates, click rates, bounce rates</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span>
+          <label><strong>Advanced</strong> - All of the above + who opened, who clicked which link, unsubscribe tracking</label>
+        </label>
+        
+        
+      </div>
+    </div>
+
+    <!-- 2.3 -->
+    <div class="subsection-title">2.3 SMS Campaigns</div>
+
+    <!-- Q7 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 7</span>
+        <span class="q-title">How do you plan to use SMS?</span>
+      </div>
+      <div class="q-body">
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label><strong>Promotional blasts</strong> - "Send this promo text to all contacts"</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label><strong>Follow-ups</strong> - "Text people who didn't open the email"</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span>
+          <label><strong>Two-way conversations</strong> - Contacts can reply and you see their replies in admin</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label><strong>Not needed right now</strong> - Focus on email first, add SMS later</label>
+        </label>
+        <p class="notes-label">Additional notes:</p>
+        <div style="background: rgb(244, 250, 249); border-width: 1px 1px 1px 3px; border-style: solid; border-color: rgb(195, 220, 232) rgb(195, 220, 232) rgb(195, 220, 232) rgb(42, 157, 143); border-image: initial; border-radius: 3px; padding: 8px 12px; font-size: 13px; margin-top: 6px; white-space: pre-wrap; color: rgb(26, 26, 26);">All of these.
+
+Two-way conversations - Contacts can reply and you see their replies in admin
+
+Follow-ups - "Text people who didn't open the email"
+
+Promotional blasts - "Send this promo text to all contacts"</div>
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 8</span>
+        <span class="q-title">Roughly how many SMS per month do you expect to send?</span>
+      </div>
+      <div class="q-body">
+        <p class="q-helper">SMS has a per-message cost, so this affects the budget.</p>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Under 500 / month</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span>
+          <label>500 - 2,000 / month</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>2,000+ / month</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Not sure yet</label>
+        </label>
+        
+        
+      </div>
+    </div>
+
+    <!-- 2.4 -->
+    <div class="subsection-title">2.4 Contact Segmentation</div>
+
+    <!-- Q9 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 9</span>
+        <span class="q-title">Do you need to send different messages to different groups?</span>
+      </div>
+      <div class="q-body">
+        <p class="q-helper">For example: send one email to customers in NSW and a different one to customers in QLD. Or send a promo only to people who haven't ordered in 3 months.</p>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label><strong>No</strong> - Send the same email/SMS to everyone</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label><strong>Simple groups</strong> - I want to tag contacts (e.g., "VIP", "New Lead", "Sydney") and send to specific tags</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span>
+          <label><strong>Smart segments</strong> - Filter by behaviour (e.g., "ordered in last 30 days", "opened last email")</label>
+        </label>
+        
+        
+      </div>
+    </div>
+
+    <!-- 2.5 -->
+    <div class="subsection-title">2.5 Workflow &amp; Team</div>
+
+    <!-- Q10 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 10</span>
+        <span class="q-title">Who will be using the marketing module?</span>
+      </div>
+      <div class="q-body">
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Just me (Jonny)</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span>
+          <label>Me and 1-2 other team members</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>A dedicated marketing person / team</label>
+        </label>
+        
+        
+      </div>
+    </div>
+
+    <!-- Q11 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 11</span>
+        <span class="q-title">How often do you plan to send campaigns?</span>
+      </div>
+      <div class="q-body">
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>A few times a month</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Weekly</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; background: rgb(42, 157, 143); border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 2px solid rgb(29, 53, 87);"></span>
+          <label>Multiple times per week</label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Daily</label>
+        </label>
+        
+        
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 3 -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">3</span>
+      <span class="section-title">Platform Options &amp; Cost Comparison</span>
+    </div>
+    <p style="font-size:13.5px; margin-bottom:18px;">Review each option below. Tick your preferred option and leave any notes or questions for Sohaib.</p>
+
+    <!-- OPTION A -->
+    <div class="platform-card" id="card-a">
+      <div class="platform-card-header" onclick="selectOption('a')">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <div>
+            <div class="platform-label">Option A &nbsp;—&nbsp; Mailgun + Twilio (Built Into ChemConnect)</div>
+            <div class="platform-cost">~$35–60 / month</div>
+          </div>
+        </div>
+        <span class="platform-badge-cost">Lowest Cost</span>
+      </div>
+      <div class="platform-card-body">
+        <p style="font-size:13px; margin-bottom:10px; color:#555;">I build the entire marketing system into ChemConnect admin using the tools already in place.</p>
+        <table>
+          <thead><tr><th>Component</th><th>What It Does</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Mailgun</strong> (already integrated)</td><td>Sends all marketing emails from @cqvs.com.au</td><td>~$35/month (up to 50,000 emails)</td></tr>
+            <tr><td><strong>Twilio</strong></td><td>Sends SMS messages</td><td>~$0.0575 per SMS (AU) + $1.50/month for phone number</td></tr>
+            <tr><td><strong>ChemConnect Admin</strong></td><td>Contact management, campaign builder, scheduling, analytics - all custom-built</td><td>Included in development</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:10px;">
+          <strong>Best for:</strong> Full control, lowest monthly cost, everything in one admin panel, no dependency on expensive third-party marketing platforms.<br>
+          <strong>Estimated monthly cost:</strong> ~$35 - $60 / month depending on volume.
+        </div>
+        <div style="margin-top:12px;">
+          <label style="font-size:12.5px; font-weight:600; color:var(--navy); display:block; margin-bottom:5px;">Your thoughts on Option A:</label>
+          
+        </div>
+      </div>
+    </div>
+
+    <div class="platform-divider">— vs —</div>
+
+    <!-- OPTION B -->
+    <div class="platform-card selected" id="card-b">
+      <div class="platform-card-header" onclick="selectOption('b')">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <div>
+            <div class="platform-label">Option B &nbsp;—&nbsp; GoHighLevel (Via API)</div>
+            <div class="platform-cost">$97–497 / month</div>
+          </div>
+        </div>
+        <span class="platform-badge-cost" style="background:#fff3cd;color:#856404;border-color:#ffc107;">Higher Cost</span>
+      </div>
+      <div class="platform-card-body">
+        <p style="font-size:13px; margin-bottom:10px; color:#555;">I connect GoHighLevel's API to ChemConnect admin. GHL handles the sending and tracking; ChemConnect admin is the interface you use.</p>
+        <table>
+          <thead><tr><th>Component</th><th>What It Does</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td><strong>GoHighLevel</strong></td><td>CRM, email sending, SMS, automation workflows, analytics</td><td>$97 - $497 / month</td></tr>
+            <tr><td><strong>ChemConnect Admin</strong></td><td>Dashboard that connects to GHL API for control</td><td>Included in development</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:10px;">
+          <strong>Best for:</strong> If you need advanced automation workflows (drip campaigns, multi-step sequences), built-in CRM features, or plan to scale to a large marketing operation.<br>
+          <strong>Estimated monthly cost:</strong> ~$97 - $497 / month
+        </div>
+        <div style="margin-top:12px;">
+          <label style="font-size:12.5px; font-weight:600; color:var(--navy); display:block; margin-bottom:5px;">Your thoughts on Option B:</label>
+          
+        </div>
+      </div>
+    </div>
+
+    <div class="platform-divider">— vs —</div>
+
+    <!-- OPTION C -->
+    <div class="platform-card" id="card-c">
+      <div class="platform-card-header" onclick="selectOption('c')">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <div>
+            <div class="platform-label">Option C &nbsp;—&nbsp; Mailgun + Twilio + Mid-range Alternative</div>
+            <div class="platform-cost">~$25–75 / month</div>
+          </div>
+        </div>
+        <span class="platform-badge-cost" style="background:#e0f7fa;color:#00695c;border-color:#26c6da;">Middle Ground</span>
+      </div>
+      <div class="platform-card-body">
+        <p style="font-size:13px; margin-bottom:10px; color:#555;">If you need some automation (drip sequences) but GoHighLevel is too expensive, there are mid-range options I can explore:</p>
+        <table>
+          <thead><tr><th>Platform</th><th>What It Does</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Brevo</strong> (formerly Sendinblue)</td><td>Email + SMS marketing with automation workflows</td><td>Free up to 300 emails/day, then ~$25/month</td></tr>
+            <tr><td><strong>Mailchimp</strong></td><td>Email marketing with basic automation</td><td>Free up to 500 contacts, then ~$13/month</td></tr>
+            <tr><td><strong>Loops.so</strong></td><td>Modern email platform with API-first approach</td><td>Free up to 1,000 contacts</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:10px;">
+          <strong>Best for:</strong> Middle ground - you get some automation features without the GoHighLevel price tag. I would still control it from ChemConnect admin via API.<br>
+          <strong>Estimated monthly cost:</strong> ~$25 - $75 / month
+        </div>
+        <div style="margin-top:12px;">
+          <label style="font-size:12.5px; font-weight:600; color:var(--navy); display:block; margin-bottom:5px;">Your thoughts on Option C:</label>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERALL PREFERENCE -->
+    <div class="question-card" style="margin-top:20px; border-color:var(--teal);">
+      <div class="question-head" style="background:linear-gradient(90deg,#e6f7f5,#f0fdfb);">
+        <span class="q-num" style="background:var(--navy);">Your Decision</span>
+        <span class="q-title">Which option do you want Sohaib to proceed with?</span>
+      </div>
+      <div class="q-body">
+        <label class="option-row"><span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span><label for="decision-a"><strong>Option A</strong> — Mailgun + Twilio built into ChemConnect (~$35–60/mo)</label></label>
+        <label class="option-row"><span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span><label for="decision-b"><strong>Option B</strong> — GoHighLevel via API (~$97–497/mo)</label></label>
+        <label class="option-row"><span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span><label for="decision-c"><strong>Option C</strong> — Mid-range alternative (~$25–75/mo)</label></label>
+        <label class="option-row"><span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span><label for="decision-discuss">I want to discuss this on a call before deciding</label></label>
+        <div style="margin-top:12px;">
+          <label style="font-size:12.5px; font-weight:600; color:var(--navy); display:block; margin-bottom:5px;">Any final comments or questions for Sohaib:</label>
+          
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px; margin-top:4px; color:#666;"><strong>Note:</strong> If your needs are straightforward (send emails and SMS to a list, schedule them, track delivery), <strong>Option A</strong> will save you hundreds of dollars per month and give you full control. If you need complex automation workflows, discuss Options B or C.</p>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 4 -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">4</span>
+      <span class="section-title">Compliance &amp; Deliverability (Important)</span>
+    </div>
+    <p style="font-size:13.5px; margin-bottom:14px;">Since you mentioned wanting emails to land in the inbox and not spam, here are things I need to set up regardless of which platform I choose:</p>
+    <table>
+      <thead><tr><th>Requirement</th><th>What It Is</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><strong>SPF Record</strong></td><td>DNS record that tells email providers "Mailgun is allowed to send email on behalf of cqvs.com.au"</td><td><span class="badge">Needs Check</span></td></tr>
+        <tr><td><strong>DKIM Signing</strong></td><td>Cryptographic signature that proves the email hasn't been tampered with</td><td><span class="badge">Needs Check</span></td></tr>
+        <tr><td><strong>DMARC Policy</strong></td><td>DNS record that tells providers how to handle emails that fail SPF/DKIM checks</td><td><span class="badge">Needs Check</span></td></tr>
+        <tr><td><strong>Unsubscribe Link</strong></td><td>Australian Spam Act 2003 requires every marketing email to have a working unsubscribe mechanism</td><td><span class="badge green">Must Build</span></td></tr>
+        <tr><td><strong>Sender Identity</strong></td><td>Marketing emails must clearly identify the sender (CQVS) and include a physical address</td><td><span class="badge green">Must Include</span></td></tr>
+      </tbody>
+    </table>
+    <div class="callout blue">
+      <strong>Legal note:</strong> Under the Australian Spam Act 2003, sending marketing emails or SMS without consent or without an unsubscribe option can result in fines. I will build unsubscribe handling and consent tracking into the system regardless of which platform is used.
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 5 -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">5</span>
+      <span class="section-title">What Sending From @cqvs.com.au Means</span>
+    </div>
+
+    <!-- Q12 -->
+    <div class="question-card">
+      <div class="question-head">
+        <span class="q-num">Question 12</span>
+        <span class="q-title">Which email address should marketing emails come from?</span>
+      </div>
+      <div class="q-body">
+        <p class="q-helper">Examples: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d4b9b5a6bfb1a0bdbab394b7a5a2a7fab7bbb9fab5a1">[email&nbsp;protected]</a> &nbsp;·&nbsp; <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8ce4e9e0e0e3cceffdfaffa2efe3e1a2edf9">[email&nbsp;protected]</a> &nbsp;·&nbsp; <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="12787d7c7c6b52716364613c717d7f3c7367">[email&nbsp;protected]</a></p>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2845495a434d5c41464f684b595e5b064b474506495d">[email&nbsp;protected]</a></label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b5ddd0d9d9daf5d6c4c3c69bd6dad89bd4c0">[email&nbsp;protected]</a></label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="117b7e7f7f6851726067623f727e7c3f7064">[email&nbsp;protected]</a></label>
+        </label>
+        <label class="option-row">
+          <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid rgb(187, 187, 187); border-radius: 50%; margin-right: 4px; vertical-align: middle;"></span>
+          <label>Other: <span style="border-bottom: 1px solid rgb(170, 170, 170); min-width: 100px; display: inline-block; padding: 0px 4px; font-size: 13.5px;">jonny@cqvs.com.au</span></label>
+        </label>
+        <div style="margin-top:14px;">
+          <label style="font-size:13.5px; font-weight:600; display:block; margin-bottom:6px;">DNS managed by:</label>
+          <span style="border-bottom: 1px solid rgb(170, 170, 170); min-width: 100px; display: inline-block; padding: 0px 4px; font-size: 13.5px;">GoDaddy</span>
+        </div>
+        
+        
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 6 -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">6</span>
+      <span class="section-title">Next Steps</span>
+    </div>
+    <ol class="steps-list">
+      <li>Please fill out this document and send it back to me</li>
+      <li>I will review your answers and recommend the best platform option with a detailed cost breakdown</li>
+      <li>We'll have a short call to confirm the plan and agree on scope</li>
+      <li>Development begins as a new milestone after the current MacShip + Xero + Lead Times work is complete</li>
+    </ol>
+    <div class="callout" style="margin-top:14px;">
+      <strong>Timeline:</strong> This marketing module will be scoped as a separate milestone. I will provide a development estimate after receiving your answers. The current priority remains completing and testing the MacShip + Xero + Lead Times integration (due this week).
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    Chem Connect by CQVS &nbsp;·&nbsp; Marketing Module Requirements Confirmation &nbsp;·&nbsp; Prepared by Sohaib | April 2026<br>
+    Please return this document with your answers so I can proceed with the best solution for your business.
+  </div>
+
+  </div><!-- end padding wrapper -->
+
+  <!-- DOWNLOAD BAR -->
+  
+
+</div>
+<p style="text-align:center;font-size:11px;color:#aaa;padding:16px 0;">Completed by Jonny Harper &nbsp;·&nbsp; 14 April 2026</p>
+</body>
+</html>
