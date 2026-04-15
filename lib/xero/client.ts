@@ -292,10 +292,21 @@ export async function refreshAccessToken(
 
 /**
  * Get the list of tenant connections for the current access token.
+ *
+ * `id` is the connection ID (distinct from `tenantId`). Use it with
+ * `DELETE /connections/{id}` to revoke access to a single org without
+ * affecting other orgs authorized under the same grant.
  */
 export async function getTenantConnections(
   accessToken: string,
-): Promise<Array<{ tenantId: string; tenantName: string; tenantType: string }>> {
+): Promise<
+  Array<{
+    id: string
+    tenantId: string
+    tenantName: string
+    tenantType: string
+  }>
+> {
   const res = await fetch(XERO_CONNECTIONS_URL, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -307,6 +318,29 @@ export async function getTenantConnections(
     throw new Error(`Xero connections lookup failed: ${text}`)
   }
   return res.json()
+}
+
+/**
+ * Delete a single Xero connection (one org) without revoking the whole grant.
+ * Other orgs authorized under the same OAuth grant remain connected.
+ */
+export async function deleteXeroConnection(
+  accessToken: string,
+  connectionId: string,
+): Promise<void> {
+  const res = await fetch(`${XERO_CONNECTIONS_URL}/${connectionId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+    },
+  })
+  if (!res.ok && res.status !== 404) {
+    const text = await res.text()
+    throw new Error(
+      `Xero connection delete failed (${res.status}): ${text}`,
+    )
+  }
 }
 
 /**
@@ -694,6 +728,74 @@ export async function getXeroClient(): Promise<XeroClient | null> {
     emailInvoice,
     attachFileToInvoice,
   }
+}
+
+/**
+ * Switch the active Xero tenant on the stored credentials row.
+ *
+ * If the new tenant differs from the currently stored one, all stored
+ * Xero-specific IDs (profiles.xero_contact_id, orders.xero_invoice_* fields)
+ * are wiped because they're scoped to the old tenant and won't resolve
+ * against the new one.
+ */
+export async function switchActiveTenant(params: {
+  tenantId: string
+  tenantName: string
+}): Promise<{ changed: boolean }> {
+  const supabase = createServiceRoleClient()
+
+  const { data: existing } = await supabase
+    .from("xero_credentials")
+    .select("id, tenant_id")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (!existing) {
+    throw new Error("No active Xero credentials to switch tenant on")
+  }
+
+  const changed = existing.tenant_id !== params.tenantId
+
+  const { error: updateError } = await supabase
+    .from("xero_credentials")
+    .update({
+      tenant_id: params.tenantId,
+      tenant_name: params.tenantName,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", existing.id)
+
+  if (updateError) {
+    throw new Error(`Failed to update tenant: ${updateError.message}`)
+  }
+
+  if (changed) {
+    await supabase
+      .from("profiles")
+      .update({ xero_contact_id: null })
+      .not("xero_contact_id", "is", null)
+
+    await supabase
+      .from("orders")
+      .update({
+        xero_invoice_id: null,
+        xero_invoice_number: null,
+        xero_invoice_status: null,
+        xero_synced_at: null,
+      })
+      .not("xero_invoice_id", "is", null)
+
+    await logXeroSync({
+      entityType: "connection",
+      action: "tenant_changed",
+      status: "success",
+      xeroId: params.tenantId,
+      errorMessage: `Switched tenant to ${params.tenantName} - cleared stored xero_contact_id and xero_invoice_id values from the previous tenant.`,
+    })
+  }
+
+  return { changed }
 }
 
 /**

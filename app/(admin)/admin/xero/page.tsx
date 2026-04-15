@@ -1,6 +1,7 @@
 "use client"
 
 import { Suspense, useEffect, useState } from "react"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import {
   CheckCircle2,
@@ -10,6 +11,7 @@ import {
   Unlink,
   ChevronDown,
   ChevronRight,
+  Building2,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -70,6 +72,7 @@ function AdminXeroPageInner() {
   const [loading, setLoading] = useState(true)
   const [disconnecting, setDisconnecting] = useState(false)
   const [logs, setLogs] = useState<SyncLogRow[]>([])
+  const [availableTenantCount, setAvailableTenantCount] = useState<number>(0)
 
   // Check for query string flags from the OAuth callback
   useEffect(() => {
@@ -88,10 +91,28 @@ function AdminXeroPageInner() {
     try {
       const data = await get<XeroStatus>("/xero/status")
       setStatus(data)
+      if (data.connected) {
+        loadAvailableTenants()
+      } else {
+        setAvailableTenantCount(0)
+      }
     } catch {
       setStatus({ connected: false })
+      setAvailableTenantCount(0)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadAvailableTenants() {
+    try {
+      const data = await get<{ tenants: Array<{ tenant_id: string }> }>(
+        "/xero/available-tenants",
+      )
+      setAvailableTenantCount(data.tenants.length)
+    } catch {
+      // If we can't reach Xero, hide the switch button (count = 0 → not shown).
+      setAvailableTenantCount(0)
     }
   }
 
@@ -117,9 +138,19 @@ function AdminXeroPageInner() {
   async function handleDisconnect() {
     setDisconnecting(true)
     try {
-      await post("/xero/disconnect", {})
-      toast.success("Xero disconnected.")
+      const res = await post<{
+        state: "switched" | "fully_disconnected" | "already_disconnected"
+        tenant_name?: string
+      }>("/xero/disconnect", {})
+      if (res.state === "switched" && res.tenant_name) {
+        toast.success(
+          `Disconnected. Active tenant auto-switched to ${res.tenant_name}.`,
+        )
+      } else {
+        toast.success("Xero disconnected.")
+      }
       await loadStatus()
+      await loadLogs()
     } catch (err) {
       toast.error("Failed to disconnect.")
       console.error(err)
@@ -208,8 +239,16 @@ function AdminXeroPageInner() {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+                {availableTenantCount > 1 && (
+                  <Button variant="outline" asChild>
+                    <Link href="/admin/xero/choose-org">
+                      <Building2 className="mr-2 h-4 w-4" />
+                      Switch Organisation
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="ghost" onClick={handleConnect}>
-                  Reconnect
+                  {availableTenantCount > 1 ? "Reconnect" : "Add Organisation"}
                 </Button>
               </div>
             </div>

@@ -125,9 +125,18 @@ export async function GET(request: NextRequest) {
       xeroId: orgConnection.tenantId,
     })
 
-    const response = NextResponse.redirect(
-      new URL("/admin/xero?connected=1", request.url),
-    )
+    // If the user authorized multiple organisations, send them to the picker
+    // so they can confirm which one this app should use. Otherwise go straight
+    // back to the admin page.
+    const orgCount = connections.filter(
+      (c) => c.tenantType === "ORGANISATION",
+    ).length
+    const destination =
+      orgCount > 1
+        ? "/admin/xero/choose-org?initial=1"
+        : "/admin/xero?connected=1"
+
+    const response = NextResponse.redirect(new URL(destination, request.url))
     response.cookies.delete("xero_oauth_state")
     return response
   } catch (err) {
