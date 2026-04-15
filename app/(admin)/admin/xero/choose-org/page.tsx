@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { CheckCircle2, Loader2, Building2, ArrowRight } from "lucide-react"
 import { toast } from "sonner"
@@ -27,6 +27,16 @@ interface AvailableTenantsResponse {
 }
 
 export default function ChooseXeroOrgPage() {
+  return (
+    <Suspense
+      fallback={<div className="text-muted-foreground">Loading...</div>}
+    >
+      <ChooseXeroOrgPageInner />
+    </Suspense>
+  )
+}
+
+function ChooseXeroOrgPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isInitial = searchParams.get("initial") === "1"
