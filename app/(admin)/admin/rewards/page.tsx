@@ -51,6 +51,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
   Table,
   TableBody,
   TableCell,
@@ -391,14 +402,34 @@ export default function AdminRewardsPage() {
                                 <Button variant="ghost" size="xs" onClick={() => openEditStamp(s)}>
                                   <Pencil className="mr-1 size-3"/>Edit
                                 </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="xs"
-                                  className="text-destructive hover:text-destructive"
-                                  onClick={() => { if (confirm("Remove this stamp record?")) deleteStamp.mutate(s.id) }}
-                                >
-                                  Remove
-                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="xs"
+                                      className="text-destructive hover:text-destructive"
+                                    >
+                                      Remove
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Remove this stamp record?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This will permanently remove {s.stamps_earned} stamp{s.stamps_earned === 1 ? "" : "s"} from {s.email || s.user_id.slice(0, 8)}. This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => deleteStamp.mutate(s.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Remove
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </div>
                             </TableCell>
                           </TableRow>

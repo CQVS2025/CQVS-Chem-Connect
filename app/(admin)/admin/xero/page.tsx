@@ -22,6 +22,17 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { get, post } from "@/lib/api/client"
 
 interface XeroStatus {
@@ -104,9 +115,6 @@ function AdminXeroPageInner() {
   }
 
   async function handleDisconnect() {
-    if (!confirm("Disconnect Xero? You will need to reconnect to sync data.")) {
-      return
-    }
     setDisconnecting(true)
     try {
       await post("/xero/disconnect", {})
@@ -165,23 +173,41 @@ function AdminXeroPageInner() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleDisconnect}
-                  disabled={disconnecting}
-                >
-                  {disconnecting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Disconnecting...
-                    </>
-                  ) : (
-                    <>
-                      <Unlink className="mr-2 h-4 w-4" />
-                      Disconnect Xero
-                    </>
-                  )}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" disabled={disconnecting}>
+                      {disconnecting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Disconnecting...
+                        </>
+                      ) : (
+                        <>
+                          <Unlink className="mr-2 h-4 w-4" />
+                          Disconnect Xero
+                        </>
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Disconnect Xero?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        You will need to reconnect to sync data. Any in-progress
+                        syncs will stop.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDisconnect}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Disconnect
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <Button variant="ghost" onClick={handleConnect}>
                   Reconnect
                 </Button>
