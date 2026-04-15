@@ -40,8 +40,20 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
   useWarehouses,
   useCreateWarehouse,
+  useDeleteWarehouse,
   useUpdateWarehouse,
   useContainerCosts,
   useUpsertContainerCost,
@@ -129,6 +141,7 @@ function WarehousesTab() {
   const { data: warehouses = [], isLoading } = useWarehouses()
   const createWarehouse = useCreateWarehouse()
   const updateWarehouse = useUpdateWarehouse()
+  const deleteWarehouse = useDeleteWarehouse()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -269,9 +282,57 @@ function WarehousesTab() {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(w)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(w)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            disabled={deleteWarehouse.isPending}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Deactivate {w.name}?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This marks the warehouse as inactive so it no
+                              longer appears in shipping, routing, or checkout.
+                              Historical orders, invoices, and Xero POs tied
+                              to it are preserved. You can reactivate it later
+                              by editing the warehouse.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={async () => {
+                                try {
+                                  await deleteWarehouse.mutateAsync(w.id)
+                                  toast.success("Warehouse deactivated")
+                                } catch (err) {
+                                  const msg =
+                                    err instanceof Error
+                                      ? err.message
+                                      : "Failed to deactivate warehouse"
+                                  toast.error(msg)
+                                }
+                              }}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Deactivate
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
