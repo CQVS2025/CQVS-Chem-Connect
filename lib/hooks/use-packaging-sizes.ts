@@ -12,6 +12,15 @@ export function usePackagingSizes() {
   })
 }
 
+/** Admin variant — includes inactive sizes so deactivated entries are visible. */
+export function useAllPackagingSizes() {
+  return useQuery({
+    queryKey: ["packaging-sizes", "all"],
+    queryFn: () => get<PackagingSize[]>("/packaging-sizes?include_inactive=true"),
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export function useCreatePackagingSize() {
   const queryClient = useQueryClient()
   return useMutation({

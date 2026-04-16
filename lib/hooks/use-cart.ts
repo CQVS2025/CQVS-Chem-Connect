@@ -9,6 +9,7 @@ export interface CartPackagingPrice {
   packaging_size_id: string
   price_per_litre: number | null
   fixed_price: number | null
+  minimum_order_quantity: number | null
   packaging_size: {
     id: string
     name: string

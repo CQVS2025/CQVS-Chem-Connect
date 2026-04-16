@@ -283,23 +283,53 @@ function AdminXeroPageInner() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4 text-sm">
-            <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/20 p-4">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-              <div>
-                <p className="font-semibold">Purchase Order payments</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Order starts as &quot;Pending Approval&quot;. No Xero invoice or PO is created until you approve it from the Orders page. On approval: invoice is sent to the customer and PO is sent to the warehouse.
-                </p>
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                <p className="font-semibold text-sm">Purchase Order payments</p>
               </div>
+              <ol className="space-y-2 text-xs text-muted-foreground list-none">
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-600">1</span>
+                  Customer places order → status set to <span className="font-medium text-foreground">&quot;Pending Approval&quot;</span>. Customer receives an automated email confirming their order is under review.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-600">2</span>
+                  Review the order and PO document on the <span className="font-medium text-foreground">Orders page</span>, then click Approve or Reject.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-600">3</span>
+                  On approval: customer receives a <span className="font-medium text-foreground">confirmation email</span> with full order details.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-600">4</span>
+                  A Xero <span className="font-medium text-foreground">invoice</span> is sent to the customer (status: Awaiting Payment).
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-600">5</span>
+                  A Xero <span className="font-medium text-foreground">purchase order</span> is emailed to the warehouse (status: Approved — no manual approval needed in Xero).
+                </li>
+              </ol>
             </div>
-            <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/20 p-4">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-              <div>
-                <p className="font-semibold">Card payments (Stripe)</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Order is auto-approved. Xero PO is sent to the warehouse immediately. No Xero invoice is created (Stripe handles the customer receipt).
-                </p>
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                <p className="font-semibold text-sm">Card payments (Stripe)</p>
               </div>
+              <ol className="space-y-2 text-xs text-muted-foreground list-none">
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-600">1</span>
+                  Order is <span className="font-medium text-foreground">auto-approved</span> immediately on payment.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-600">2</span>
+                  Customer receives a <span className="font-medium text-foreground">receipt email</span> with full order details (Stripe also sends their own receipt).
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-600">3</span>
+                  A Xero <span className="font-medium text-foreground">purchase order</span> is emailed to the warehouse immediately (status: Approved). No Xero invoice — Stripe handles the customer receipt.
+                </li>
+              </ol>
             </div>
           </div>
         </CardContent>

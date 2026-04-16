@@ -896,6 +896,41 @@ export default function AdminOrdersPage() {
                                         <OrderDocuments orderId={order.id} />
                                       )}
 
+                                      {/* Approve / Reject inline — shown here so admin can review PO docs before acting */}
+                                      {order.status === "pending_approval" && order.payment_method === "purchase_order" && (
+                                        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+                                          <p className="mb-2.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                                            Awaiting your approval — review the PO documents above before proceeding.
+                                          </p>
+                                          <div className="flex items-center gap-2">
+                                            <Button
+                                              size="sm"
+                                              className="bg-emerald-600 text-white hover:bg-emerald-700"
+                                              disabled={approvingOrderId === order.id || rejectingOrderId === order.id}
+                                              onClick={() => handleApproveOrder(order)}
+                                            >
+                                              {approvingOrderId === order.id ? (
+                                                <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Approving...</>
+                                              ) : (
+                                                "Approve Order"
+                                              )}
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="destructive"
+                                              disabled={approvingOrderId === order.id || rejectingOrderId === order.id}
+                                              onClick={() => handleRejectOrder(order)}
+                                            >
+                                              {rejectingOrderId === order.id ? (
+                                                <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Rejecting...</>
+                                              ) : (
+                                                "Reject Order"
+                                              )}
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
+
                                       {/* Forklift / delivery flag */}
                                       {order.forklift_available != null && (
                                         <div className="text-sm">

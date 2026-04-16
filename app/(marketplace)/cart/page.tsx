@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Minus, Plus, ShoppingCart, Trash2, ArrowRight, Package } from "lucide-react"
+import { Minus, Plus, ShoppingCart, Trash2, ArrowRight, Package, AlertCircle } from "lucide-react"
 import { domAnimation, LazyMotion, m, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
@@ -50,6 +50,15 @@ function formatCurrency(amount: number) {
  * Resolve the unit price for a cart item using the new packaging-prices model
  * if available, otherwise fall back to the legacy product.price.
  */
+function resolveCartMoq(item: CartItem): number {
+  const prices = item.product.packaging_prices
+  if (!prices || prices.length === 0) return 1
+  const match =
+    prices.find((p) => p.packaging_size_id === item.packaging_size_id) ??
+    prices.find((p) => p.packaging_size?.name === item.packaging_size)
+  return match?.minimum_order_quantity ?? 1
+}
+
 function resolveCartUnitPrice(item: CartItem): number {
   const prices = item.product.packaging_prices
   if (!prices || prices.length === 0) return Number(item.product.price) || 0
@@ -127,16 +136,18 @@ function CartItemRow({
   const removeCartItem = useRemoveCartItem()
 
   const unitPrice = resolveCartUnitPrice(item)
+  const moq = resolveCartMoq(item)
   const lineTotal = unitPrice * item.quantity
+  const belowMoq = item.quantity < moq
 
   const handleQuantityChange = useCallback(
     (delta: number) => {
-      const newQty = Math.max(1, item.quantity + delta)
+      const newQty = Math.max(moq, item.quantity + delta)
       if (newQty !== item.quantity) {
         updateCartItem.mutate({ id: item.id, quantity: newQty })
       }
     },
-    [item.id, item.quantity, updateCartItem]
+    [item.id, item.quantity, moq, updateCartItem]
   )
 
   const handleRemove = useCallback(() => {
@@ -173,10 +184,21 @@ function CartItemRow({
               </Link>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <Badge variant="secondary">{item.packaging_size}</Badge>
+                {moq > 1 && (
+                  <Badge variant="outline" className="text-xs border-amber-500/40 text-amber-500 bg-amber-500/5">
+                    Min. {moq}
+                  </Badge>
+                )}
                 <span className="text-sm text-muted-foreground">
                   {formatCurrency(unitPrice)} each
                 </span>
               </div>
+              {belowMoq && (
+                <div className="mt-2 flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
+                  <AlertCircle className="size-3.5 shrink-0" />
+                  Minimum order is {moq} units — please increase quantity before checkout.
+                </div>
+              )}
             </div>
           </div>
 
@@ -188,7 +210,7 @@ function CartItemRow({
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0"
-                disabled={item.quantity <= 1 || updateCartItem.isPending}
+                disabled={item.quantity <= moq || updateCartItem.isPending}
                 onClick={() => handleQuantityChange(-1)}
               >
                 <Minus className="size-3.5" />
@@ -280,6 +302,12 @@ export default function CartPage() {
     if (!twItem) return 0
     return Math.round(twItem.resolvedUnitPrice * twItem.quantity * 0.5 * 100) / 100
   }, [isFirstOrder, firstOrderChoice, selectedTruckWash, itemsWithPricing])
+
+  const moqViolations = useMemo(
+    () => items.filter((item) => item.quantity < resolveCartMoq(item)),
+    [items],
+  )
+  const hasMoqViolation = moqViolations.length > 0
 
   const subtotal = itemsWithPricing.reduce(
     (sum, item) => sum + item.resolvedUnitPrice * item.quantity,
@@ -464,11 +492,38 @@ export default function CartPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex-col gap-3">
-                  <Button className="w-full glow-primary" size="lg" asChild>
-                    <Link href="/checkout">
-                      Proceed to Checkout
-                      <ArrowRight className="ml-2 size-4" />
-                    </Link>
+                  {hasMoqViolation && (
+                    <div className="w-full rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                        <div className="text-xs text-destructive">
+                          <p className="font-medium">Minimum order not met</p>
+                          <p className="mt-0.5 text-destructive/80">
+                            {moqViolations.length === 1
+                              ? `${moqViolations[0].product.name} (${moqViolations[0].packaging_size}) requires a minimum of ${resolveCartMoq(moqViolations[0])} units.`
+                              : `${moqViolations.length} items don't meet their minimum order quantity.`}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <Button
+                    className="w-full glow-primary"
+                    size="lg"
+                    disabled={hasMoqViolation}
+                    asChild={!hasMoqViolation}
+                  >
+                    {hasMoqViolation ? (
+                      <>
+                        Proceed to Checkout
+                        <ArrowRight className="ml-2 size-4" />
+                      </>
+                    ) : (
+                      <Link href="/checkout">
+                        Proceed to Checkout
+                        <ArrowRight className="ml-2 size-4" />
+                      </Link>
+                    )}
                   </Button>
                   <Button variant="ghost" className="w-full" asChild>
                     <Link href="/products">Continue Shopping</Link>

@@ -179,6 +179,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate MOQ for each item that has a packaging_size_id
+    const itemsWithSize = (items as Array<{ product_id: string; packaging_size_id?: string; quantity: number }>)
+      .filter((i) => i.packaging_size_id)
+    if (itemsWithSize.length > 0) {
+      const { data: moqRows } = await supabase
+        .from("product_packaging_prices")
+        .select("product_id, packaging_size_id, minimum_order_quantity")
+        .in("product_id", itemsWithSize.map((i) => i.product_id))
+
+      for (const item of itemsWithSize) {
+        const row = moqRows?.find(
+          (r) => r.product_id === item.product_id && r.packaging_size_id === item.packaging_size_id,
+        )
+        const moq = row?.minimum_order_quantity ?? 1
+        if (item.quantity < moq) {
+          return NextResponse.json(
+            { error: `Minimum order quantity for one or more items is not met (minimum: ${moq}).`, moq },
+            { status: 400 },
+          )
+        }
+      }
+    }
+
     // Fetch product details for shipping fees and order items snapshot
     const productIds = items.map((item: { product_id: string }) => item.product_id)
     const { data: productsData } = await supabase

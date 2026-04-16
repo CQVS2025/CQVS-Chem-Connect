@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
+  AlertCircle,
   Check,
   CreditCard,
   FileText,
@@ -108,6 +109,15 @@ function fallbackPrice(item: CartItem): number {
     }
   }
   return basePrice
+}
+
+function resolveItemMoq(item: CartItem): number {
+  const prices = item.product.packaging_prices
+  if (!prices || prices.length === 0) return 1
+  const match =
+    prices.find((p) => p.packaging_size_id === item.packaging_size_id) ??
+    prices.find((p) => p.packaging_size?.name === item.packaging_size)
+  return match?.minimum_order_quantity ?? 1
 }
 
 function uploadOrderDocuments(orderId: string, files: File[]) {
@@ -408,6 +418,12 @@ function CheckoutForm({
   const goBack = useCallback(() => {
     if (step > 0) setStep(step - 1)
   }, [step])
+
+  const moqViolations = useMemo(
+    () => cartItems.filter((item) => item.quantity < resolveItemMoq(item)),
+    [cartItems],
+  )
+  const hasMoqViolation = moqViolations.length > 0
 
   // ------- Submit order -------
   const handleSubmit = useCallback(async () => {
@@ -1114,6 +1130,33 @@ function CheckoutForm({
                   </CardContent>
                 </Card>
 
+                {/* MOQ violation banner */}
+                {hasMoqViolation && (
+                  <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" />
+                      <div>
+                        <p className="text-sm font-semibold text-destructive">
+                          Minimum order quantity not met
+                        </p>
+                        <ul className="mt-1.5 space-y-1">
+                          {moqViolations.map((item) => (
+                            <li key={item.id} className="text-xs text-destructive/80">
+                              <span className="font-medium">{item.product.name}</span>{" "}
+                              ({item.packaging_size}) — requires at least{" "}
+                              <span className="font-semibold">{resolveItemMoq(item)} units</span>,
+                              you have {item.quantity}.
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="mt-2 text-xs text-destructive/70">
+                          Please go back to your cart and update the quantities.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Actions */}
                 <div className="flex justify-between">
                   <Button variant="ghost" onClick={goBack}>
@@ -1122,7 +1165,7 @@ function CheckoutForm({
                   </Button>
                   <Button
                     onClick={handleSubmit}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || hasMoqViolation}
                     size="lg"
                     className="glow-primary"
                   >

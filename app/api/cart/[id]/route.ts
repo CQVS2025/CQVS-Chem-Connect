@@ -32,6 +32,31 @@ export async function PATCH(
       )
     }
 
+    // Enforce MOQ — look up the cart item's packaging_size_id then check MOQ
+    const { data: cartItem } = await supabase
+      .from("cart_items")
+      .select("product_id, packaging_size_id")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle()
+
+    if (cartItem?.packaging_size_id) {
+      const { data: pricingRow } = await supabase
+        .from("product_packaging_prices")
+        .select("minimum_order_quantity")
+        .eq("product_id", cartItem.product_id)
+        .eq("packaging_size_id", cartItem.packaging_size_id)
+        .maybeSingle()
+
+      const moq = pricingRow?.minimum_order_quantity ?? 1
+      if (quantity < moq) {
+        return NextResponse.json(
+          { error: `Minimum order quantity for this size is ${moq}.`, moq },
+          { status: 400 },
+        )
+      }
+    }
+
     const { data, error } = await supabase
       .from("cart_items")
       .update({

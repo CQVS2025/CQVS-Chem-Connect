@@ -25,6 +25,7 @@ const cartProductSelect = `
       packaging_size_id,
       price_per_litre,
       fixed_price,
+      minimum_order_quantity,
       packaging_size:packaging_sizes(id, name, volume_litres)
     )
   )
@@ -98,6 +99,24 @@ export async function POST(request: NextRequest) {
         { error: "product_id, quantity, and packaging_size are required" },
         { status: 400 },
       )
+    }
+
+    // Enforce MOQ if a packaging_size_id is provided
+    if (packaging_size_id) {
+      const { data: pricingRow } = await supabase
+        .from("product_packaging_prices")
+        .select("minimum_order_quantity")
+        .eq("product_id", product_id)
+        .eq("packaging_size_id", packaging_size_id)
+        .maybeSingle()
+
+      const moq = pricingRow?.minimum_order_quantity ?? 1
+      if (quantity < moq) {
+        return NextResponse.json(
+          { error: `Minimum order quantity for this size is ${moq}.`, moq },
+          { status: 400 },
+        )
+      }
     }
 
     // Check if item already exists in cart with same product and packaging size

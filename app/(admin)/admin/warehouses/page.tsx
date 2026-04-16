@@ -66,6 +66,7 @@ import {
 } from "@/lib/hooks/use-warehouses"
 import {
   usePackagingSizes,
+  useAllPackagingSizes,
   useCreatePackagingSize,
   useUpdatePackagingSize,
   useDeletePackagingSize,
@@ -526,7 +527,7 @@ const CONTAINER_TYPES = [
 ]
 
 function PackagingSizesTab() {
-  const { data: sizes = [], isLoading } = usePackagingSizes()
+  const { data: sizes = [], isLoading } = useAllPackagingSizes()
   const createSize = useCreatePackagingSize()
   const updateSize = useUpdatePackagingSize()
   const deleteSize = useDeletePackagingSize()
@@ -607,8 +608,9 @@ function PackagingSizesTab() {
         toast.success("Packaging size added")
       }
       setDialogOpen(false)
-    } catch {
-      toast.error("Failed to save packaging size")
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save packaging size"
+      toast.error(message)
     }
   }
 

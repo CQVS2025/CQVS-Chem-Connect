@@ -70,6 +70,7 @@ export interface ProductFormInitialData {
     packaging_size_id: string
     price_per_litre: number | null
     fixed_price: number | null
+    minimum_order_quantity: number | null
   }>
 }
 
@@ -82,6 +83,7 @@ interface PackagingPriceRow {
   packaging_size_id: string
   price_per_litre: string
   fixed_price: string
+  minimum_order_quantity: string
 }
 
 export function ProductForm({ mode, initial }: ProductFormProps) {
@@ -130,6 +132,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
       packaging_size_id: pp.packaging_size_id,
       price_per_litre: pp.price_per_litre?.toString() ?? "",
       fixed_price: pp.fixed_price?.toString() ?? "",
+      minimum_order_quantity: pp.minimum_order_quantity?.toString() ?? "1",
     })) ?? [],
   )
 
@@ -168,6 +171,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
         packaging_size_id: pp.packaging_size_id,
         price_per_litre: pp.price_per_litre?.toString() ?? "",
         fixed_price: pp.fixed_price?.toString() ?? "",
+        minimum_order_quantity: pp.minimum_order_quantity?.toString() ?? "1",
       })),
     )
   }, [initial])
@@ -204,14 +208,14 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
       }
       return [
         ...prev,
-        { packaging_size_id: packagingSizeId, price_per_litre: "", fixed_price: "" },
+        { packaging_size_id: packagingSizeId, price_per_litre: "", fixed_price: "", minimum_order_quantity: "1" },
       ]
     })
   }
 
   function updatePackagingPrice(
     packagingSizeId: string,
-    field: "price_per_litre" | "fixed_price",
+    field: "price_per_litre" | "fixed_price" | "minimum_order_quantity",
     value: string,
   ) {
     setFormPackagingPrices((prev) =>
@@ -250,6 +254,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
 
     const packagingPricesPayload = formPackagingPrices
       .map((row) => {
+        const moq = Math.max(1, parseInt(row.minimum_order_quantity, 10) || 1)
         if (formPriceType === "per_litre") {
           const v = parseFloat(row.price_per_litre)
           return Number.isFinite(v) && v > 0
@@ -257,6 +262,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
                 packaging_size_id: row.packaging_size_id,
                 price_per_litre: v,
                 fixed_price: null,
+                minimum_order_quantity: moq,
               }
             : null
         }
@@ -266,6 +272,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
               packaging_size_id: row.packaging_size_id,
               price_per_litre: null,
               fixed_price: v,
+              minimum_order_quantity: moq,
             }
           : null
       })
@@ -622,7 +629,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
                             )}
                             {formPriceType === "per_litre" && ps.volume_litres && (
                               <span className="whitespace-nowrap text-xs text-muted-foreground">
-                                = AUD 
+                                = AUD
                                 {(
                                   (parseFloat(row.price_per_litre) || 0) *
                                   Number(ps.volume_litres)
@@ -630,6 +637,22 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
                                 total
                               </span>
                             )}
+                            <span className="text-xs text-muted-foreground">MOQ</span>
+                            <Input
+                              type="number"
+                              step="1"
+                              min="1"
+                              placeholder="1"
+                              value={row.minimum_order_quantity}
+                              onChange={(e) =>
+                                updatePackagingPrice(
+                                  ps.id,
+                                  "minimum_order_quantity",
+                                  e.target.value,
+                                )
+                              }
+                              className="h-9 w-20"
+                            />
                           </div>
                         )}
                       </div>

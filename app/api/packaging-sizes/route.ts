@@ -2,15 +2,22 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/supabase/admin-check"
 
-// GET /api/packaging-sizes - list all active packaging sizes (public)
-export async function GET() {
+// GET /api/packaging-sizes - list packaging sizes
+// ?include_inactive=true  → returns all sizes (admin only)
+export async function GET(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
+  const includeInactive = request.nextUrl.searchParams.get("include_inactive") === "true"
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("packaging_sizes")
     .select("*")
-    .eq("is_active", true)
     .order("sort_order", { ascending: true })
+
+  if (!includeInactive) {
+    query = query.eq("is_active", true)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -54,6 +61,12 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (error) {
+    if (error.code === "23505" || error.message.includes("duplicate key")) {
+      return NextResponse.json(
+        { error: `A packaging size named "${body.name.trim()}" already exists. If it was deactivated, reactivate it instead of creating a new one.` },
+        { status: 409 },
+      )
+    }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 

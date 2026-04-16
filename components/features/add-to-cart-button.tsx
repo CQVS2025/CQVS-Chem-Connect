@@ -20,6 +20,7 @@ export interface AddToCartPackagingOption {
   packaging_size_id: string
   price_per_litre: number | null
   fixed_price: number | null
+  minimum_order_quantity: number | null
   packaging_size: {
     id: string
     name: string
@@ -53,8 +54,10 @@ export function AddToCartButton({
     ? packagingPrices[0].packaging_size.name
     : packagingSizes[0] || ""
 
+  const initialMoq = hasPricedOptions ? (packagingPrices[0].minimum_order_quantity ?? 1) : 1
+
   const [selectedSize, setSelectedSize] = useState(initialSelection)
-  const [quantity, setQuantity] = useState(1)
+  const [quantity, setQuantity] = useState(initialMoq)
   const [authDialogOpen, setAuthDialogOpen] = useState(false)
   const { user, loading: authLoading } = useUser()
   const { data: profile } = useProfile()
@@ -68,6 +71,8 @@ export function AddToCartButton({
   const selectedOption = hasPricedOptions
     ? packagingPrices.find((p) => p.packaging_size.name === selectedSize)
     : null
+
+  const selectedMoq = selectedOption?.minimum_order_quantity ?? 1
 
   const selectedUnitPrice = selectedOption
     ? calculateUnitPrice(
@@ -118,6 +123,11 @@ export function AddToCartButton({
 
     if (!selectedSize) {
       toast.error("Please select a packaging size.")
+      return
+    }
+
+    if (quantity < selectedMoq) {
+      toast.error(`Minimum order quantity is ${selectedMoq} units.`)
       return
     }
 
@@ -179,7 +189,13 @@ export function AddToCartButton({
               <button
                 key={opt.key}
                 type="button"
-                onClick={() => setSelectedSize(opt.label)}
+                onClick={() => {
+                  setSelectedSize(opt.label)
+                  const optMoq = hasPricedOptions
+                    ? (packagingPrices.find((p) => p.packaging_size.name === opt.label)?.minimum_order_quantity ?? 1)
+                    : 1
+                  setQuantity(optMoq)
+                }}
                 className={`flex flex-col items-start rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 ${
                   selectedSize === opt.label
                     ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
@@ -228,19 +244,19 @@ export function AddToCartButton({
             variant="outline"
             size="icon"
             className="h-9 w-9"
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            disabled={quantity <= 1}
+            onClick={() => setQuantity(Math.max(selectedMoq, quantity - 1))}
+            disabled={quantity <= selectedMoq}
           >
             <Minus className="h-4 w-4" />
           </Button>
           <input
             type="number"
-            min={1}
+            min={selectedMoq}
             max={stockQty}
             value={quantity}
             onChange={(e) => {
               const val = parseInt(e.target.value, 10)
-              if (!isNaN(val) && val >= 1) {
+              if (!isNaN(val) && val >= selectedMoq) {
                 setQuantity(Math.min(val, stockQty))
               }
             }}
@@ -256,6 +272,11 @@ export function AddToCartButton({
             <Plus className="h-4 w-4" />
           </Button>
         </div>
+        {selectedMoq > 1 && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Minimum order: {selectedMoq} units
+          </p>
+        )}
         {stockQty <= 20 && (
           <p className="mt-1 text-xs text-amber-500">
             Only {stockQty} units left in stock

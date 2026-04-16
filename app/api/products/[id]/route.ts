@@ -66,11 +66,13 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         packaging_size_id: string
         price_per_litre?: number | null
         fixed_price?: number | null
+        minimum_order_quantity?: number | null
       }) => ({
         product_id: id,
         packaging_size_id: pp.packaging_size_id,
         price_per_litre: pp.price_per_litre ?? null,
         fixed_price: pp.fixed_price ?? null,
+        minimum_order_quantity: pp.minimum_order_quantity ?? 1,
       }))
 
       const { error: ppError } = await supabase

@@ -581,7 +581,7 @@ export async function createXeroPurchaseOrderForOrder(
     Date: fmt(orderDate),
     DeliveryDate: fmt(deliveryDate),
     Reference: order.order_number,
-    Status: "SUBMITTED",
+    Status: "AUTHORISED",
     LineAmountTypes: "Exclusive",
     ...(CURRENCY_CODE ? { CurrencyCode: CURRENCY_CODE } : {}),
     DeliveryAddress: [
@@ -617,9 +617,14 @@ export async function createXeroPurchaseOrderForOrder(
       response: po,
     })
 
-    // PO is created as "Awaiting Approval" in Xero.
-    // Admin approves manually in Xero when ready to notify the warehouse.
-    // No auto-approve, no auto-email — simple and predictable.
+    // Email the PO to the warehouse so they get notified automatically.
+    // PO is AUTHORISED — warehouse can act on it immediately, no manual
+    // approval required in Xero.
+    try {
+      await xero.emailPurchaseOrder(po.PurchaseOrderID)
+    } catch (emailErr) {
+      console.warn("[Xero] PO created but email to warehouse failed:", emailErr)
+    }
 
     return {
       poId: po.PurchaseOrderID,
