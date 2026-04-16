@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { Fragment, useMemo, useState } from "react"
 import { Loader2, Plus, Pencil, Save, Trash2, Warehouse as WarehouseIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -1229,9 +1229,9 @@ function ProductMappingTab() {
 
                 // Product has packaging sizes — show a group header then per-size rows
                 return (
-                  <>
+                  <Fragment key={product.id}>
                     {/* Group header row */}
-                    <TableRow key={`${product.id}:header`} className="bg-muted/40">
+                    <TableRow className="bg-muted/40">
                       <TableCell />
                       <TableCell
                         colSpan={3}
@@ -1267,7 +1267,7 @@ function ProductMappingTab() {
                         </TableRow>
                       )
                     })}
-                  </>
+                  </Fragment>
                 )
               })}
             </TableBody>
@@ -1350,6 +1350,40 @@ function WarehousePricingTab() {
 
   const activeSizes = packagingSizes.filter((s) => s.is_active)
 
+  // Group mappings by product — deduplicate and collect mapped sizes per product.
+  // Each product_warehouses row is either a specific size or null (all sizes).
+  const productGroups = useMemo(() => {
+    const groups = new Map<string, {
+      productId: string
+      productName: string
+      sizes: Array<{ id: string; name: string }> | null // null = all sizes
+    }>()
+    for (const m of mappings) {
+      const existing = groups.get(m.product_id)
+      if (m.packaging_size_id === null) {
+        // "all sizes" mapping — override to null to signal use activeSizes
+        groups.set(m.product_id, {
+          productId: m.product_id,
+          productName: m.product?.name ?? m.product_id,
+          sizes: null,
+        })
+      } else if (!existing) {
+        groups.set(m.product_id, {
+          productId: m.product_id,
+          productName: m.product?.name ?? m.product_id,
+          sizes: [{ id: m.packaging_size_id, name: m.packaging_size?.name ?? m.packaging_size_id }],
+        })
+      } else if (existing.sizes !== null) {
+        // already has specific sizes — add this one if not already present
+        if (!existing.sizes.some((s) => s.id === m.packaging_size_id)) {
+          existing.sizes.push({ id: m.packaging_size_id, name: m.packaging_size?.name ?? m.packaging_size_id })
+        }
+      }
+      // if existing.sizes === null (all sizes) leave it as-is
+    }
+    return Array.from(groups.values())
+  }, [mappings])
+
   return (
     <Card>
       <CardHeader>
@@ -1401,11 +1435,10 @@ function WarehousePricingTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mappings.flatMap((mapping) =>
-                  activeSizes.map((ps) => {
-                    const productId = mapping.product_id
+                {productGroups.flatMap(({ productId, productName, sizes }) => {
+                  const sizesToShow = sizes ?? activeSizes.map((s) => ({ id: s.id, name: s.name }))
+                  return sizesToShow.map((ps) => {
                     const k = priceKey(productId, ps.id)
-                    const productName = mapping.product?.name ?? productId
                     return (
                       <TableRow key={k}>
                         <TableCell className="font-medium">{productName}</TableCell>
@@ -1419,10 +1452,7 @@ function WarehousePricingTab() {
                               min="0"
                               value={getDisplayValue(productId, ps.id)}
                               onChange={(e) =>
-                                setEdits((prev) => ({
-                                  ...prev,
-                                  [k]: e.target.value,
-                                }))
+                                setEdits((prev) => ({ ...prev, [k]: e.target.value }))
                               }
                               className="h-9 w-28"
                             />
@@ -1445,8 +1475,8 @@ function WarehousePricingTab() {
                         </TableCell>
                       </TableRow>
                     )
-                  }),
-                )}
+                  })
+                })}
               </TableBody>
             </Table>
           </div>

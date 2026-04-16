@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
-import { ChevronLeft, ChevronRight, SearchX } from "lucide-react"
+import { useState, useMemo } from "react"
+import { SearchX } from "lucide-react"
 import { domAnimation, LazyMotion, m, AnimatePresence } from "framer-motion"
 
 import { useProducts } from "@/lib/hooks/use-products"
@@ -19,8 +19,6 @@ export default function ProductsPage() {
   const [selectedRegion, setSelectedRegion] = useState("All")
   const [sortBy, setSortBy] = useState<SortOption>("name-asc")
   const [inStockOnly, setInStockOnly] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const PAGE_SIZE = 20
 
   const { data: apiProducts, isLoading } = useProducts()
 
@@ -100,24 +98,6 @@ export default function ProductsPage() {
     return result
   }, [products, searchQuery, selectedCategory, selectedRegion, sortBy, inStockOnly])
 
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE))
-  const paginatedProducts = useMemo(
-    () =>
-      filteredProducts.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE,
-      ),
-    [filteredProducts, currentPage],
-  )
-
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, selectedCategory, selectedRegion, sortBy, inStockOnly])
-
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(totalPages)
-  }, [currentPage, totalPages])
-
   const hasActiveFilters =
     selectedCategory !== "All" ||
     selectedRegion !== "All" ||
@@ -184,7 +164,7 @@ export default function ProductsPage() {
               transition={{ duration: 0.25 }}
               className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
-              {paginatedProducts.map((product, index) => (
+              {filteredProducts.map((product, index) => (
                 <m.div
                   key={product.id}
                   initial={{ opacity: 0, y: 16 }}
@@ -215,35 +195,6 @@ export default function ProductsPage() {
           </AnimatePresence>
         )}
 
-        {/* Pagination */}
-        {!isLoading && filteredProducts.length > PAGE_SIZE && (
-          <div className="mt-10 flex items-center justify-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 rounded-lg"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="size-4" />
-              Previous
-            </Button>
-            <span className="px-3 text-sm text-muted-foreground">
-              Page <span className="font-semibold text-foreground">{currentPage}</span> of{" "}
-              <span className="font-semibold text-foreground">{totalPages}</span>
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 rounded-lg"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
-        )}
 
         {/* ⑤ Empty State */}
         {!isLoading && filteredProducts.length === 0 && (
