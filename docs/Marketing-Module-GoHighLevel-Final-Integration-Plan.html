@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Marketing Module - GoHighLevel Final Integration Plan</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 920px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #8b5cf6; border-bottom: 3px solid #8b5cf6; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #8b5cf6; margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f5f3ff; color: #6d28d9; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #8b5cf6; background: #f5f3ff; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-green { border-left-color: #16a34a; background: #f0fdf4; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 5px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #8b5cf6; margin: 44px 0; }
+  .section-num { color: #8b5cf6; font-weight: 700; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; }
+  .b-ghl { background: #ede9fe; color: #6d28d9; }
+  .b-cc { background: #dcfce7; color: #166534; }
+  .b-both { background: #fef3c7; color: #92400e; }
+  .b-out { background: #fee2e2; color: #991b1b; }
+  .screen-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin: 14px 0; background: #ffffff; border-left: 4px solid #8b5cf6; }
+  .screen-card h3 { margin-top: 0; color: #8b5cf6; }
+  .arch-diagram { background: #1f2937; color: #e5e7eb; padding: 18px 22px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8; margin: 14px 0; white-space: pre; overflow-x: auto; }
+  .flow-step { display: flex; gap: 12px; margin: 10px 0; align-items: flex-start; }
+  .flow-n { background: #8b5cf6; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .flow-c { flex: 1; font-size: 13px; }
+  .highlight { background: #fef3c7; padding: 1px 6px; border-radius: 3px; font-weight: 600; color: #92400e; }
+  .split-table th:nth-child(2), .split-table td:nth-child(2) { background: #faf5ff; }
+  .split-table th:nth-child(3), .split-table td:nth-child(3) { background: #f0fdf4; }
+  .yes { color: #16a34a; font-weight: 700; }
+  .no { color: #dc2626; font-weight: 700; }
+  .confirmed-banner { background: linear-gradient(90deg, #8b5cf6, #6d28d9); color: white; padding: 16px 22px; border-radius: 8px; margin: 20px 0; font-size: 14px; }
+  .confirmed-banner strong { font-size: 15px; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Marketing Module &mdash; GoHighLevel Final Integration Plan</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib | April 2026</p>
+</div>
+
+<div class="confirmed-banner">
+  <strong>DECISION CONFIRMED &mdash; Option B: GoHighLevel</strong><br>
+  On our call (14 Apr), you confirmed GoHighLevel is the direction because CQVS is already paying for the subscription and it gives you more capability to grow into. This document is the final confirmation plan describing exactly what I will build, which pieces live inside GoHighLevel, and which pieces live inside ChemConnect &mdash; so we can lock scope and begin development.
+</div>
+
+<div class="box">
+  <strong>How to read this doc:</strong> Every feature is tagged with one of four labels so there's no ambiguity about ownership:
+  <ul style="margin-top: 8px;">
+    <li><span class="badge b-ghl">GHL</span> &mdash; Handled entirely inside GoHighLevel (configured once, runs there forever)</li>
+    <li><span class="badge b-cc">ChemConnect</span> &mdash; Built by me inside the ChemConnect admin as custom code</li>
+    <li><span class="badge b-both">Both</span> &mdash; A ChemConnect UI that talks to GHL via API / webhooks</li>
+    <li><span class="badge b-out">Not building</span> &mdash; Deliberately out of scope (with reason)</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">1.</span> What We Agreed On The Call</h2>
+
+<div class="screen-card">
+  <h3>Summary of your decisions (14 Apr call)</h3>
+  <table>
+    <tr><th style="width:40%;">Topic</th><th>Your decision</th></tr>
+    <tr><td>Platform choice</td><td>Go with GoHighLevel (already paying, more capability)</td></tr>
+    <tr><td>Marketing contacts source</td><td>Separate list from MacShip / ChemConnect customers. Imported via CSV / Excel. You already have some contacts in GHL too.</td></tr>
+    <tr><td>Primary dashboard for analytics</td><td>Use the GHL dashboard directly &mdash; it's already paid for and gives the fullest view. ChemConnect admin shows a lightweight summary only.</td></tr>
+    <tr><td>Email composition</td><td>You write/generate HTML with Claude, paste into ChemConnect admin, ChemConnect hands it to GHL to send.</td></tr>
+    <tr><td>Drip / sequences</td><td>Build sequences directly inside GHL's workflow builder (Option 1 from alternative doc). ChemConnect fires the enrollment trigger via API when a contact is tagged.</td></tr>
+    <tr><td>SMS</td><td>Yes, 100%. Promotional SMS + two-way replies. GHL owns the phone number &amp; Twilio backend.</td></tr>
+    <tr><td>Two-way SMS inbox</td><td>Replies received in GHL and mirrored into a conversation thread inside ChemConnect admin. You can reply from ChemConnect (I'll investigate during build &mdash; if something blocks that, you fall back to replying inside GHL).</td></tr>
+    <tr><td>Scheduling engine</td><td>GHL handles scheduling + recurring sends natively. I do not build a cron engine in ChemConnect.</td></tr>
+    <tr><td>Go-live target</td><td>Production-ready with your old CQVS domain wired in. Starts after MacShip + Xero + Lead Times sign-off this week.</td></tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">2.</span> Architecture &mdash; How The Two Systems Talk</h2>
+
+<div class="screen-card">
+  <div class="arch-diagram">
+  +----------------------------------------------------+
+  |          ChemConnect Admin (what you use)          |
+  |   /admin/marketing  -> Contacts, Campaigns,        |
+  |                        Sequences trigger panel,    |
+  |                        SMS Inbox, mini dashboard   |
+  +----------------------------------------------------+
+                         |
+                         | OAuth / REST API calls
+                         v
+  +----------------------------------------------------+
+  |       GHL Bridge layer (built by me)               |
+  |   - OAuth token storage &amp; refresh                |
+  |   - Outbound API wrappers (contacts, campaigns,    |
+  |     SMS, workflow enrollments)                     |
+  |   - Inbound webhook receivers (events, replies)    |
+  |   - Retry / error handling / logging               |
+  +----------------------------------------------------+
+                         |
+                         | REST API + Webhooks
+                         v
+  +----------------------------------------------------+
+  |           GoHighLevel (the engine)                 |
+  |   Contacts DB, Email/SMS send engine,              |
+  |   Workflow builder, Scheduler, Analytics,          |
+  |   Phone number provisioning &amp; compliance         |
+  +----------------------------------------------------+
+                         |
+                         v
+              Recipients (your leads &amp; customers)
+</div>
+
+  <p><strong>Core principles:</strong></p>
+  <ul>
+    <li>GHL is the <em>engine of record</em> for marketing contacts, sends, sequences, analytics.</li>
+    <li>ChemConnect is the <em>cockpit</em> &mdash; a thin, purpose-built UI that covers your day-to-day actions so you don't have to jump into GHL for every task.</li>
+    <li>For deep analytics, advanced sequence design, funnels, landing pages &mdash; you go into GHL directly. We don't rebuild what GHL already does well.</li>
+    <li>MacShip / ChemConnect customer data stays separate from marketing contacts (you confirmed these are different lists).</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">3.</span> Feature-By-Feature Ownership Split</h2>
+
+<p>This is the master table of what I'm building vs. what GHL handles. Every feature from the earlier design walkthrough is accounted for here.</p>
+
+<table class="split-table">
+  <tr>
+    <th style="width:34%;">Feature</th>
+    <th style="width:33%;">Handled by GoHighLevel</th>
+    <th style="width:33%;">Built in ChemConnect</th>
+  </tr>
+
+  <tr>
+    <td><strong>Contact database</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Master record. All marketing contacts live here. Tags, custom fields, opt-out state.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Local cache table for fast listing + showing marketing history on customer profiles. One-way push (CC &rarr; GHL) on create/update; GHL webhooks update CC on changes.</td>
+  </tr>
+
+  <tr>
+    <td><strong>CSV / Excel contact import</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Receives contacts via API after CC parses the file.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Upload UI, column mapping, validation, duplicate detection, progress indicator. Pushes each row to GHL.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Existing GHL contacts you already have</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Source of truth.</td>
+    <td><span class="badge b-cc">ChemConnect</span> One-time initial sync pulls them into the local cache so they show up in the CC contacts list on day one.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Tagging &amp; smart segments</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Tags &amp; segments live in GHL. Segment logic (state, industry, activity) evaluated by GHL.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Simple tag picker UI in contact editor that writes to GHL. Complex segment building done in GHL directly.</td>
+  </tr>
+
+  <tr>
+    <td><strong>One-off email blasts</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Bulk send engine, batching, rate limits, deliverability, CSS inlining, tracking pixel, unsubscribe footer.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Campaign-create UI: audience picker &rarr; HTML paste area &rarr; review &rarr; Send. Calls GHL bulk-action API. Stores campaign record locally for the dashboard.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Claude-generated HTML email paste</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Accepts raw HTML, handles inlining, link tracking, pixel, unsubscribe.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Paste box + live preview in CC admin. HTML forwarded to GHL as-is.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Scheduled sends</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Native scheduler &mdash; CC sets the scheduled_at via API, GHL fires it at the right moment.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Date/time picker + schedule list view. No cron engine. No 24/7 scheduler in CC.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Recurring campaigns (weekly, monthly)</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Native recurring rules.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Recurrence picker in the schedule step. Passes rule to GHL.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Drip sequences &amp; branching logic</strong></td>
+    <td><span class="badge b-ghl">GHL</span> <strong>Sequences are designed and live inside GHL's workflow builder.</strong> GHL evaluates all conditions (opened / clicked / replied / ordered) and runs the steps.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Read-only list of sequences (pulled from GHL) + an "enroll contact" trigger so tagging a contact in CC fires the workflow in GHL. No custom drag-and-drop builder inside CC.</td>
+  </tr>
+
+  <tr>
+    <td><strong>SMS sending (promotional)</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Phone number, Twilio backend, STOP / UNSUBSCRIBE keyword handling, delivery, carrier compliance.</td>
+    <td><span class="badge b-cc">ChemConnect</span> SMS campaign UI (recipient filter + message + schedule). Sent via GHL API.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Two-way SMS inbox</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Receives inbound messages on its number, pushes each message to CC via webhook.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Conversation-thread UI in admin (list of threads, unread badges, message history). Sending a reply from CC calls GHL's send-SMS API. If the outbound-reply API proves flaky during build, fallback is &quot;reply from GHL&quot; for that one action &mdash; I'll confirm on day one of that task.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Event tracking (opens, clicks, bounces, unsubs, replies)</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Native event capture; pushes each event via webhook in real time.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Webhook receiver that writes events to a local events table &mdash; used only to power the lightweight in-CC summary + attaching activity to customer profiles.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Deep analytics &amp; reporting</strong></td>
+    <td><span class="badge b-ghl">GHL</span> <strong>Primary analytics dashboard.</strong> You open GHL for per-campaign deep dives, heatmaps, attribution, A/B splits.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Lightweight summary only: &quot;Emails sent this month / SMS sent this month / last 5 campaigns with open rate&quot; + a deep-link &quot;Open in GoHighLevel&quot; button for each campaign.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Unsubscribe / suppression list</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Master suppression list. Auto-excluded from future sends.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Mirrored flag on local contact cache so the CC UI shows &quot;opted out&quot; badges correctly.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Deliverability (SPF / DKIM / DMARC on cqvs.com.au)</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Provides the DNS values to add.</td>
+    <td><span class="badge b-cc">ChemConnect</span> N/A &mdash; DNS added once in GoDaddy via a 5-min screen-share. Same process as the Mailgun option.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Landing pages, funnels, forms, calendars</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Available in GHL if you ever want them.</td>
+    <td><span class="badge b-out">Not building</span> Out of scope for this build. You can use GHL's native UI for these if/when needed &mdash; I won't mirror them in CC.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Scheduler service / cron engine / send worker</strong></td>
+    <td><span class="badge b-ghl">GHL</span> GHL owns all timing.</td>
+    <td><span class="badge b-out">Not building</span> Deliberately avoided &mdash; GHL already does this. Saves significant dev time.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Sequence execution engine</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Workflow engine runs everything.</td>
+    <td><span class="badge b-out">Not building</span> No custom Zapier-style engine in CC.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Twilio direct integration</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Twilio is behind GHL, we don't touch it directly.</td>
+    <td><span class="badge b-out">Not building</span> Keeps billing + compliance consolidated inside the GHL subscription.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Role-based permissions (Admin vs Editor)</strong></td>
+    <td>&mdash;</td>
+    <td><span class="badge b-cc">ChemConnect</span> Two roles: Marketing Admin (full) and Marketing Editor (no delete / no DNS settings). Uses the existing CC role system.</td>
+  </tr>
+
+  <tr>
+    <td><strong>Australian Spam Act compliance (consent + audit)</strong></td>
+    <td><span class="badge b-ghl">GHL</span> Unsubscribe link, STOP handling, suppression list.</td>
+    <td><span class="badge b-cc">ChemConnect</span> Consent-source field on contact record (CSV import / manual / existing customer) + audit log of who changed what. GHL handles the opt-out plumbing.</td>
+  </tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">4.</span> What You'll Actually See &amp; Do In ChemConnect Admin</h2>
+
+<p>Four tabs under a new <strong>Marketing</strong> section in the sidebar. Everything you need for day-to-day actions is here; for deep-dive analytics or designing new sequences you click straight through to GHL.</p>
+
+<div class="screen-card">
+  <h3>Tab 1 &mdash; Contacts</h3>
+  <ul>
+    <li>Searchable table of marketing contacts (mirrored from GHL).</li>
+    <li><strong>Import CSV/Excel</strong> button &mdash; upload, map columns, push to GHL.</li>
+    <li>Add / edit / tag a single contact (writes through to GHL).</li>
+    <li>Click a contact &rarr; profile page showing tags, campaign history, SMS thread, and (if linked) their ChemConnect customer record + order history.</li>
+    <li>&quot;Open in GoHighLevel&quot; deep-link for each contact.</li>
+  </ul>
+</div>
+
+<div class="screen-card">
+  <h3>Tab 2 &mdash; Campaigns</h3>
+  <ul>
+    <li>List of campaigns with status (draft / scheduled / sending / sent) + top-line stats.</li>
+    <li>4-step wizard (<em>who &rarr; what &rarr; when &rarr; review</em>) to create a new email or SMS campaign.</li>
+    <li>Paste Claude-generated HTML &mdash; live preview on the right.</li>
+    <li>Schedule once or recurring.</li>
+    <li>On Send: calls GHL bulk-action API. GHL does the rest.</li>
+    <li>Per-campaign card shows: recipients, delivered, opened, clicked, replied &mdash; plus a big &quot;Full report in GoHighLevel&quot; button.</li>
+  </ul>
+</div>
+
+<div class="screen-card">
+  <h3>Tab 3 &mdash; Sequences</h3>
+  <ul>
+    <li>List view pulled from GHL &mdash; shows each workflow name, trigger, active contacts, on/off state.</li>
+    <li>Click a sequence &rarr; opens the workflow builder inside GoHighLevel in a new tab. (I don't rebuild GHL's builder inside CC.)</li>
+    <li><strong>Enroll contact</strong> action: tag a contact inside CC (e.g. &quot;Lead&quot;, &quot;VIP&quot;) and CC fires the corresponding GHL trigger via API, starting the sequence for that contact.</li>
+  </ul>
+  <div class="box">
+    This matches what you chose on the call: &quot;we are totally relying on GoHighLevel, so I think we should&quot; build sequences in GHL directly. It also keeps this build significantly smaller.
+  </div>
+</div>
+
+<div class="screen-card">
+  <h3>Tab 4 &mdash; Inbox &amp; Dashboard</h3>
+  <ul>
+    <li><strong>SMS Inbox:</strong> conversation-thread UI for every inbound reply from GHL. Unread badges. Reply box at the bottom posts to the GHL send-SMS API.</li>
+    <li><strong>Mini dashboard widgets:</strong> emails sent this month, SMS sent, most-recent campaigns with open/click, new contacts this week.</li>
+    <li><strong>&quot;Open full analytics in GoHighLevel&quot;</strong> button &mdash; because the GHL dashboard is the real place for deep analytics and you're already paying for it.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">5.</span> Exactly What I Will Build (Engineering Scope)</h2>
+
+<div class="screen-card">
+  <h4>Backend / Integration Layer</h4>
+  <ol>
+    <li><strong>GHL OAuth + API client</strong> &mdash; token storage, auto-refresh, credential vault, retry / backoff on 5xx.</li>
+    <li><strong>Contact sync engine</strong> &mdash; two-way sync (CC &rarr; GHL on create/edit, GHL &rarr; CC via webhook). Conflict rule: GHL wins on contact fields, CC wins on linkage to ChemConnect customer record.</li>
+    <li><strong>Campaign dispatcher</strong> &mdash; thin wrapper around GHL's bulk-action API; records a local campaign row for dashboard purposes.</li>
+    <li><strong>Webhook receiver</strong> &mdash; secure endpoint(s) that accept GHL events (<code>contact.created</code>, <code>email.opened</code>, <code>email.clicked</code>, <code>sms.received</code>, <code>contact.unsubscribed</code>). Signature verification. Writes to local events table.</li>
+    <li><strong>Sequence enrollment trigger</strong> &mdash; API route that fires a GHL workflow when a contact is tagged in CC.</li>
+    <li><strong>SMS outbound API</strong> &mdash; send-message endpoint that posts to GHL from the inbox reply box.</li>
+    <li><strong>Database migrations</strong> &mdash; <code>marketing_contacts</code> (local cache), <code>marketing_campaigns</code>, <code>marketing_events</code>, <code>sms_conversations</code>, <code>sms_messages</code>, <code>ghl_oauth_tokens</code>, <code>marketing_audit_log</code>. ~7 new tables.</li>
+    <li><strong>Error monitoring &amp; alerts</strong> &mdash; email me if GHL API is down or webhooks stop firing so the system never silently breaks.</li>
+  </ol>
+
+  <h4>Admin UI (ChemConnect)</h4>
+  <ol>
+    <li>New <code>Marketing</code> section in the sidebar with four tabs.</li>
+    <li>Contact list, contact profile, CSV/Excel import with column mapping.</li>
+    <li>Campaign wizard (Who / What / When / Review) with HTML paste + live preview.</li>
+    <li>Campaign list &amp; per-campaign detail card.</li>
+    <li>Sequences list (read-only mirror of GHL) + enroll-contact action.</li>
+    <li>SMS inbox (threads list + conversation view + reply box).</li>
+    <li>Mini analytics dashboard with deep-link to GHL.</li>
+    <li>Marketing settings page (sender identity, consent defaults, GHL connection status).</li>
+  </ol>
+
+  <h4>Deliverability &amp; Domain</h4>
+  <ol>
+    <li>Production go-live against your existing CQVS domain (you mentioned wanting to use the old domain that pointed to the old page).</li>
+    <li>Add GHL-provided SPF / DKIM / DMARC records to GoDaddy DNS in a 5-min screen-share.</li>
+    <li>Warm-up plan for the sending domain so early campaigns don't land in spam.</li>
+  </ol>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">6.</span> What I Am Deliberately NOT Building</h2>
+
+<div class="screen-card">
+  <p>To keep scope honest and avoid charging you for things GHL already does:</p>
+  <ul>
+    <li><span class="no">&#10007;</span> No custom drag-and-drop sequence builder &mdash; you use GHL's.</li>
+    <li><span class="no">&#10007;</span> No 24/7 scheduler / cron / worker queue &mdash; GHL owns all timing.</li>
+    <li><span class="no">&#10007;</span> No landing pages, funnels, forms, or calendars inside CC &mdash; use GHL's native UI for those if ever needed.</li>
+    <li><span class="no">&#10007;</span> No deep analytics dashboard duplicating GHL &mdash; we link to it instead.</li>
+    <li><span class="no">&#10007;</span> No direct Twilio / Mailgun integration for marketing sends &mdash; GHL is the single channel.</li>
+    <li><span class="no">&#10007;</span> No AI content generation inside CC &mdash; you generate HTML with Claude yourself and paste it in.</li>
+    <li><span class="no">&#10007;</span> No auto-lead-scraping / enrichment / scoring pipelines &mdash; that was explored in the AI Sales Engine blueprint but is outside this scope. Can be added later as a separate milestone.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">7.</span> End-To-End User Journey</h2>
+
+<div class="screen-card">
+  <h3>Scenario: &quot;Send an Eco Wash launch email to NSW concrete contacts, then follow up non-openers with an SMS 3 days later.&quot;</h3>
+
+  <div class="flow-step"><div class="flow-n">1</div><div class="flow-c"><strong>Import contacts</strong> &mdash; You drop a CSV into CC. CC maps columns, validates, pushes each row to GHL via API, stores a local cache row. <span class="badge b-both">Both</span></div></div>
+
+  <div class="flow-step"><div class="flow-n">2</div><div class="flow-c"><strong>Tag NSW / concrete</strong> &mdash; Filter in CC and bulk-tag. Tags written to GHL. <span class="badge b-both">Both</span></div></div>
+
+  <div class="flow-step"><div class="flow-n">3</div><div class="flow-c"><strong>Generate HTML with Claude</strong> &mdash; You do this in your own workflow. <span class="badge b-cc">ChemConnect</span> (manual)</div></div>
+
+  <div class="flow-step"><div class="flow-n">4</div><div class="flow-c"><strong>Create campaign</strong> &mdash; CC wizard: audience = tag &quot;NSW-concrete&quot;, paste HTML, preview, send now. <span class="badge b-cc">ChemConnect UI</span></div></div>
+
+  <div class="flow-step"><div class="flow-n">5</div><div class="flow-c"><strong>Actual send</strong> &mdash; CC calls GHL bulk-action API. GHL batches, sends, tracks, handles unsubscribes. <span class="badge b-ghl">GHL</span></div></div>
+
+  <div class="flow-step"><div class="flow-n">6</div><div class="flow-c"><strong>Events stream back</strong> &mdash; delivered / opened / clicked / bounced webhooks hit CC and populate the campaign card + contact timelines. <span class="badge b-both">Both</span></div></div>
+
+  <div class="flow-step"><div class="flow-n">7</div><div class="flow-c"><strong>3-day SMS follow-up</strong> &mdash; A workflow built once inside GHL (trigger: &quot;did not open email X after 3 days&quot;) fires the SMS automatically. No code. <span class="badge b-ghl">GHL</span></div></div>
+
+  <div class="flow-step"><div class="flow-n">8</div><div class="flow-c"><strong>Customer replies to SMS</strong> &mdash; GHL receives, webhooks CC, thread appears in CC SMS inbox with a red-dot notification. <span class="badge b-both">Both</span></div></div>
+
+  <div class="flow-step"><div class="flow-n">9</div><div class="flow-c"><strong>You reply from CC</strong> &mdash; CC posts to GHL send-SMS API, delivered via GHL's Twilio backend. <span class="badge b-both">Both</span></div></div>
+
+  <div class="flow-step"><div class="flow-n">10</div><div class="flow-c"><strong>Deep analytics</strong> &mdash; For the per-link breakdown / best-time heatmap, you click &quot;Open in GoHighLevel&quot; on the campaign card. <span class="badge b-ghl">GHL</span></div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">8.</span> Build Plan &amp; Milestones</h2>
+
+<div class="screen-card">
+  <table>
+    <tr><th style="width:30%;">Milestone</th><th>Scope</th></tr>
+    <tr>
+      <td><strong>M0 &mdash; Prep</strong></td>
+      <td>GHL sub-account access confirmed, API keys provisioned, OAuth app created, existing GHL contacts inventoried, GoDaddy DNS screen-share booked.</td>
+    </tr>
+    <tr>
+      <td><strong>M1 &mdash; Foundation</strong></td>
+      <td>GHL OAuth + API client, DB migrations, contact sync engine, CSV/Excel import + contact list UI, existing-GHL-contacts initial sync.</td>
+    </tr>
+    <tr>
+      <td><strong>M2 &mdash; Campaigns (Email)</strong></td>
+      <td>Campaign wizard, HTML paste + preview, send / schedule / recurring via GHL API, campaign list with status + basic stats, webhook events wired.</td>
+    </tr>
+    <tr>
+      <td><strong>M3 &mdash; SMS + Inbox</strong></td>
+      <td>SMS campaign path, two-way inbox (threads list, conversation view, reply box), unread badges, STOP handling verification.</td>
+    </tr>
+    <tr>
+      <td><strong>M4 &mdash; Sequences Integration</strong></td>
+      <td>Sequences list mirrored from GHL, enroll-contact trigger, first sequence (Lead Nurture) configured inside GHL by me + handed over to you.</td>
+    </tr>
+    <tr>
+      <td><strong>M5 &mdash; Mini Dashboard + Polish</strong></td>
+      <td>Summary widgets, deep-links, permissions, audit log, error alerts, customer profile unification, UAT with you.</td>
+    </tr>
+    <tr>
+      <td><strong>M6 &mdash; Go Live</strong></td>
+      <td>SPF / DKIM / DMARC on cqvs.com.au via GoDaddy, production deploy, first live campaign supervised together, warm-up plan.</td>
+    </tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">9.</span> Risks &amp; Assumptions (So We Stay Honest)</h2>
+
+<div class="screen-card">
+  <ul>
+    <li><strong>Outbound SMS reply from CC</strong> depends on GHL exposing a reliable conversations-send API on your plan. If the Starter plan restricts that endpoint, the fallback is: reply inside GHL for SMS while everything else stays in CC. I'll validate this on Day 1 of M3.</li>
+    <li><strong>Rate limits:</strong> GHL API has per-minute limits. For a 2,000-contact blast, CC queues the request and GHL paces it &mdash; this is fine; I just flag it so you don't expect instantaneous sends.</li>
+    <li><strong>Vendor lock-in:</strong> Accepted trade-off. Your marketing data lives primarily in GHL. Local CC cache means the UI doesn't fall over if GHL is slow, but GHL is the source of truth.</li>
+    <li><strong>GHL pricing changes:</strong> Out of our control. Plan accordingly.</li>
+    <li><strong>DNS propagation:</strong> SPF/DKIM/DMARC can take up to 24 hours to propagate. First live send is scheduled after propagation verifies green.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">10.</span> Sign-Off</h2>
+
+<div class="box-green box">
+  <p><strong>This is the plan I'll build against.</strong> Please reply confirming:</p>
+  <ol>
+    <li>The ownership split in Section 3 looks right.</li>
+    <li>You're happy for sequences to be designed inside GHL (not rebuilt inside CC).</li>
+    <li>Deep analytics lives in GHL; CC shows a lightweight summary only.</li>
+    <li>The milestone scope in Section 8 covers what you expect.</li>
+  </ol>
+  <p>Once you confirm, I'll send the detailed quote with fixed milestone pricing.</p>
+</div>
+
+<div class="box-blue box">
+  Anything in here that doesn't match what we discussed &mdash; mark it up and send back. Easier to adjust the plan than to rework a build. Happy to jump on a 15-min call to walk through it live if you prefer.
+</div>
+
+<div class="footer">
+  <p>Chem Connect by CQVS &mdash; Marketing Module &mdash; GoHighLevel Final Integration Plan</p>
+  <p>Prepared by Sohaib | April 2026</p>
+  <p>Follows the Design Walkthrough + GoHighLevel Alternative Plan. Supersedes both on scope for the GHL track.</p>
+</div>
+
+</body>
+</html>

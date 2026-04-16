@@ -1,0 +1,3158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chem Connect — AI Sales Engine Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #070b16;
+  --bg2:      #0c1221;
+  --bg3:      #111827;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --text:     #e2e8f0;
+  --muted:    #64748b;
+  --dim:      #94a3b8;
+
+  --l1: #00d4b8;  /* AI Foundation — teal */
+  --l2: #818cf8;  /* Agent Orchestration — indigo */
+  --l3: #fb923c;  /* MCP Servers — orange */
+  --l4: #34d399;  /* Lead Generation — emerald */
+  --l5: #60a5fa;  /* CRM & Contacts — blue */
+  --l6: #f472b6;  /* Campaign Automation — pink */
+  --l7: #fbbf24;  /* Content Engine — amber */
+
+  --existing: #2dd4bf;
+  --new:      #a78bfa;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 2px; }
+
+/* ── LAYOUT ── */
+.app { display: flex; min-height: 100vh; }
+
+/* ── LEFT NAV ── */
+.sidenav {
+  width: 64px;
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  z-index: 100;
+  gap: 6px;
+}
+.sidenav-logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #00d4b8, #818cf8);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 14px; color: #fff;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+.nav-item {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  color: var(--muted);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.nav-item:hover, .nav-item.active {
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  border-color: var(--border);
+}
+.nav-item.active { color: var(--l1); border-color: rgba(0,212,184,0.2); background: rgba(0,212,184,0.06); }
+.nav-item svg { width: 16px; height: 16px; }
+.nav-tooltip {
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%; transform: translateY(-50%);
+  background: #1e293b;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11px; font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 200;
+}
+.nav-item:hover .nav-tooltip { opacity: 1; }
+.nav-divider { width: 24px; height: 1px; background: var(--border); margin: 6px 0; }
+
+/* ── MAIN ── */
+.main { margin-left: 64px; flex: 1; }
+
+/* ── SECTION ── */
+section {
+  padding: 80px 60px;
+  border-bottom: 1px solid var(--border);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 100px 60px 80px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0,212,184,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -100px; left: 20%;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(129,140,248,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(0,212,184,0.08);
+  border: 1px solid rgba(0,212,184,0.2);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  color: var(--l1);
+  margin-bottom: 28px;
+}
+.hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--l1); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -1px;
+  margin-bottom: 20px;
+}
+.hero h1 span {
+  background: linear-gradient(135deg, #00d4b8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 17px;
+  color: var(--dim);
+  max-width: 580px;
+  margin-bottom: 48px;
+  line-height: 1.7;
+}
+.hero-stats {
+  display: flex; gap: 40px;
+  flex-wrap: wrap;
+}
+.hero-stat { }
+.hero-stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 800;
+  color: #fff;
+}
+.hero-stat-label {
+  font-size: 12px; color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* ── SECTION HEADER ── */
+.section-label {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 40px;
+}
+.section-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  color: var(--muted);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px; font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.section-desc {
+  color: var(--dim);
+  font-size: 14px;
+  margin-top: 6px;
+  max-width: 600px;
+}
+
+/* ── EXISTING PLATFORM ── */
+.existing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.existing-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  transition: border-color 0.2s;
+}
+.existing-card:hover { border-color: var(--border2); }
+.existing-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.existing-card-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700;
+}
+.badge-live {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 600;
+  background: rgba(45,212,191,0.1);
+  color: #2dd4bf;
+  border: 1px solid rgba(45,212,191,0.2);
+  border-radius: 4px;
+  padding: 1px 6px;
+  text-transform: uppercase;
+}
+.badge-new {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 600;
+  background: rgba(167,139,250,0.1);
+  color: #a78bfa;
+  border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 4px;
+  padding: 1px 6px;
+  text-transform: uppercase;
+}
+.existing-card-path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.existing-card-desc {
+  font-size: 12px;
+  color: var(--dim);
+  line-height: 1.5;
+}
+
+/* ── DB SCHEMA ── */
+.schema-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+.schema-table {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.schema-table-name {
+  font-size: 11px; font-weight: 600;
+  color: var(--l5);
+  margin-bottom: 8px;
+}
+.schema-col {
+  font-size: 10px;
+  color: var(--muted);
+  padding: 1px 0;
+}
+.schema-col span { color: var(--dim); }
+
+/* ── ARCHITECTURE STACK ── */
+.arch-stack { display: flex; flex-direction: column; gap: 8px; }
+.layer-card {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.layer-card.open { border-color: var(--layer-color); }
+.layer-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  background: var(--bg2);
+  user-select: none;
+  transition: background 0.2s;
+}
+.layer-card:hover .layer-header, .layer-card.open .layer-header {
+  background: var(--bg3);
+}
+.layer-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.layer-card.open .layer-num {
+  background: color-mix(in srgb, var(--layer-color) 15%, transparent);
+  border-color: color-mix(in srgb, var(--layer-color) 30%, transparent);
+  color: var(--layer-color);
+}
+.layer-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 700;
+  flex: 1;
+}
+.layer-tools {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.layer-tool-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--muted);
+}
+.layer-card.open .layer-tool-tag {
+  background: color-mix(in srgb, var(--layer-color) 8%, transparent);
+  border-color: color-mix(in srgb, var(--layer-color) 20%, transparent);
+  color: color-mix(in srgb, var(--layer-color) 80%, white);
+}
+.layer-chevron {
+  width: 16px; height: 16px;
+  color: var(--muted);
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+.layer-card.open .layer-chevron { transform: rotate(180deg); color: var(--layer-color); }
+
+.layer-body {
+  display: none;
+  padding: 0 24px 24px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+}
+.layer-card.open .layer-body { display: block; }
+
+.layer-desc {
+  font-size: 13px;
+  color: var(--dim);
+  padding: 16px 0 20px;
+  line-height: 1.7;
+}
+
+.repo-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+.repo-mini {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.repo-mini:hover { border-color: var(--border2); transform: translateY(-1px); }
+.repo-mini-top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+.repo-mini-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 600;
+  color: #fff;
+}
+.repo-mini-name a {
+  color: inherit;
+  text-decoration: none;
+}
+.repo-mini-name a:hover { color: var(--layer-color, var(--l1)); }
+.priority-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.priority-badge.high { background: rgba(0,212,184,0.12); color: #00d4b8; border: 1px solid rgba(0,212,184,0.2); }
+.priority-badge.med  { background: rgba(251,191,36,0.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+.priority-badge.low  { background: rgba(100,116,139,0.1); color: #64748b; border: 1px solid rgba(100,116,139,0.2); }
+
+.repo-mini-desc {
+  font-size: 12px;
+  color: var(--dim);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.repo-mini-plug {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 8px;
+  line-height: 1.6;
+}
+.repo-mini-plug .path { color: var(--l4); }
+.repo-mini-badges {
+  display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap;
+}
+.stack-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ── INTEGRATION MAP ── */
+.integration-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 900px) { .integration-cols { grid-template-columns: 1fr; } }
+
+.int-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.int-panel-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.int-panel-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.int-panel-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700;
+}
+.int-panel-sub {
+  font-size: 11px; color: var(--muted); margin-left: auto;
+}
+.int-panel-body { padding: 16px 18px; }
+
+.file-tree { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.file-tree-line {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 0;
+  color: var(--muted);
+}
+.file-tree-line.dir { color: var(--l5); }
+.file-tree-line.existing { color: var(--dim); }
+.file-tree-line.new-file { color: var(--l2); }
+.file-tree-line.new-file::after {
+  content: '← NEW';
+  font-size: 9px; font-weight: 700;
+  color: var(--l2);
+  margin-left: 8px;
+  opacity: 0.7;
+}
+.file-tree-line.modified { color: var(--l7); }
+.file-tree-line.modified::after {
+  content: '← EXTEND';
+  font-size: 9px; font-weight: 700;
+  color: var(--l7);
+  margin-left: 8px;
+  opacity: 0.7;
+}
+.indent1 { padding-left: 14px; }
+.indent2 { padding-left: 28px; }
+.indent3 { padding-left: 42px; }
+
+.env-table { width: 100%; }
+.env-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.env-row:last-child { border-bottom: none; }
+.env-key {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--l4);
+}
+.env-val {
+  font-size: 11px; color: var(--muted);
+}
+
+.db-new-table {
+  background: var(--bg3);
+  border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.db-new-table-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  color: var(--l2);
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.db-new-table-name::after {
+  content: 'NEW TABLE';
+  font-size: 9px;
+  background: rgba(167,139,250,0.1);
+  color: var(--l2);
+  border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.db-col {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  padding: 2px 0;
+  display: flex; gap: 8px;
+}
+.db-col .col-name { color: var(--dim); min-width: 140px; }
+.db-col .col-type { color: var(--l3); }
+.db-col .col-note { color: var(--muted); opacity: 0.7; }
+
+/* ── ROADMAP ── */
+.phases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 800px) { .phases { grid-template-columns: 1fr; } }
+
+.phase-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.phase-card:hover { border-color: var(--border2); }
+.phase-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--phase-color, var(--l1));
+}
+.phase-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  color: var(--phase-color, var(--l1));
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.phase-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 700;
+  margin-bottom: 6px;
+}
+.phase-timeline {
+  font-size: 12px; color: var(--muted);
+  margin-bottom: 20px;
+}
+.phase-items { list-style: none; }
+.phase-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; color: var(--dim);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.4;
+}
+.phase-item:last-child { border-bottom: none; }
+.phase-item::before {
+  content: '→';
+  color: var(--phase-color, var(--l1));
+  font-size: 11px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* ── FOOTER ── */
+.doc-footer {
+  text-align: center;
+  padding: 40px 60px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate { animation: fadeUp 0.5s ease forwards; }
+
+/* ── FILTER TABS ── */
+.filter-bar {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.filter-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn:hover { border-color: var(--border2); color: var(--text); }
+.filter-btn.active {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border2);
+  color: var(--text);
+}
+
+/* ── CALLOUT ── */
+.callout {
+  background: rgba(0,212,184,0.05);
+  border: 1px solid rgba(0,212,184,0.15);
+  border-left: 3px solid var(--l1);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: var(--dim);
+  margin: 20px 0;
+  line-height: 1.7;
+}
+.callout strong { color: var(--text); }
+
+/* ── SECTION DIVIDER ── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 32px 0;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .sidenav { display: none; }
+  .main { margin-left: 0; }
+  section { padding: 50px 24px; }
+  .hero { padding: 60px 24px 50px; }
+  .phases { grid-template-columns: 1fr; }
+  .integration-cols { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════
+   ADMIN MOCKUP — exact Chem Connect dark theme
+   Colors from globals.css dark mode
+═══════════════════════════════════════════════ */
+:root {
+  --adm-bg:        hsl(208,50%,15%);
+  --adm-card:      hsl(208,45%,18%);
+  --adm-sidebar:   hsl(208,48%,13%);
+  --adm-border:    hsl(208,30%,26%);
+  --adm-fg:        hsl(210,20%,92%);
+  --adm-muted:     hsl(210,15%,58%);
+  --adm-primary:   hsl(142,76%,56%);
+  --adm-primary-fg:hsl(208,50%,10%);
+  --adm-muted-bg:  hsl(208,35%,22%);
+  --adm-radius:    0.75rem;
+}
+
+.admin-shell-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-top: 28px;
+}
+.admin-chrome {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.chrome-dots { display: flex; gap: 5px; }
+.chrome-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.chrome-url {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--muted);
+  flex: 1; max-width: 400px;
+}
+.chrome-page-tabs {
+  display: flex; gap: 4px; margin-left: auto;
+}
+.chrome-page-tab {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chrome-page-tab:hover { color: var(--text); border-color: var(--border2); }
+.chrome-page-tab.active {
+  background: rgba(74,222,128,0.1);
+  border-color: rgba(74,222,128,0.25);
+  color: #4ade80;
+}
+
+/* Admin shell body */
+.admin-shell {
+  display: flex;
+  height: 620px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  background: var(--adm-bg);
+  color: var(--adm-fg);
+  overflow: hidden;
+}
+
+/* Sidebar */
+.adm-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--adm-sidebar);
+  border-right: 1px solid var(--adm-border);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.adm-sidebar::-webkit-scrollbar { width: 3px; }
+.adm-sidebar::-webkit-scrollbar-thumb { background: var(--adm-border); }
+.adm-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--adm-border);
+}
+.adm-brand-logo {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, hsl(142,76%,56%), hsl(142,76%,40%));
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 11px; color: hsl(208,50%,10%);
+}
+.adm-brand-text { font-size: 14px; font-weight: 600; }
+.adm-brand-badge {
+  font-size: 9px; font-weight: 600;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--adm-muted);
+  text-transform: uppercase;
+}
+.adm-nav { padding: 10px 10px; flex: 1; }
+.adm-nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--adm-muted);
+  font-size: 13px; font-weight: 500;
+  transition: all 0.15s;
+  margin-bottom: 1px;
+  text-decoration: none;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.adm-nav-item:hover { background: var(--adm-muted-bg); color: var(--adm-fg); }
+.adm-nav-item.active {
+  background: hsla(142,76%,56%,0.10);
+  color: hsl(142,76%,56%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.adm-nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.adm-nav-section-label {
+  font-size: 10px; font-weight: 600;
+  color: var(--adm-muted);
+  text-transform: uppercase; letter-spacing: 0.6px;
+  padding: 10px 10px 4px;
+  opacity: 0.7;
+}
+.adm-nav-new-badge {
+  margin-left: auto;
+  font-size: 8px; font-weight: 700;
+  background: hsla(142,76%,56%,0.15);
+  color: hsl(142,76%,56%);
+  border: 1px solid hsla(142,76%,56%,0.25);
+  border-radius: 3px; padding: 1px 5px;
+  text-transform: uppercase;
+}
+.adm-nav-sub-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px 6px 34px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--adm-muted);
+  font-size: 12px;
+  transition: all 0.15s;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.adm-nav-sub-item:hover { background: var(--adm-muted-bg); color: var(--adm-fg); }
+.adm-nav-sub-item.active { color: hsl(142,76%,56%); }
+
+.adm-user {
+  padding: 12px 14px;
+  border-top: 1px solid var(--adm-border);
+  display: flex; align-items: center; gap: 10px;
+}
+.adm-avatar {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, hsl(142,76%,56%), hsl(142,76%,40%));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  color: hsl(208,50%,10%);
+  flex-shrink: 0;
+}
+.adm-user-name { font-size: 12px; font-weight: 500; }
+.adm-user-email { font-size: 11px; color: var(--adm-muted); }
+
+/* Main content */
+.adm-main {
+  flex: 1;
+  background: var(--adm-bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.adm-main::-webkit-scrollbar { width: 4px; }
+.adm-main::-webkit-scrollbar-thumb { background: var(--adm-border); }
+.adm-content { padding: 24px 28px; }
+.adm-page { display: none; }
+.adm-page.active { display: block; }
+
+/* Page header */
+.adm-page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.adm-page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+.adm-page-desc { font-size: 13px; color: var(--adm-muted); margin-top: 2px; }
+.adm-actions { display: flex; gap: 8px; align-items: center; }
+
+/* Buttons */
+.adm-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border-radius: calc(var(--adm-radius) * 0.6);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; border: none;
+  transition: all 0.15s; font-family: 'Roboto', sans-serif;
+  white-space: nowrap;
+}
+.adm-btn-primary {
+  background: hsl(142,76%,56%);
+  color: hsl(208,50%,10%);
+}
+.adm-btn-primary:hover { background: hsl(142,76%,50%); }
+.adm-btn-outline {
+  background: transparent;
+  border: 1px solid var(--adm-border);
+  color: var(--adm-fg);
+}
+.adm-btn-outline:hover { background: var(--adm-muted-bg); }
+.adm-btn-ghost {
+  background: transparent; color: var(--adm-muted);
+  padding: 6px 10px;
+}
+.adm-btn-ghost:hover { background: var(--adm-muted-bg); color: var(--adm-fg); }
+.adm-btn svg { width: 14px; height: 14px; }
+
+/* Stats grid */
+.adm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.adm-stat-card {
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  padding: 14px 16px;
+}
+.adm-stat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.adm-stat-label { font-size: 12px; font-weight: 500; color: var(--adm-muted); }
+.adm-stat-icon {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.adm-stat-icon svg { width: 14px; height: 14px; }
+.adm-stat-value { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+.adm-stat-trend {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: hsl(142,76%,56%); margin-top: 4px;
+}
+
+/* Cards */
+.adm-card {
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  overflow: hidden;
+}
+.adm-card-header {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--adm-border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.adm-card-title { font-size: 14px; font-weight: 600; }
+.adm-card-desc { font-size: 12px; color: var(--adm-muted); margin-top: 1px; }
+.adm-card-body { padding: 0; }
+
+/* Tables */
+.adm-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.adm-table th {
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 11px; font-weight: 600;
+  color: var(--adm-muted);
+  border-bottom: 1px solid var(--adm-border);
+  white-space: nowrap;
+}
+.adm-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid hsla(208,30%,26%,0.5);
+  vertical-align: middle;
+}
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: hsla(208,35%,22%,0.5); }
+.adm-table .font-medium { font-weight: 500; }
+.adm-table .text-muted { color: var(--adm-muted); }
+.adm-table .font-mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+/* Badges */
+.adm-badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-size: 10px; font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.adm-badge-green { background: rgba(74,222,128,0.1); color: #4ade80; border-color: rgba(74,222,128,0.2); }
+.adm-badge-blue  { background: rgba(96,165,250,0.1); color: #60a5fa; border-color: rgba(96,165,250,0.2); }
+.adm-badge-amber { background: rgba(251,191,36,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.2); }
+.adm-badge-purple{ background: rgba(167,139,250,0.1);color: #a78bfa; border-color: rgba(167,139,250,0.2); }
+.adm-badge-red   { background: rgba(248,113,113,0.1);color: #f87171; border-color: rgba(248,113,113,0.2); }
+.adm-badge-gray  { background: rgba(148,163,184,0.1);color: #94a3b8; border-color: rgba(148,163,184,0.2); }
+.adm-badge-emerald{background: rgba(52,211,153,0.1); color: #34d399; border-color: rgba(52,211,153,0.2); }
+
+/* Lead score bar */
+.lead-score-wrap { display: flex; align-items: center; gap: 7px; }
+.lead-score-bar { width: 42px; height: 5px; background: var(--adm-muted-bg); border-radius: 3px; overflow: hidden; }
+.lead-score-fill { height: 100%; border-radius: 3px; }
+.lead-score-num { font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+/* Two col layout */
+.adm-two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+
+/* Filter bar */
+.adm-filter-bar {
+  display: flex; gap: 8px; align-items: center;
+  padding: 12px 0 14px;
+  flex-wrap: wrap;
+}
+.adm-filter-select {
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: 7px;
+  padding: 5px 28px 5px 10px;
+  font-size: 12px; color: var(--adm-fg);
+  font-family: 'Roboto', sans-serif;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+.adm-filter-search {
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 12px; color: var(--adm-fg);
+  font-family: 'Roboto', sans-serif;
+  width: 180px;
+}
+.adm-filter-search::placeholder { color: var(--adm-muted); }
+.adm-filter-search:focus, .adm-filter-select:focus {
+  outline: none;
+  border-color: hsl(142,76%,56%);
+  box-shadow: 0 0 0 2px hsla(142,76%,56%,0.15);
+}
+
+/* Campaign builder */
+.builder-steps {
+  display: flex; align-items: center; gap: 0;
+  margin-bottom: 24px;
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  padding: 12px 16px;
+  overflow-x: auto;
+}
+.builder-step {
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.builder-step-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  border: 2px solid var(--adm-border);
+  color: var(--adm-muted);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.builder-step.done .builder-step-num {
+  background: hsl(142,76%,56%);
+  border-color: hsl(142,76%,56%);
+  color: hsl(208,50%,10%);
+}
+.builder-step.active .builder-step-num {
+  border-color: hsl(142,76%,56%);
+  color: hsl(142,76%,56%);
+}
+.builder-step-label { font-size: 12px; font-weight: 500; color: var(--adm-muted); }
+.builder-step.active .builder-step-label { color: var(--adm-fg); }
+.builder-step.done .builder-step-label { color: var(--adm-muted); }
+.builder-step-arrow {
+  margin: 0 10px;
+  color: var(--adm-border);
+  font-size: 12px;
+}
+.builder-step-content {
+  display: none;
+}
+.builder-step-content.active { display: block; }
+
+/* AI variant picker */
+.variants-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 10px; margin-top: 16px;
+}
+@media (max-width: 1100px) {
+  .variants-grid { grid-template-columns: repeat(3, 1fr); }
+  .adm-stats { grid-template-columns: repeat(2, 1fr); }
+}
+.variant-card {
+  background: var(--adm-card);
+  border: 2px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.variant-card:hover { border-color: hsl(208,40%,40%); transform: translateY(-2px); }
+.variant-card.selected {
+  border-color: hsl(142,76%,56%);
+  background: hsla(142,76%,56%,0.04);
+  box-shadow: 0 0 0 3px hsla(142,76%,56%,0.12);
+}
+.variant-card.selected::before {
+  content: '✓';
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 18px; height: 18px;
+  background: hsl(142,76%,56%);
+  color: hsl(208,50%,10%);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+}
+.variant-framework {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.variant-score {
+  float: right;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700;
+}
+.variant-subject {
+  font-size: 11px; font-weight: 600;
+  margin-bottom: 6px;
+  line-height: 1.3;
+  color: var(--adm-fg);
+}
+.variant-preview {
+  font-size: 10px;
+  color: var(--adm-muted);
+  line-height: 1.5;
+  margin-bottom: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.variant-select-btn {
+  width: 100%;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid var(--adm-border);
+  background: var(--adm-muted-bg);
+  color: var(--adm-muted);
+  font-size: 11px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Roboto', sans-serif;
+}
+.variant-card.selected .variant-select-btn {
+  background: hsl(142,76%,56%);
+  border-color: hsl(142,76%,56%);
+  color: hsl(208,50%,10%);
+  font-weight: 600;
+}
+.variant-card:hover .variant-select-btn { border-color: hsl(208,40%,40%); color: var(--adm-fg); }
+
+/* Generate state */
+.generate-loading {
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px;
+  gap: 14px;
+}
+.generate-loading.visible { display: flex; }
+.gen-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--adm-border);
+  border-top-color: hsl(142,76%,56%);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.gen-label { font-size: 13px; color: var(--adm-muted); }
+.gen-steps-list { font-size: 11px; color: var(--adm-muted); text-align: center; line-height: 2; font-family: 'JetBrains Mono', monospace; }
+.gen-step-done { color: hsl(142,76%,56%); }
+
+/* AI prompt area */
+.ai-prompt-area {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 10px; align-items: flex-end;
+  margin-bottom: 14px;
+}
+.ai-prompt-label { font-size: 11px; color: var(--adm-muted); margin-bottom: 5px; font-weight: 500; }
+.ai-prompt-input {
+  width: 100%;
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 12px;
+  color: var(--adm-fg);
+  font-family: 'Roboto', sans-serif;
+  resize: none; height: 70px;
+}
+.ai-prompt-input:focus { outline: none; border-color: hsl(142,76%,56%); }
+.ai-context-tags { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+.ai-context-tag {
+  font-size: 10px;
+  background: hsla(142,76%,56%,0.1);
+  border: 1px solid hsla(142,76%,56%,0.2);
+  color: hsl(142,76%,56%);
+  border-radius: 4px; padding: 2px 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Audience step */
+.audience-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.segment-picker {
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  padding: 14px;
+}
+.segment-picker-title { font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--adm-muted); text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; }
+.segment-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--adm-border);
+  background: var(--adm-muted-bg);
+  color: var(--adm-muted);
+  font-size: 11px; cursor: pointer;
+  margin: 3px 3px 3px 0;
+  transition: all 0.15s;
+}
+.segment-tag:hover { border-color: hsl(142,76%,56%); color: var(--adm-fg); }
+.segment-tag.selected {
+  background: hsla(142,76%,56%,0.12);
+  border-color: hsl(142,76%,56%);
+  color: hsl(142,76%,56%);
+}
+.audience-preview {
+  background: var(--adm-muted-bg);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  padding: 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.audience-count {
+  font-size: 28px; font-weight: 700;
+  color: hsl(142,76%,56%);
+  font-family: 'JetBrains Mono', monospace;
+}
+.audience-desc { font-size: 12px; color: var(--adm-muted); }
+
+/* Schedule step */
+.schedule-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.schedule-option {
+  background: var(--adm-card);
+  border: 2px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.schedule-option:hover { border-color: hsl(208,40%,40%); }
+.schedule-option.selected { border-color: hsl(142,76%,56%); background: hsla(142,76%,56%,0.04); }
+.schedule-option-icon { font-size: 22px; margin-bottom: 6px; }
+.schedule-option-label { font-size: 12px; font-weight: 600; }
+.schedule-option-desc { font-size: 10px; color: var(--adm-muted); margin-top: 3px; }
+
+/* Review step */
+.review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.review-item {
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: 8px; padding: 12px 14px;
+}
+.review-item-label { font-size: 10px; font-weight: 600; color: var(--adm-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.review-item-value { font-size: 13px; font-weight: 500; }
+.review-email-preview {
+  background: var(--adm-muted-bg);
+  border: 1px solid var(--adm-border);
+  border-radius: 8px; padding: 12px 14px;
+  margin-top: 14px; grid-column: 1 / -1;
+}
+
+/* Quick actions card */
+.quick-actions { display: flex; flex-direction: column; gap: 6px; padding: 14px; }
+.quick-action-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: var(--adm-muted-bg);
+  border: 1px solid transparent;
+  color: var(--adm-fg);
+  font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  font-family: 'Roboto', sans-serif; text-align: left;
+  width: 100%;
+}
+.quick-action-btn:hover { background: hsl(208,40%,28%); border-color: var(--adm-border); }
+.quick-action-btn svg { width: 14px; height: 14px; flex-shrink: 0; color: hsl(142,76%,56%); }
+
+/* Builder nav */
+.builder-nav {
+  display: flex; justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--adm-border);
+}
+
+/* ═══════════════════════════════════════════════
+   USER JOURNEY FLOWS
+═══════════════════════════════════════════════ */
+.journey-tabs {
+  display: flex; gap: 4px; margin-bottom: 24px;
+}
+.journey-tab {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer; transition: all 0.15s;
+}
+.journey-tab:hover { color: var(--text); border-color: var(--border2); }
+.journey-tab.active {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border2);
+  color: var(--text);
+}
+.journey-flow { display: none; }
+.journey-flow.active { display: block; }
+
+.flow-steps {
+  display: flex; align-items: stretch;
+  gap: 0; overflow-x: auto; padding-bottom: 8px;
+}
+.flow-step {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  min-width: 160px; max-width: 180px;
+  flex-shrink: 0;
+  position: relative;
+}
+.flow-step.trigger { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.04); }
+.flow-step.ai-step { border-color: rgba(129,140,248,0.3); background: rgba(129,140,248,0.04); }
+.flow-step.human { border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.04); }
+.flow-step.send { border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.04); }
+.flow-step.outcome { border-color: rgba(0,212,184,0.3); background: rgba(0,212,184,0.04); }
+.flow-step-icon { font-size: 20px; margin-bottom: 6px; }
+.flow-step-title { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+.flow-step-desc { font-size: 11px; color: var(--dim); line-height: 1.4; }
+.flow-step-badge {
+  margin-top: 8px;
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+.flow-arrow {
+  display: flex; align-items: center;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+.flow-arrow svg { width: 20px; height: 20px; color: var(--border2); }
+
+/* Behaviour callouts */
+.behaviour-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 14px; margin-top: 14px;
+}
+.behaviour-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+.behaviour-card:hover { border-color: var(--border2); }
+.behaviour-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+.behaviour-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.behaviour-desc { font-size: 13px; color: var(--dim); line-height: 1.6; }
+.behaviour-detail {
+  margin-top: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 10px;
+  line-height: 1.7;
+}
+
+/* Transition hint */
+.existing-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--existing);
+  background: rgba(45,212,191,0.08);
+  border: 1px solid rgba(45,212,191,0.2);
+  border-radius: 4px; padding: 2px 8px;
+}
+.new-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--new);
+  background: rgba(167,139,250,0.08);
+  border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 4px; padding: 2px 8px;
+}
+.integration-line {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.integration-line:last-child { border-bottom: none; }
+.integration-line .il-from { color: var(--existing); font-family: 'JetBrains Mono', monospace; font-size: 11px; min-width: 200px; }
+.integration-line .il-arrow { color: var(--muted); }
+.integration-line .il-to { color: var(--new); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.integration-line .il-desc { color: var(--dim); margin-left: auto; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── LEFT NAV ── -->
+<nav class="sidenav">
+  <div class="sidenav-logo">CC</div>
+  <a href="#hero" class="nav-item active" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    <span class="nav-tooltip">Overview</span>
+  </a>
+  <a href="#existing" class="nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+    <span class="nav-tooltip">Current Platform</span>
+  </a>
+  <a href="#architecture" class="nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    <span class="nav-tooltip">Architecture</span>
+  </a>
+  <a href="#repos" class="nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    <span class="nav-tooltip">Repo Library</span>
+  </a>
+  <a href="#integration" class="nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    <span class="nav-tooltip">Integration Map</span>
+  </a>
+  <a href="#roadmap" class="nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    <span class="nav-tooltip">Build Roadmap</span>
+  </a>
+  <a href="#ui-mockups" class="nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    <span class="nav-tooltip">UI Mockups</span>
+  </a>
+  <a href="#journeys" class="nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    <span class="nav-tooltip">User Journeys</span>
+  </a>
+  <div class="nav-divider"></div>
+</nav>
+
+<!-- ── MAIN CONTENT ── -->
+<main class="main">
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero" id="hero">
+  <div class="hero-eyebrow">AI SALES ENGINE BLUEPRINT · APRIL 2026</div>
+  <h1>Chem Connect<br><span>AI Sales Engine</span></h1>
+  <p class="hero-sub">A complete technical blueprint for transforming Chem Connect into Australia's most intelligent B2B chemical marketplace — with autonomous lead generation, AI-powered content, and behaviour-triggered campaigns built directly into the existing platform.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-num">7</div>
+      <div class="hero-stat-label">Architecture Layers</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">30+</div>
+      <div class="hero-stat-label">Open Source Repos</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">3</div>
+      <div class="hero-stat-label">Build Phases</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">100%</div>
+      <div class="hero-stat-label">TypeScript Native</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ EXISTING PLATFORM ══════════ -->
+<section id="existing">
+  <div class="section-label">
+    <span class="section-num">01</span>
+    <span class="section-title">What's Already Built</span>
+  </div>
+  <p class="section-desc">Before adding anything new, here's a complete map of the existing Chem Connect platform — every integration, every admin page, every table.</p>
+
+  <div class="callout">
+    <strong>Stack:</strong> Next.js 16.1.7 (App Router, Turbopack) · React 19 · TypeScript 5.9 · Tailwind CSS v4 · shadcn/ui · Supabase (PostgreSQL + Auth) · Stripe · Mailgun · MacShip · Xero · Framer Motion · TanStack Query · Zod · Deployed on Vercel
+  </div>
+
+  <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--dim);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">Admin Pages</h3>
+  <div class="existing-grid">
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Overview</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin</div><div class="existing-card-desc">Dashboard with key metrics, order counts, revenue snapshot</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Users</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin/users</div><div class="existing-card-desc">Customer accounts, roles, profile management</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Products</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin/products</div><div class="existing-card-desc">Full product CRUD, images, SDS docs, pricing by packaging</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Orders</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin/orders</div><div class="existing-card-desc">Full order lifecycle, approval flow, Xero invoice sync</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Quotes</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin/quotes</div><div class="existing-card-desc">Quote requests from customers, status management</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Rewards</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin/rewards</div><div class="existing-card-desc">Tiers (Bronze/Silver/Gold), stamps, bundles, referrals, rebates, promotions</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Analytics</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin/analytics</div><div class="existing-card-desc">Revenue charts, product performance, customer behaviour via Recharts</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Warehouses</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin/warehouses</div><div class="existing-card-desc">Multi-warehouse management, container costs, pallet capacity</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">MacShip</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin/macship</div><div class="existing-card-desc">Shipping quotes, manifests, labels, tracking sync, lead times</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Xero</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin/xero</div><div class="existing-card-desc">OAuth connection, invoice creation, PO creation, contact sync, logs</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Settings</span><span class="badge-live">Live</span></div><div class="existing-card-path">/admin/settings</div><div class="existing-card-desc">Email notifications toggle, support email, processing fees, Stripe keys</div></div>
+    <div class="existing-card" style="border-color:rgba(167,139,250,0.3)"><div class="existing-card-header"><span class="existing-card-name">Marketing</span><span class="badge-new">To Build</span></div><div class="existing-card-path">/admin/marketing</div><div class="existing-card-desc">Contacts, campaigns, AI content, lead generation, analytics</div></div>
+  </div>
+
+  <hr class="divider">
+  <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--dim);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">Key Integrations Already Live</h3>
+  <div class="existing-grid">
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Mailgun</span><span class="badge-live">Integrated</span></div><div class="existing-card-path">lib/email/send.ts</div><div class="existing-card-desc">Custom sendEmail() + buildEmailHtml() already wired. Just needs bulk/campaign layer on top.</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Stripe</span><span class="badge-live">Integrated</span></div><div class="existing-card-path">app/api/webhooks/stripe/</div><div class="existing-card-desc">Payments + webhooks. Webhook events can trigger marketing automations.</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Supabase Auth</span><span class="badge-live">Integrated</span></div><div class="existing-card-path">lib/supabase/*</div><div class="existing-card-desc">Auth, service role client, middleware, RLS policies all set up.</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">MacShip API</span><span class="badge-live">Integrated</span></div><div class="existing-card-path">lib/macship/*</div><div class="existing-card-desc">Full shipping integration. Lead times, warehouse selector, pallet consolidation.</div></div>
+    <div class="existing-card"><div class="existing-card-header"><span class="existing-card-name">Xero OAuth</span><span class="badge-live">Integrated</span></div><div class="existing-card-path">app/api/auth/xero/*</div><div class="existing-card-desc">Full invoice + PO + contact sync. xero_contact_id already on profiles table.</div></div>
+  </div>
+
+  <hr class="divider">
+  <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--dim);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">Database Tables (29 Migrations)</h3>
+  <div class="schema-grid">
+    <div class="schema-table"><div class="schema-table-name">profiles</div><div class="schema-col"><span>contact_name</span> text</div><div class="schema-col"><span>company_name</span> text</div><div class="schema-col"><span>state</span> text</div><div class="schema-col"><span>invoice_email</span> text</div><div class="schema-col"><span>xero_contact_id</span> text</div><div class="schema-col"><span>role</span> enum</div></div>
+    <div class="schema-table"><div class="schema-table-name">orders</div><div class="schema-col"><span>order_number</span> text</div><div class="schema-col"><span>status</span> enum</div><div class="schema-col"><span>payment_method</span> enum</div><div class="schema-col"><span>warehouse_id</span> uuid</div><div class="schema-col"><span>xero_invoice_id</span> text</div><div class="schema-col"><span>tracking_number</span> text</div></div>
+    <div class="schema-table"><div class="schema-table-name">products</div><div class="schema-col"><span>name</span> text</div><div class="schema-col"><span>slug</span> text</div><div class="schema-col"><span>category</span> text</div><div class="schema-col"><span>classification</span> text</div><div class="schema-col"><span>is_active</span> bool</div></div>
+    <div class="schema-table"><div class="schema-table-name">customer_rewards</div><div class="schema-col"><span>current_tier</span> text</div><div class="schema-col"><span>current_month_spend</span> num</div><div class="schema-col"><span>annual_spend</span> num</div><div class="schema-col"><span>total_stamps</span> int</div><div class="schema-col"><span>referral_count</span> int</div></div>
+    <div class="schema-table"><div class="schema-table-name">warehouses</div><div class="schema-col"><span>name</span> text</div><div class="schema-col"><span>state</span> text</div><div class="schema-col"><span>postcode</span> text</div><div class="schema-col"><span>is_active</span> bool</div></div>
+    <div class="schema-table"><div class="schema-table-name">admin_settings</div><div class="schema-col"><span>key</span> text</div><div class="schema-col"><span>value</span> text</div><div class="schema-col" style="color:var(--l1);font-size:10px;">Used by sendEmail() for support_email, email_notifications_enabled</div></div>
+    <div class="schema-table" style="border-color:rgba(167,139,250,0.2)"><div class="schema-table-name" style="color:var(--l2)">contacts ← NEW</div><div class="schema-col"><span>company_name</span> text</div><div class="schema-col"><span>state</span> text</div><div class="schema-col"><span>industry</span> text</div><div class="schema-col"><span>abn</span> text</div><div class="schema-col"><span>lead_score</span> int</div></div>
+    <div class="schema-table" style="border-color:rgba(167,139,250,0.2)"><div class="schema-table-name" style="color:var(--l2)">campaigns ← NEW</div><div class="schema-col"><span>name</span> text</div><div class="schema-col"><span>type</span> enum</div><div class="schema-col"><span>status</span> enum</div><div class="schema-col"><span>segment_filter</span> jsonb</div><div class="schema-col"><span>ai_variants</span> jsonb</div></div>
+  </div>
+</section>
+
+<!-- ══════════ ARCHITECTURE ══════════ -->
+<section id="architecture">
+  <div class="section-label">
+    <span class="section-num">02</span>
+    <span class="section-title">7-Layer Architecture</span>
+  </div>
+  <p class="section-desc">Click any layer to expand it and see which repos power it, how they connect to Chem Connect, and where each one plugs into the existing codebase.</p>
+
+  <div class="callout">
+    <strong>How to read this:</strong> Each layer builds on the one below it. Layer 1 (AI Foundation) powers everything. Layers 3–4 feed data into Layer 5 (CRM). Layers 5–6 drive Layer 7 (Content Engine). The result is a fully autonomous loop: discover leads → enrich → score → generate content → send → track → follow up.
+  </div>
+
+  <div class="arch-stack">
+
+    <!-- L1 -->
+    <div class="layer-card" style="--layer-color: var(--l1)" onclick="toggleLayer(this)">
+      <div class="layer-header">
+        <div class="layer-num">L1</div>
+        <div style="flex:1">
+          <div class="layer-title" style="color:var(--l1)">AI Foundation</div>
+        </div>
+        <div class="layer-tools">
+          <span class="layer-tool-tag">Vercel AI SDK</span>
+          <span class="layer-tool-tag">Claude Agent SDK</span>
+          <span class="layer-tool-tag">Supabase pgvector</span>
+        </div>
+        <svg class="layer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="layer-body">
+        <p class="layer-desc">The base layer that powers all Claude API calls — content generation, lead scoring, email drafting, RAG over your chemical product data. Every AI feature in the platform flows through this layer. This is the first thing Sohaib installs.</p>
+        <div class="repo-mini-grid">
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/vercel/ai" target="_blank">vercel/ai</a></div><span class="priority-badge high">INSTALL FIRST</span></div>
+            <div class="repo-mini-desc">Official Vercel AI SDK. generateText(), streamText(), generateObject() with Zod schemas, streaming UI hooks. The single integration point for all Claude calls in Next.js.</div>
+            <div class="repo-mini-plug">npm install ai @ai-sdk/anthropic<br><span class="path">→ lib/ai/client.ts</span> (new)<br><span class="path">→ app/api/ai/generate/route.ts</span> (new)</div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">23,400★</span><span class="stack-tag">Vercel Official</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/anthropics/claude-agent-sdk-typescript" target="_blank">claude-agent-sdk-ts</a></div><span class="priority-badge high">HIGH</span></div>
+            <div class="repo-mini-desc">Official Anthropic SDK powering Claude Code. Sub-agent spawning, budget controls (max_budget_usd), 1M token context, file checkpointing. Powers the autonomous lead research loop.</div>
+            <div class="repo-mini-plug">npm install @anthropic-ai/claude-code<br><span class="path">→ lib/ai/agents/researcher.ts</span> (new)<br><span class="path">→ ANTHROPIC_API_KEY</span> env var</div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">Anthropic Official</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name">supabase pgvector</div><span class="priority-badge med">MEDIUM</span></div>
+            <div class="repo-mini-desc">Native vector database in your existing Supabase. Store embeddings of chemical product specs, MSDS sheets, pricing. RAG ensures Claude generates technically accurate content — no hallucinated specs.</div>
+            <div class="repo-mini-plug">Enable pgvector extension in Supabase<br><span class="path">→ supabase/migrations/030_vectors.sql</span><br><span class="path">→ lib/ai/rag.ts</span> (new)</div>
+            <div class="repo-mini-badges"><span class="stack-tag">SQL</span><span class="stack-tag">Already on Supabase</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L2 -->
+    <div class="layer-card" style="--layer-color: var(--l2)" onclick="toggleLayer(this)">
+      <div class="layer-header">
+        <div class="layer-num">L2</div>
+        <div style="flex:1"><div class="layer-title" style="color:var(--l2)">Agent Orchestration</div></div>
+        <div class="layer-tools">
+          <span class="layer-tool-tag">Mastra</span>
+          <span class="layer-tool-tag">LangGraph.js</span>
+          <span class="layer-tool-tag">ai-sales-team-claude</span>
+          <span class="layer-tool-tag">gtm-agents</span>
+        </div>
+        <svg class="layer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="layer-body">
+        <p class="layer-desc">Multi-agent workflows that orchestrate the autonomous sales process. The key capability here is <strong style="color:var(--text)">human-in-the-loop</strong> — Claude generates 5 email variants, workflow pauses, you approve or edit one, then it resumes and sends. Critical for keeping you in control while automating the heavy lifting.</p>
+        <div class="repo-mini-grid">
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/mastra-ai/mastra" target="_blank">mastra-ai/mastra</a></div><span class="priority-badge high">HIGH</span></div>
+            <div class="repo-mini-desc">TypeScript-first agent framework (YC W25, $13M raised). Durable workflows with suspend/resume for human approval. RAG pipelines, agent memory, evals. Deploys to Vercel.</div>
+            <div class="repo-mini-plug">npm install @mastra/core<br><span class="path">→ lib/ai/mastra/workflows.ts</span><br><span class="path">→ lib/ai/mastra/agents/</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">22,000★</span><span class="stack-tag">Vercel-ready</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/zubair-trabzada/ai-sales-team-claude" target="_blank">ai-sales-team-claude</a></div><span class="priority-badge high">YOUR REPO</span></div>
+            <div class="repo-mini-desc">14 skills, 5 parallel agents. ICP builder → prospect research → BANT/MEDDIC qualification → decision-maker mapping → outreach sequences (Observation→Connection→Ask) → proposal generator with pricing → PDF pipeline reports.</div>
+            <div class="repo-mini-plug">Adapt skills as Mastra agent tools<br><span class="path">→ lib/ai/agents/sales-team/</span><br>ICP: concrete plant managers, quarry operators, fleet coordinators</div>
+            <div class="repo-mini-badges"><span class="stack-tag">Python/adapt</span><span class="stack-tag">Your pick</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/gtmagents/gtm-agents" target="_blank">gtm-agents</a></div><span class="priority-badge high">HIGH</span></div>
+            <div class="repo-mini-desc">67 plugins, 92 GTM agents. Multi-agent coordinator: content-strategist → copywriter → email-marketer → social-media-manager → analytics-engineer. ABM with tier-based targeting (Tier 1: Heidelberg/Boral/Holcim, Tier 2: regional operators).</div>
+            <div class="repo-mini-plug">npm install gtm-agents or adapt<br><span class="path">→ lib/ai/agents/gtm/</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">103★</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/langchain-ai/langgraphjs" target="_blank">langgraphjs</a></div><span class="priority-badge med">MEDIUM</span></div>
+            <div class="repo-mini-desc">Graph-based multi-agent orchestration. Supervisor → researcher → writer → campaign-manager. State persistence with checkpointing. Alternative to Mastra for complex agent graphs.</div>
+            <div class="repo-mini-plug">npm install @langchain/langgraph<br><span class="path">→ lib/ai/langgraph/</span> (alternative to Mastra)</div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">133K★ (Python)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L3 -->
+    <div class="layer-card" style="--layer-color: var(--l3)" onclick="toggleLayer(this)">
+      <div class="layer-header">
+        <div class="layer-num">L3</div>
+        <div style="flex:1"><div class="layer-title" style="color:var(--l3)">MCP Servers</div></div>
+        <div class="layer-tools">
+          <span class="layer-tool-tag">Mailgun MCP</span>
+          <span class="layer-tool-tag">Twilio MCP</span>
+          <span class="layer-tool-tag">GoHighLevel MCP</span>
+          <span class="layer-tool-tag">Apollo MCP</span>
+        </div>
+        <svg class="layer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="layer-body">
+        <p class="layer-desc">MCP (Model Context Protocol) servers give Claude agents native access to your tools. Instead of building custom API integrations, you install an MCP server and Claude can call Mailgun, Twilio, or GoHighLevel directly from an agent workflow. The <strong style="color:var(--text)">official Mailgun and Twilio MCP servers</strong> are the immediate win — they plug straight into your existing env vars.</p>
+        <div class="repo-mini-grid">
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/mailgun/mailgun-mcp-server" target="_blank">mailgun-mcp-server</a></div><span class="priority-badge high">INSTALL NOW</span></div>
+            <div class="repo-mini-desc">Official Mailgun MCP. Sends emails, manages domains, templates, mailing lists, analytics, suppressions. Plugs directly into your existing MAILGUN_API_KEY and MAILGUN_DOMAIN env vars.</div>
+            <div class="repo-mini-plug">Extends: <span class="path">lib/email/send.ts</span><br>Adds to <span class="path">.mcp.json</span> server config<br>Zero new env vars needed</div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">Mailgun Official</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://www.npmjs.com/package/@twilio-alpha/mcp" target="_blank">twilio-alpha/mcp</a></div><span class="priority-badge high">INSTALL NOW</span></div>
+            <div class="repo-mini-desc">Official Twilio MCP. 1,400+ API endpoints. SMS blasts, follow-ups, two-way conversations. Tag/service filtering prevents context bloat. $0.0575/SMS (AU).</div>
+            <div class="repo-mini-plug">New env vars:<br>TWILIO_ACCOUNT_SID<br>TWILIO_AUTH_TOKEN<br>TWILIO_PHONE_NUMBER<br>Adds to <span class="path">.mcp.json</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">Twilio Official</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/BusyBee3333/Go-High-Level-MCP-2026-Complete" target="_blank">GHL-MCP-2026-Complete</a></div><span class="priority-badge med">YOUR REPO</span></div>
+            <div class="repo-mini-desc">520+ tools across 40 categories. Contacts (31 tools), messaging, opportunities, invoices, workflows, social media. World's first GHL Agent Studio API (March 2026). If you use GHL, this is the most complete server available.</div>
+            <div class="repo-mini-plug">Option B integration point<br>New env vars: GHL_API_KEY, GHL_LOCATION_ID<br>Adds to <span class="path">.mcp.json</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">520+ tools</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/thevgergroup/apollo-io-mcp" target="_blank">apollo-io-mcp</a></div><span class="priority-badge high">HIGH</span></div>
+            <div class="repo-mini-desc">Apollo.io MCP. People/company search and enrichment, bulk enrichment, job postings, news signals. 94% response size reduction. Finds decision-makers at target companies.</div>
+            <div class="repo-mini-plug">New env vars: APOLLO_API_KEY<br><span class="path">→ lib/ai/enrichment/apollo.ts</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">Lead enrichment</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/Meerkats-Ai/hunter-io-mcp-server" target="_blank">hunter-io-mcp</a></div><span class="priority-badge med">MEDIUM</span></div>
+            <div class="repo-mini-desc">Hunter.io MCP. Email finding by domain + name, email verification. When you have a company name from ABN Lookup, Hunter finds the procurement manager's email.</div>
+            <div class="repo-mini-plug">New env vars: HUNTER_API_KEY<br><span class="path">→ lib/ai/enrichment/hunter.ts</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">Email finding</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/shinzo-labs/hubspot-mcp" target="_blank">hubspot-mcp</a></div><span class="priority-badge low">OPTIONAL</span></div>
+            <div class="repo-mini-desc">Full HubSpot CRM via MCP. Contacts, companies, deals, pipelines, engagements. Only relevant if you choose HubSpot over the built-in CRM approach.</div>
+            <div class="repo-mini-plug">New env vars: HUBSPOT_ACCESS_TOKEN<br>Alternative to Twenty CRM</div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">HubSpot Official</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L4 -->
+    <div class="layer-card" style="--layer-color: var(--l4)" onclick="toggleLayer(this)">
+      <div class="layer-header">
+        <div class="layer-num">L4</div>
+        <div style="flex:1"><div class="layer-title" style="color:var(--l4)">Lead Generation</div></div>
+        <div class="layer-tools">
+          <span class="layer-tool-tag">Google Maps Scraper</span>
+          <span class="layer-tool-tag">ABN Lookup API</span>
+          <span class="layer-tool-tag">Apify</span>
+          <span class="layer-tool-tag">n8n</span>
+        </div>
+        <svg class="layer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="layer-body">
+        <p class="layer-desc">The prospecting engine. Finds every concrete plant, quarry, and fleet operator in Australia autonomously. The <strong style="color:var(--text)">ABN Lookup API is free</strong> from the Australian government and validates every prospect's registration status. Google Maps Scraper builds the initial list. Apollo.io enriches with decision-maker contacts.</p>
+        <div class="repo-mini-grid">
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/omkarcloud/google-maps-scraper" target="_blank">google-maps-scraper</a></div><span class="priority-badge high">HIGH</span></div>
+            <div class="repo-mini-desc">50+ data points per business: name, address, phone, email, website, ratings, social profiles. Enrichment API adds verified emails. Search "concrete batching plant NSW" across all Australian states. $16/month, 200 free searches.</div>
+            <div class="repo-mini-plug">REST API → n8n workflow<br>Output: <span class="path">contacts</span> table in Supabase<br>New env vars: GOOGLE_MAPS_SCRAPER_KEY</div>
+            <div class="repo-mini-badges"><span class="stack-tag">Python/API</span><span class="stack-tag">2,400★</span><span class="stack-tag">AU-ready</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name">ABN Lookup API</div><span class="priority-badge high">FREE · AU GOV</span></div>
+            <div class="repo-mini-desc">Official Australian Business Register. Free. Search by ABN, ACN, or name with state/postcode filters. Returns entity status, GST registration, registered names, addresses. Weekly bulk XML dump available. Find ALL concrete/quarry/fleet businesses in Australia.</div>
+            <div class="repo-mini-plug">API: abr.business.gov.au<br>No auth key needed (free)<br><span class="path">→ lib/leads/abn-lookup.ts</span> (new)</div>
+            <div class="repo-mini-badges"><span class="stack-tag">SOAP/JSON</span><span class="stack-tag">Free forever</span><span class="stack-tag">🇦🇺 AU only</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://apify.com" target="_blank">Apify Platform</a></div><span class="priority-badge med">MEDIUM</span></div>
+            <div class="repo-mini-desc">Pre-built AU scrapers: TrueLocal.com.au Business Search, Yellow Pages AU, ABN Lookup actor, LinkedIn Company Scraper. Cloud-hosted, no infrastructure needed. CRM-ready output.</div>
+            <div class="repo-mini-plug">New env vars: APIFY_API_TOKEN<br><span class="path">→ lib/leads/apify.ts</span> (new)</div>
+            <div class="repo-mini-badges"><span class="stack-tag">API</span><span class="stack-tag">AU-specific actors</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/n8n-io/n8n" target="_blank">n8n</a></div><span class="priority-badge high">HIGH — ORCHESTRATOR</span></div>
+            <div class="repo-mini-desc">50,000★ visual workflow automation. 400+ integrations incl. Mailgun and Twilio nodes. 620+ pre-built lead gen workflow templates. The glue: Google Maps → ABN validate → Apollo enrich → score → push to Supabase → trigger campaign.</div>
+            <div class="repo-mini-plug">Self-host on Railway/VPS or n8n.cloud<br>Connects to Supabase via REST API<br>Webhook triggers from Next.js events</div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">50,000★</span><span class="stack-tag">Visual builder</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L5 -->
+    <div class="layer-card" style="--layer-color: var(--l5)" onclick="toggleLayer(this)">
+      <div class="layer-header">
+        <div class="layer-num">L5</div>
+        <div style="flex:1"><div class="layer-title" style="color:var(--l5)">CRM & Contact Management</div></div>
+        <div class="layer-tools">
+          <span class="layer-tool-tag">Twenty CRM</span>
+          <span class="layer-tool-tag">Listmonk</span>
+          <span class="layer-tool-tag">NextCRM</span>
+        </div>
+        <svg class="layer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="layer-body">
+        <p class="layer-desc">Contact and deal management. Two approaches: <strong style="color:var(--text)">Supabase-native</strong> (build the contacts table directly in your existing DB) or <strong style="color:var(--text)">Twenty CRM</strong> (a separate open-source CRM with MCP server that connects via API). Listmonk provides SQL-based segmentation on your existing PostgreSQL.</p>
+        <div class="repo-mini-grid">
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/twentyhq/twenty" target="_blank">twentyhq/twenty</a></div><span class="priority-badge high">HIGH</span></div>
+            <div class="repo-mini-desc">43,800★ open-source Salesforce alternative (YC-backed, TypeScript/NestJS+React). Contacts, companies, deals, pipelines, tasks, email/calendar sync, RBAC. Built-in MCP server so Claude agents can read/write CRM data natively. AI enrichment agent included.</div>
+            <div class="repo-mini-plug">Self-host on Railway + connect via API<br>Or: extract architecture patterns<br>MCP server → <span class="path">.mcp.json</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">43,800★</span><span class="stack-tag">Has MCP</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/knadh/listmonk" target="_blank">knadh/listmonk</a></div><span class="priority-badge high">HIGH</span></div>
+            <div class="repo-mini-desc">15,000★ subscriber/list management on PostgreSQL. SQL-based segmentation: "All quarry operators in NSW with >50 employees who haven't ordered in 30 days." Custom JSON attributes for industry, product category, purchase behaviour. Configurable SMTP → your Mailgun.</div>
+            <div class="repo-mini-plug">Connects to existing Supabase PostgreSQL<br><span class="path">→ supabase/migrations/031_listmonk.sql</span><br>SMTP → MAILGUN_API_KEY</div>
+            <div class="repo-mini-badges"><span class="stack-tag">Go/PostgreSQL</span><span class="stack-tag">15,000★</span><span class="stack-tag">Same DB</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/pdovhomilja/nextcrm-app" target="_blank">nextcrm-app</a></div><span class="priority-badge med">REFERENCE</span></div>
+            <div class="repo-mini-desc">CRM built on Next.js 16 + React 19 + TypeScript + PostgreSQL + shadcn/ui — identical stack to Chem Connect. Has Claude Sonnet AI enrichment agent (E2B sandboxed). Accounts, contacts, leads, opportunities, contracts, docs, email client.</div>
+            <div class="repo-mini-plug">Use as reference architecture<br>Could be merged into existing codebase<br><span class="path">→ app/(admin)/admin/contacts/</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">Identical stack</span><span class="stack-tag">2,000★</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L6 -->
+    <div class="layer-card" style="--layer-color: var(--l6)" onclick="toggleLayer(this)">
+      <div class="layer-header">
+        <div class="layer-num">L6</div>
+        <div style="flex:1"><div class="layer-title" style="color:var(--l6)">Campaign Automation</div></div>
+        <div class="layer-tools">
+          <span class="layer-tool-tag">Trigger.dev</span>
+          <span class="layer-tool-tag">Inngest</span>
+          <span class="layer-tool-tag">Mautic</span>
+          <span class="layer-tool-tag">Laudspeaker</span>
+        </div>
+        <svg class="layer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="layer-body">
+        <p class="layer-desc">The automation engine that keeps the sales process moving without manual work. <strong style="color:var(--text)">Trigger.dev</strong> is the best fit for your Next.js/Vercel stack — it handles long-running AI workflows (no 10-second Vercel timeout), checkpointing, and human-in-the-loop pauses. Behaviour triggers fire from your Supabase database events.</p>
+        <div class="repo-mini-grid">
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/triggerdotdev/trigger.dev" target="_blank">trigger.dev</a></div><span class="priority-badge high">INSTALL FIRST</span></div>
+            <div class="repo-mini-desc">13,000★ background jobs for TypeScript. No Vercel timeout limits on AI workflows. Human-in-the-loop waitpoints (pause for approval, resume when done). Cron scheduling. Parallel processing. Automatic retries. First-class Next.js integration.</div>
+            <div class="repo-mini-plug">npm install @trigger.dev/sdk<br><span class="path">→ trigger/campaigns/send-blast.ts</span><br><span class="path">→ trigger/leads/enrich-contact.ts</span><br><span class="path">→ app/api/trigger/route.ts</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">13,000★</span><span class="stack-tag">Next.js native</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/inngest/inngest" target="_blank">inngest</a></div><span class="priority-badge high">HIGH</span></div>
+            <div class="repo-mini-desc">Event-driven step functions. contact.created → welcome email; email.opened → Day 3 follow-up; order.lapsed_30_days → re-engagement; new_lead.scored_high → sales alert. Concurrency throttling, rate limiting, replay. Single Next.js API route integration.</div>
+            <div class="repo-mini-plug">npm install inngest<br><span class="path">→ app/api/inngest/route.ts</span><br><span class="path">→ inngest/functions/</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">4,400★</span><span class="stack-tag">Event-driven</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/mautic/mautic" target="_blank">mautic</a></div><span class="priority-badge med">MEDIUM</span></div>
+            <div class="repo-mini-desc">7,900★ open-source marketing automation. Visual drip campaign builder, lead scoring, A/B testing, multi-channel (email+SMS+web), progressive profiling. Native Mailgun plugin. Build the "Day 1 intro → Day 3 case study → Day 5 pricing → Day 14 SMS" sequence visually.</div>
+            <div class="repo-mini-plug">Self-host, connect via REST API<br>Mailgun plugin uses your MAILGUN_API_KEY<br>Twilio plugin for SMS</div>
+            <div class="repo-mini-badges"><span class="stack-tag">PHP/API</span><span class="stack-tag">7,900★</span><span class="stack-tag">Visual builder</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/laudspeaker/laudspeaker" target="_blank">laudspeaker</a></div><span class="priority-badge med">MEDIUM</span></div>
+            <div class="repo-mini-desc">3,500★ TypeScript-native engagement platform (NestJS+React). Multi-channel: email, SMS, push, webhooks. Visual journey builder. Event-triggered. Same language stack as Chem Connect.</div>
+            <div class="repo-mini-plug">Self-host, TypeScript throughout<br>Connect to Supabase via webhook events</div>
+            <div class="repo-mini-badges"><span class="stack-tag">TypeScript</span><span class="stack-tag">3,500★</span><span class="stack-tag">Same stack</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L7 -->
+    <div class="layer-card" style="--layer-color: var(--l7)" onclick="toggleLayer(this)">
+      <div class="layer-header">
+        <div class="layer-num">L7</div>
+        <div style="flex:1"><div class="layer-title" style="color:var(--l7)">Content Engine</div></div>
+        <div class="layer-tools">
+          <span class="layer-tool-tag">marketingskills</span>
+          <span class="layer-tool-tag">CoppieGPT</span>
+          <span class="layer-tool-tag">ai-marketing-skills</span>
+          <span class="layer-tool-tag">610 Subagents</span>
+        </div>
+        <svg class="layer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="layer-body">
+        <p class="layer-desc">Claude generates content — you choose which version to use. The <strong style="color:var(--text)">Karpathy-inspired variant generator</strong> produces 50+ variants, an expert panel scores them, and you get the top 3–5 to pick from. Content covers email, SMS, LinkedIn, and social — all from a single prompt about a Chem Connect product or promotion.</p>
+        <div class="repo-mini-grid">
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/coreyhaines31/marketingskills" target="_blank">coreyhaines31/marketingskills</a></div><span class="priority-badge high">YOUR REPO</span></div>
+            <div class="repo-mini-desc">20,700★ — 51 zero-dependency Node.js CLI marketing tools. B2B cold email, email sequences, MCP integrations for GA4, Stripe, Mailchimp, ZoomInfo, Clay, HubSpot, LinkedIn Ads, Zapier. Node.js native = zero language mismatch with your stack.</div>
+            <div class="repo-mini-plug">npm install marketingskills (or adapt)<br><span class="path">→ lib/ai/content/marketingskills.ts</span><br>Call from Vercel AI SDK tool calls</div>
+            <div class="repo-mini-badges"><span class="stack-tag">Node.js</span><span class="stack-tag">20,700★</span><span class="stack-tag">Zero deps</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/ericosiu/ai-marketing-skills" target="_blank">ai-marketing-skills</a></div><span class="priority-badge high">HIGH</span></div>
+            <div class="repo-mini-desc">From Eric Siu (Single Grain). Battle-tested on real revenue. Deal Resurrector (tracks departed contacts to new companies). ICP Learning Analyzer. Karpathy Variant Generator: 50+ email variants with expert panel scoring → picks the winners. RB2B router with intent scoring.</div>
+            <div class="repo-mini-plug">Adapt variant generator:<br><span class="path">→ lib/ai/content/variants.ts</span><br>Powers "choose your version" UI in admin</div>
+            <div class="repo-mini-badges"><span class="stack-tag">Python/adapt</span><span class="stack-tag">Production-proven</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/WynterJones/CoppieGPT" target="_blank">CoppieGPT</a></div><span class="priority-badge high">HIGH</span></div>
+            <div class="repo-mini-desc">232 copywriting formulas: AIDA, PAS, BAB, Dean Jackson 9-Word Email, Observation→Connection→Ask, Andre Chaperon AutoResponder Madness, Ben Settle. Each formula rewrites your message into a proven framework. 6 variants per input.</div>
+            <div class="repo-mini-plug">Adapt frameworks as Claude prompts:<br><span class="path">→ lib/ai/content/frameworks.ts</span><br>Powers multi-variant generation UI</div>
+            <div class="repo-mini-badges"><span class="stack-tag">Prompt lib</span><span class="stack-tag">232 frameworks</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/alirezarezvani/claude-skills" target="_blank">alirezarezvani/claude-skills</a></div><span class="priority-badge med">REFERENCE</span></div>
+            <div class="repo-mini-desc">5,200★ — 232 Claude Code skills. Marketing section: 43 skills across 7 pods (Content, SEO, CRO, Channels, Growth, Intelligence, Sales). Channel skills cover email, SMS, LinkedIn, and social. Intelligence pod: competitive analysis against other AU chemical suppliers.</div>
+            <div class="repo-mini-plug">Use as skill reference library<br><span class="path">→ lib/ai/skills/</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">Claude skills</span><span class="stack-tag">5,200★</span><span class="stack-tag">232 skills</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/filip-michalsky/SalesGPT" target="_blank">SalesGPT</a></div><span class="priority-badge med">MEDIUM</span></div>
+            <div class="repo-mini-desc">Context-aware AI sales agent. Knows conversation stages: Introduction → Needs Analysis → Value Proposition → Objection Handling → Close. RAG-powered product knowledge prevents hallucinated chemical specs. The stage-tracking pattern is what to adopt.</div>
+            <div class="repo-mini-plug">Adapt conversation stage pattern:<br><span class="path">→ lib/ai/agents/conversation-stage.ts</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">Python/adapt</span><span class="stack-tag">Well-known</span></div>
+          </div>
+          <div class="repo-mini">
+            <div class="repo-mini-top"><div class="repo-mini-name"><a href="https://github.com/ChrisRoyse/610ClaudeSubagents" target="_blank">610 Claude Subagents</a></div><span class="priority-badge low">REFERENCE</span></div>
+            <div class="repo-mini-desc">610+ specialised Claude agents. Relevant swarms: lead-scoring-optimizer + behavioral-trigger-identifier + conversion-predictor (lead scoring). account-research + personalization-engine + multi-channel-coordinator (ABM).</div>
+            <div class="repo-mini-plug">Extract trigger-identifier patterns<br><span class="path">→ lib/ai/agents/triggers.ts</span></div>
+            <div class="repo-mini-badges"><span class="stack-tag">Claude prompts</span><span class="stack-tag">610 agents</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════ INTEGRATION MAP ══════════ -->
+<section id="integration">
+  <div class="section-label">
+    <span class="section-num">03</span>
+    <span class="section-title">Integration Map</span>
+  </div>
+  <p class="section-desc">Exactly where every new component plugs into the existing Chem Connect codebase. New files in purple, extended files in amber, existing files in grey.</p>
+
+  <div class="integration-cols">
+
+    <div class="int-panel">
+      <div class="int-panel-header">
+        <div class="int-panel-dot" style="background:var(--l2)"></div>
+        <span class="int-panel-title">New File Structure</span>
+        <span class="int-panel-sub">app/ + lib/ additions</span>
+      </div>
+      <div class="int-panel-body">
+        <div class="file-tree">
+          <div class="file-tree-line dir">app/(admin)/admin/</div>
+          <div class="file-tree-line existing indent1">├── orders/page.tsx</div>
+          <div class="file-tree-line existing indent1">├── analytics/page.tsx</div>
+          <div class="file-tree-line new-file indent1">├── marketing/page.tsx</div>
+          <div class="file-tree-line new-file indent1">├── contacts/page.tsx</div>
+          <div class="file-tree-line new-file indent1">└── campaigns/page.tsx</div>
+          <div class="file-tree-line dir" style="margin-top:8px">app/api/</div>
+          <div class="file-tree-line existing indent1">├── macship/</div>
+          <div class="file-tree-line existing indent1">├── xero/</div>
+          <div class="file-tree-line new-file indent1">├── ai/generate/route.ts</div>
+          <div class="file-tree-line new-file indent1">├── ai/variants/route.ts</div>
+          <div class="file-tree-line new-file indent1">├── campaigns/route.ts</div>
+          <div class="file-tree-line new-file indent1">├── campaigns/[id]/send/route.ts</div>
+          <div class="file-tree-line new-file indent1">├── contacts/route.ts</div>
+          <div class="file-tree-line new-file indent1">├── leads/scrape/route.ts</div>
+          <div class="file-tree-line new-file indent1">├── leads/enrich/route.ts</div>
+          <div class="file-tree-line new-file indent1">└── trigger/route.ts</div>
+          <div class="file-tree-line dir" style="margin-top:8px">lib/</div>
+          <div class="file-tree-line existing indent1">├── email/send.ts</div>
+          <div class="file-tree-line modified indent1">├── email/send.ts</div>
+          <div class="file-tree-line new-file indent1">├── ai/client.ts</div>
+          <div class="file-tree-line new-file indent1">├── ai/agents/</div>
+          <div class="file-tree-line new-file indent1">├── ai/content/variants.ts</div>
+          <div class="file-tree-line new-file indent1">├── ai/content/frameworks.ts</div>
+          <div class="file-tree-line new-file indent1">├── ai/rag.ts</div>
+          <div class="file-tree-line new-file indent1">├── leads/abn-lookup.ts</div>
+          <div class="file-tree-line new-file indent1">├── leads/apify.ts</div>
+          <div class="file-tree-line new-file indent1">└── marketing/segments.ts</div>
+          <div class="file-tree-line dir" style="margin-top:8px">trigger/</div>
+          <div class="file-tree-line new-file indent1">├── campaigns/send-blast.ts</div>
+          <div class="file-tree-line new-file indent1">├── leads/enrich-contact.ts</div>
+          <div class="file-tree-line new-file indent1">└── follow-ups/sequence.ts</div>
+          <div class="file-tree-line dir" style="margin-top:8px">components/</div>
+          <div class="file-tree-line new-file indent1">├── marketing/campaign-builder.tsx</div>
+          <div class="file-tree-line new-file indent1">├── marketing/variant-picker.tsx</div>
+          <div class="file-tree-line new-file indent1">└── marketing/contact-table.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="int-panel">
+      <div class="int-panel-header">
+        <div class="int-panel-dot" style="background:var(--l4)"></div>
+        <span class="int-panel-title">New Environment Variables</span>
+      </div>
+      <div class="int-panel-body">
+        <div class="env-table">
+          <div class="env-row"><span class="env-key">ANTHROPIC_API_KEY</span><span class="env-val">Vercel AI SDK + Claude Agent SDK</span></div>
+          <div class="env-row"><span class="env-key">TWILIO_ACCOUNT_SID</span><span class="env-val">Twilio MCP Server</span></div>
+          <div class="env-row"><span class="env-key">TWILIO_AUTH_TOKEN</span><span class="env-val">Twilio MCP Server</span></div>
+          <div class="env-row"><span class="env-key">TWILIO_PHONE_NUMBER</span><span class="env-val">AU SMS sending number</span></div>
+          <div class="env-row"><span class="env-key">APOLLO_API_KEY</span><span class="env-val">Contact enrichment</span></div>
+          <div class="env-row"><span class="env-key">HUNTER_API_KEY</span><span class="env-val">Email finding</span></div>
+          <div class="env-row"><span class="env-key">APIFY_API_TOKEN</span><span class="env-val">AU business scrapers</span></div>
+          <div class="env-row"><span class="env-key">TRIGGER_SECRET_KEY</span><span class="env-val">Trigger.dev background jobs</span></div>
+          <div class="env-row"><span class="env-key">INNGEST_EVENT_KEY</span><span class="env-val">Inngest event functions</span></div>
+          <div class="env-row"><span class="env-key">GHL_API_KEY</span><span class="env-val">GoHighLevel MCP (if Option B)</span></div>
+          <div class="env-row"><span class="env-key">MAILGUN_*</span><span class="env-val">Already in .env.example ✓</span></div>
+          <div class="env-row"><span class="env-key">SUPABASE_*</span><span class="env-val">Already in .env.example ✓</span></div>
+        </div>
+        <div style="margin-top:20px;">
+          <div class="int-panel-header" style="border:none;padding:0 0 10px;border-bottom:1px solid var(--border)">
+            <div class="int-panel-dot" style="background:var(--l2)"></div>
+            <span class="int-panel-title">New Supabase Tables</span>
+          </div>
+          <div style="margin-top:12px;">
+            <div class="db-new-table">
+              <div class="db-new-table-name">contacts</div>
+              <div class="db-col"><span class="col-name">id</span><span class="col-type">uuid</span><span class="col-note">pk</span></div>
+              <div class="db-col"><span class="col-name">company_name</span><span class="col-type">text</span></div>
+              <div class="db-col"><span class="col-name">contact_name</span><span class="col-type">text</span></div>
+              <div class="db-col"><span class="col-name">email</span><span class="col-type">text</span></div>
+              <div class="db-col"><span class="col-name">phone</span><span class="col-type">text</span></div>
+              <div class="db-col"><span class="col-name">state</span><span class="col-type">text</span></div>
+              <div class="db-col"><span class="col-name">industry</span><span class="col-type">text</span><span class="col-note">concrete/quarry/fleet</span></div>
+              <div class="db-col"><span class="col-name">abn</span><span class="col-type">text</span></div>
+              <div class="db-col"><span class="col-name">lead_score</span><span class="col-type">int</span></div>
+              <div class="db-col"><span class="col-name">tags</span><span class="col-type">text[]</span></div>
+              <div class="db-col"><span class="col-name">source</span><span class="col-type">text</span><span class="col-note">maps/abn/manual</span></div>
+              <div class="db-col"><span class="col-name">is_customer</span><span class="col-type">bool</span><span class="col-note">links to profiles</span></div>
+              <div class="db-col"><span class="col-name">last_contacted_at</span><span class="col-type">timestamptz</span></div>
+              <div class="db-col"><span class="col-name">enriched_at</span><span class="col-type">timestamptz</span></div>
+            </div>
+            <div class="db-new-table">
+              <div class="db-new-table-name">campaigns</div>
+              <div class="db-col"><span class="col-name">name</span><span class="col-type">text</span></div>
+              <div class="db-col"><span class="col-name">type</span><span class="col-type">enum</span><span class="col-note">blast/drip/trigger</span></div>
+              <div class="db-col"><span class="col-name">channel</span><span class="col-type">enum</span><span class="col-note">email/sms/both</span></div>
+              <div class="db-col"><span class="col-name">segment_filter</span><span class="col-type">jsonb</span></div>
+              <div class="db-col"><span class="col-name">ai_variants</span><span class="col-type">jsonb</span><span class="col-note">array of 5 variants</span></div>
+              <div class="db-col"><span class="col-name">selected_variant</span><span class="col-type">int</span></div>
+              <div class="db-col"><span class="col-name">status</span><span class="col-type">enum</span><span class="col-note">draft/approved/sent</span></div>
+              <div class="db-col"><span class="col-name">scheduled_at</span><span class="col-type">timestamptz</span></div>
+              <div class="db-col"><span class="col-name">sent_count</span><span class="col-type">int</span></div>
+              <div class="db-col"><span class="col-name">open_rate</span><span class="col-type">numeric</span></div>
+            </div>
+            <div class="db-new-table">
+              <div class="db-new-table-name">content_variants</div>
+              <div class="db-col"><span class="col-name">campaign_id</span><span class="col-type">uuid</span></div>
+              <div class="db-col"><span class="col-name">variant_num</span><span class="col-type">int</span><span class="col-note">1-5</span></div>
+              <div class="db-col"><span class="col-name">framework</span><span class="col-type">text</span><span class="col-note">AIDA/PAS/9-Word...</span></div>
+              <div class="db-col"><span class="col-name">subject_line</span><span class="col-type">text</span></div>
+              <div class="db-col"><span class="col-name">body_html</span><span class="col-type">text</span></div>
+              <div class="db-col"><span class="col-name">ai_score</span><span class="col-type">int</span><span class="col-note">expert panel score</span></div>
+              <div class="db-col"><span class="col-name">selected</span><span class="col-type">bool</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="callout" style="margin-top:24px;">
+    <strong>Key connection:</strong> The existing <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--l4)">lib/email/send.ts</code> already has a working <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--l4)">sendEmail()</code> function wired to Mailgun. The marketing module extends this with a <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--l4)">sendBulkCampaign()</code> that loops over the contacts list and calls the same function — no new email infrastructure needed. The Stripe webhook at <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--l4)">app/api/webhooks/stripe/route.ts</code> already fires events that can trigger "customer lapsed" automations.
+  </div>
+</section>
+
+<!-- ══════════ ROADMAP ══════════ -->
+<section id="roadmap">
+  <div class="section-label">
+    <span class="section-num">04</span>
+    <span class="section-title">3-Phase Build Roadmap</span>
+  </div>
+  <p class="section-desc">Sequenced so each phase delivers immediate value while building toward the full AI engine. Phase 1 can ship in days, not weeks.</p>
+
+  <div class="phases">
+
+    <div class="phase-card" style="--phase-color: var(--l1)">
+      <div class="phase-label">Phase 1 · Week 1–2</div>
+      <div class="phase-title">AI Email Foundation</div>
+      <div class="phase-timeline">Immediate value. Builds on existing Mailgun integration.</div>
+      <ul class="phase-items">
+        <li class="phase-item">Install Vercel AI SDK + @ai-sdk/anthropic. Wire Claude to a new /api/ai/generate route.</li>
+        <li class="phase-item">Install official Mailgun MCP server. Claude can now send emails natively via agent.</li>
+        <li class="phase-item">Install Trigger.dev. Wrap AI generation in background jobs (no Vercel timeout limits).</li>
+        <li class="phase-item">Build /admin/marketing page with campaign builder. Paste or generate HTML email, select contacts from existing profiles table, send.</li>
+        <li class="phase-item">Wire CoppieGPT frameworks into Claude prompt. Generate 5 email variants (AIDA, PAS, 9-Word, OCA, BAB) — you pick one. Store in content_variants table.</li>
+        <li class="phase-item">Add contacts table migration. Import existing profiles as first contacts.</li>
+        <li class="phase-item">Basic campaign analytics: open rate, click rate via Mailgun webhooks.</li>
+      </ul>
+    </div>
+
+    <div class="phase-card" style="--phase-color: var(--l4)">
+      <div class="phase-label">Phase 2 · Month 1</div>
+      <div class="phase-title">Lead Generation Engine</div>
+      <div class="phase-timeline">Build the prospect database. All of Australia as your market.</div>
+      <ul class="phase-items">
+        <li class="phase-item">Set up Google Maps Scraper. Run searches: "concrete batching plant QLD/NSW/VIC/WA/TAS/SA", "quarry [state]", "ready mix concrete [city]". Feed results to contacts table.</li>
+        <li class="phase-item">Integrate ABN Lookup API. Validate every scraped business. Filter for active, GST-registered companies only. Append official registered name.</li>
+        <li class="phase-item">Install Apollo.io MCP. Enrich contacts with decision-maker names, LinkedIn, direct emails, job titles.</li>
+        <li class="phase-item">Install Hunter.io MCP. Find verified email addresses for procurement managers at target companies.</li>
+        <li class="phase-item">Build n8n pipeline: Maps scrape → ABN validate → Apollo enrich → score → auto-import to Supabase contacts table.</li>
+        <li class="phase-item">Add Listmonk for SQL-based segmentation. Segment by state, industry, order recency, company size.</li>
+        <li class="phase-item">Install Twilio MCP. Add SMS campaign capability alongside email.</li>
+      </ul>
+    </div>
+
+    <div class="phase-card" style="--phase-color: var(--l6)">
+      <div class="phase-label">Phase 3 · Month 2–3</div>
+      <div class="phase-title">Full Autonomous Engine</div>
+      <div class="phase-timeline">Autonomous loop. Agents research, draft, you approve, system executes.</div>
+      <ul class="phase-items">
+        <li class="phase-item">Install Mastra. Build multi-agent workflows: research-agent → scoring-agent → content-agent → human-approval → send-agent.</li>
+        <li class="phase-item">Adapt ai-sales-team-claude skills as Mastra agent tools. ICP builder trained on Heidelberg/Boral/Holcim customer profile.</li>
+        <li class="phase-item">Set up Inngest event triggers: order.lapsed_30_days → re-engagement sequence; email.opened → Day 3 follow-up; new_lead.high_score → Jonny alert; new_order → reward email.</li>
+        <li class="phase-item">Build visual drip campaigns using Mautic or Laudspeaker. Day 1 intro → Day 3 case study → Day 5 pricing → Day 14 SMS → Day 21 call prompt.</li>
+        <li class="phase-item">Implement Deal Resurrector from ai-marketing-skills. Track departed contacts to new companies.</li>
+        <li class="phase-item">Supabase pgvector + RAG over all 23 Chem Connect product specs, MSDS sheets, pricing. Claude generates technically accurate content with no hallucinated specs.</li>
+        <li class="phase-item">Deploy GHL MCP if using GoHighLevel. 520+ tools give Claude complete CRM control.</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTION: UI MOCKUPS                      -->
+<!-- ══════════════════════════════════════════ -->
+<section id="ui-mockups">
+  <div class="section-label">
+    <span class="section-num">05</span>
+    <span class="section-title">How It Looks & Feels Inside Chem Connect</span>
+  </div>
+  <p class="section-desc">Pixel-accurate mockups using the exact Chem Connect dark theme (Roboto font · green primary hsl(142,76%,56%) · navy background hsl(208,50%,15%)). Click the page tabs or sidebar items to switch between views. Interact with the Campaign Builder to see the full AI content flow.</p>
+
+  <div class="admin-shell-wrap">
+    <!-- Browser chrome -->
+    <div class="admin-chrome">
+      <div class="chrome-dots">
+        <div class="chrome-dot" style="background:#ff5f56"></div>
+        <div class="chrome-dot" style="background:#ffbd2e"></div>
+        <div class="chrome-dot" style="background:#27c93f"></div>
+      </div>
+      <div class="chrome-url" id="chrome-url">chem-connect.vercel.app/admin/marketing</div>
+      <div class="chrome-page-tabs">
+        <button class="chrome-page-tab active" onclick="switchAdminPage('hub', this)">Marketing Hub</button>
+        <button class="chrome-page-tab" onclick="switchAdminPage('contacts', this)">Contacts</button>
+        <button class="chrome-page-tab" onclick="switchAdminPage('builder', this)">Campaign Builder</button>
+      </div>
+    </div>
+
+    <!-- Admin shell -->
+    <div class="admin-shell">
+
+      <!-- Sidebar -->
+      <div class="adm-sidebar">
+        <div class="adm-brand">
+          <div class="adm-brand-logo">CC</div>
+          <div>
+            <div class="adm-brand-text">Chem Connect</div>
+          </div>
+          <span class="adm-brand-badge">Admin</span>
+        </div>
+
+        <div class="adm-nav">
+          <button class="adm-nav-item" onclick="switchAdminPage('hub', null)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Overview
+          </button>
+          <button class="adm-nav-item" onclick="switchAdminPage('hub', null)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Users
+          </button>
+          <button class="adm-nav-item" onclick="switchAdminPage('hub', null)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            Products
+          </button>
+          <button class="adm-nav-item" onclick="switchAdminPage('hub', null)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            Orders
+          </button>
+          <button class="adm-nav-item" onclick="switchAdminPage('hub', null)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Analytics
+          </button>
+
+          <div class="adm-nav-section-label">Marketing</div>
+          <button class="adm-nav-item active" id="nav-hub" onclick="switchAdminPage('hub', null)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Marketing
+            <span class="adm-nav-new-badge">NEW</span>
+          </button>
+          <button class="adm-nav-sub-item active" id="nav-contacts-sub" onclick="switchAdminPage('contacts', null)">Contacts</button>
+          <button class="adm-nav-sub-item" id="nav-campaigns-sub" onclick="switchAdminPage('builder', null)">Campaigns</button>
+
+          <div class="adm-nav-section-label" style="margin-top:4px;">Operations</div>
+          <button class="adm-nav-item" onclick="switchAdminPage('hub', null)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 4v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            MacShip
+          </button>
+          <button class="adm-nav-item" onclick="switchAdminPage('hub', null)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Xero
+          </button>
+          <button class="adm-nav-item" onclick="switchAdminPage('hub', null)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            Settings
+          </button>
+        </div>
+
+        <div class="adm-user">
+          <div class="adm-avatar">JH</div>
+          <div>
+            <div class="adm-user-name">Jonny Harper</div>
+            <div class="adm-user-email">jonny@cqvs.com.au</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="adm-main">
+        <div class="adm-content">
+
+          <!-- ── PAGE: MARKETING HUB ── -->
+          <div class="adm-page active" id="page-hub">
+            <div class="adm-page-header">
+              <div>
+                <div class="adm-page-title">Marketing</div>
+                <div class="adm-page-desc">AI-powered outreach, lead generation, and campaign management</div>
+              </div>
+              <div class="adm-actions">
+                <button class="adm-btn adm-btn-outline" onclick="switchAdminPage('contacts', null)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  Find Leads
+                </button>
+                <button class="adm-btn adm-btn-primary" onclick="switchAdminPage('builder', null)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  New Campaign
+                </button>
+              </div>
+            </div>
+
+            <div class="adm-stats">
+              <div class="adm-stat-card">
+                <div class="adm-stat-header">
+                  <span class="adm-stat-label">Total Contacts</span>
+                  <div class="adm-stat-icon" style="background:rgba(96,165,250,0.1)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+                  </div>
+                </div>
+                <div class="adm-stat-value">847</div>
+                <div class="adm-stat-trend">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>
+                  +63 this week
+                </div>
+              </div>
+              <div class="adm-stat-card">
+                <div class="adm-stat-header">
+                  <span class="adm-stat-label">Active Campaigns</span>
+                  <div class="adm-stat-icon" style="background:rgba(167,139,250,0.1)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  </div>
+                </div>
+                <div class="adm-stat-value">3</div>
+                <div class="adm-stat-trend">2 scheduled this week</div>
+              </div>
+              <div class="adm-stat-card">
+                <div class="adm-stat-header">
+                  <span class="adm-stat-label">Sent This Month</span>
+                  <div class="adm-stat-icon" style="background:rgba(251,191,36,0.1)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  </div>
+                </div>
+                <div class="adm-stat-value">1,284</div>
+                <div class="adm-stat-trend">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>
+                  +18% vs last month
+                </div>
+              </div>
+              <div class="adm-stat-card">
+                <div class="adm-stat-header">
+                  <span class="adm-stat-label">Avg Open Rate</span>
+                  <div class="adm-stat-icon" style="background:rgba(74,222,128,0.1)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  </div>
+                </div>
+                <div class="adm-stat-value">34.2%</div>
+                <div class="adm-stat-trend">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>
+                  Industry avg 21%
+                </div>
+              </div>
+            </div>
+
+            <div class="adm-two-col">
+              <div class="adm-card">
+                <div class="adm-card-header">
+                  <div>
+                    <div class="adm-card-title">Recent Campaigns</div>
+                    <div class="adm-card-desc">Latest outreach across email and SMS</div>
+                  </div>
+                  <button class="adm-btn adm-btn-ghost" style="font-size:11px">View all</button>
+                </div>
+                <div class="adm-card-body">
+                  <table class="adm-table">
+                    <thead><tr>
+                      <th>Campaign</th><th>Type</th><th>Segment</th><th>Sent</th><th>Open</th><th>Status</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr>
+                        <td class="font-medium">NSW Quarry — Green Acid Replacement</td>
+                        <td><span class="adm-badge adm-badge-blue">Email</span></td>
+                        <td class="text-muted">Quarry · NSW</td>
+                        <td class="font-mono">214</td>
+                        <td style="color:hsl(142,76%,56%);font-family:'JetBrains Mono',monospace;font-size:11px">41%</td>
+                        <td><span class="adm-badge adm-badge-green">Sent</span></td>
+                      </tr>
+                      <tr>
+                        <td class="font-medium">QLD Concrete — Eco Wash Launch</td>
+                        <td><span class="adm-badge adm-badge-blue">Email</span></td>
+                        <td class="text-muted">Concrete · QLD</td>
+                        <td class="font-mono">387</td>
+                        <td style="color:hsl(142,76%,56%);font-family:'JetBrains Mono',monospace;font-size:11px">29%</td>
+                        <td><span class="adm-badge adm-badge-green">Sent</span></td>
+                      </tr>
+                      <tr>
+                        <td class="font-medium">Re-engagement — Lapsed 30 days</td>
+                        <td><span class="adm-badge adm-badge-purple">SMS</span></td>
+                        <td class="text-muted">All States</td>
+                        <td class="font-mono">89</td>
+                        <td style="color:var(--adm-muted);font-family:'JetBrains Mono',monospace;font-size:11px">—</td>
+                        <td><span class="adm-badge adm-badge-amber">Sending</span></td>
+                      </tr>
+                      <tr>
+                        <td class="font-medium">Heidelberg — Agi Acid Pricing</td>
+                        <td><span class="adm-badge adm-badge-blue">Email</span></td>
+                        <td class="text-muted">Heidelberg Sites</td>
+                        <td class="font-mono">—</td>
+                        <td style="color:var(--adm-muted);font-family:'JetBrains Mono',monospace;font-size:11px">—</td>
+                        <td><span class="adm-badge adm-badge-gray">Draft</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div>
+                <div class="adm-card" style="margin-bottom:14px">
+                  <div class="adm-card-header"><div class="adm-card-title">Quick Actions</div></div>
+                  <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="switchAdminPage('builder', null)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      Create AI Campaign
+                    </button>
+                    <button class="quick-action-btn" onclick="switchAdminPage('contacts', null)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                      Find New Leads
+                    </button>
+                    <button class="quick-action-btn">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      Import CSV
+                    </button>
+                    <button class="quick-action-btn">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                      View Analytics
+                    </button>
+                    <button class="quick-action-btn">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      Automation Rules
+                    </button>
+                  </div>
+                </div>
+                <div class="adm-card">
+                  <div class="adm-card-header"><div class="adm-card-title">AI Activity</div></div>
+                  <div style="padding:12px 14px;">
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                      <div style="display:flex;gap:10px;align-items:flex-start">
+                        <div style="width:6px;height:6px;border-radius:50%;background:hsl(142,76%,56%);margin-top:5px;flex-shrink:0"></div>
+                        <div><div style="font-size:11px;font-weight:500">5 variants generated for NSW Quarry</div><div style="font-size:10px;color:var(--adm-muted)">AIDA variant selected · 2 hours ago</div></div>
+                      </div>
+                      <div style="display:flex;gap:10px;align-items:flex-start">
+                        <div style="width:6px;height:6px;border-radius:50%;background:hsl(142,76%,56%);margin-top:5px;flex-shrink:0"></div>
+                        <div><div style="font-size:11px;font-weight:500">43 new leads discovered</div><div style="font-size:10px;color:var(--adm-muted)">Google Maps · VIC concrete plants · 4 hrs ago</div></div>
+                      </div>
+                      <div style="display:flex;gap:10px;align-items:flex-start">
+                        <div style="width:6px;height:6px;border-radius:50%;background:hsl(142,76%,56%);margin-top:5px;flex-shrink:0"></div>
+                        <div><div style="font-size:11px;font-weight:500">ABN validated 43 contacts</div><div style="font-size:10px;color:var(--adm-muted)">38 active GST-registered · 4 hrs ago</div></div>
+                      </div>
+                      <div style="display:flex;gap:10px;align-items:flex-start">
+                        <div style="width:6px;height:6px;border-radius:50%;background:var(--adm-border);margin-top:5px;flex-shrink:0"></div>
+                        <div><div style="font-size:11px;font-weight:500;color:var(--adm-muted)">Trigger: Boral Parramatta — 31 days lapsed</div><div style="font-size:10px;color:var(--adm-muted)">Re-engagement SMS queued · Yesterday</div></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── PAGE: CONTACTS ── -->
+          <div class="adm-page" id="page-contacts">
+            <div class="adm-page-header">
+              <div>
+                <div class="adm-page-title">Contacts</div>
+                <div class="adm-page-desc">847 prospects and customers across Australia</div>
+              </div>
+              <div class="adm-actions">
+                <button class="adm-btn adm-btn-outline">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Import CSV
+                </button>
+                <button class="adm-btn adm-btn-primary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  Find New Leads
+                </button>
+              </div>
+            </div>
+
+            <div class="adm-filter-bar">
+              <select class="adm-filter-select"><option>All States</option><option>QLD</option><option>NSW</option><option>VIC</option><option>WA</option><option>SA</option></select>
+              <select class="adm-filter-select"><option>All Industries</option><option>Concrete</option><option>Quarry</option><option>Fleet</option></select>
+              <select class="adm-filter-select"><option>All Sources</option><option>Maps Scraper</option><option>Manual Import</option><option>Customer</option></select>
+              <select class="adm-filter-select"><option>Lead Score: All</option><option>Score 80+</option><option>Score 60–79</option><option>Score &lt;60</option></select>
+              <input class="adm-filter-search" placeholder="Search company or contact…">
+              <button class="adm-btn adm-btn-outline" style="margin-left:auto">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                Segment
+              </button>
+            </div>
+
+            <div class="adm-card">
+              <div class="adm-card-body">
+                <table class="adm-table">
+                  <thead><tr>
+                    <th style="width:20px"><input type="checkbox" style="accent-color:hsl(142,76%,56%)"></th>
+                    <th>Company</th><th>Contact</th><th>State</th><th>Industry</th><th>Lead Score</th><th>Last Contacted</th><th>Source</th><th></th>
+                  </tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><input type="checkbox" style="accent-color:hsl(142,76%,56%)"></td>
+                      <td><div class="font-medium">Hanson Construction Matls</div><div class="text-muted" style="font-size:10px">hanson.com.au</div></td>
+                      <td><div>Mark Davison</div><div class="text-muted" style="font-size:10px">Procurement Manager</div></td>
+                      <td><span class="adm-badge adm-badge-blue">NSW</span></td>
+                      <td><span class="adm-badge adm-badge-amber">Concrete</span></td>
+                      <td><div class="lead-score-wrap"><div class="lead-score-bar"><div class="lead-score-fill" style="width:91%;background:hsl(142,76%,56%)"></div></div><span class="lead-score-num" style="color:hsl(142,76%,56%)">91</span></div></td>
+                      <td class="text-muted" style="font-size:11px">2 days ago</td>
+                      <td><span class="adm-badge adm-badge-gray">Customer</span></td>
+                      <td><button class="adm-btn adm-btn-ghost" style="padding:4px 8px;font-size:11px" onclick="switchAdminPage('builder', null)">Campaign →</button></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" style="accent-color:hsl(142,76%,56%)"></td>
+                      <td><div class="font-medium">Gunlake Concrete Pty Ltd</div><div class="text-muted" style="font-size:10px">gunlake.com.au</div></td>
+                      <td><div>Sarah Mitchell</div><div class="text-muted" style="font-size:10px">Operations Director</div></td>
+                      <td><span class="adm-badge adm-badge-blue">NSW</span></td>
+                      <td><span class="adm-badge adm-badge-amber">Concrete</span></td>
+                      <td><div class="lead-score-wrap"><div class="lead-score-bar"><div class="lead-score-fill" style="width:85%;background:hsl(142,76%,56%)"></div></div><span class="lead-score-num" style="color:hsl(142,76%,56%)">85</span></div></td>
+                      <td class="text-muted" style="font-size:11px">5 days ago</td>
+                      <td><span class="adm-badge adm-badge-gray">Customer</span></td>
+                      <td><button class="adm-btn adm-btn-ghost" style="padding:4px 8px;font-size:11px" onclick="switchAdminPage('builder', null)">Campaign →</button></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" style="accent-color:hsl(142,76%,56%)"></td>
+                      <td><div class="font-medium">Blue Metal Quarries Pty</div><div class="text-muted" style="font-size:10px">—</div></td>
+                      <td><div>Tony Marchetti</div><div class="text-muted" style="font-size:10px">Site Manager</div></td>
+                      <td><span class="adm-badge adm-badge-emerald">VIC</span></td>
+                      <td><span class="adm-badge adm-badge-gray">Quarry</span></td>
+                      <td><div class="lead-score-wrap"><div class="lead-score-bar"><div class="lead-score-fill" style="width:78%;background:#fbbf24"></div></div><span class="lead-score-num" style="color:#fbbf24">78</span></div></td>
+                      <td class="text-muted" style="font-size:11px">Never</td>
+                      <td><span class="adm-badge adm-badge-purple">Maps</span></td>
+                      <td><button class="adm-btn adm-btn-ghost" style="padding:4px 8px;font-size:11px" onclick="switchAdminPage('builder', null)">Campaign →</button></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" style="accent-color:hsl(142,76%,56%)"></td>
+                      <td><div class="font-medium">ACM — Aust. Constructn Matls</div><div class="text-muted" style="font-size:10px">acm.com.au</div></td>
+                      <td><div>James O'Brien</div><div class="text-muted" style="font-size:10px">Procurement</div></td>
+                      <td><span class="adm-badge adm-badge-amber">QLD</span></td>
+                      <td><span class="adm-badge adm-badge-amber">Concrete</span></td>
+                      <td><div class="lead-score-wrap"><div class="lead-score-bar"><div class="lead-score-fill" style="width:72%;background:#fbbf24"></div></div><span class="lead-score-num" style="color:#fbbf24">72</span></div></td>
+                      <td class="text-muted" style="font-size:11px">12 days ago</td>
+                      <td><span class="adm-badge adm-badge-gray">Customer</span></td>
+                      <td><button class="adm-btn adm-btn-ghost" style="padding:4px 8px;font-size:11px">View</button></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" style="accent-color:hsl(142,76%,56%)"></td>
+                      <td><div class="font-medium">WA Granite Quarries</div><div class="text-muted" style="font-size:10px">wagranite.com.au</div></td>
+                      <td><div>—</div><div class="text-muted" style="font-size:10px">Not yet enriched</div></td>
+                      <td><span class="adm-badge adm-badge-purple">WA</span></td>
+                      <td><span class="adm-badge adm-badge-gray">Quarry</span></td>
+                      <td><div class="lead-score-wrap"><div class="lead-score-bar"><div class="lead-score-fill" style="width:45%;background:#f87171"></div></div><span class="lead-score-num" style="color:#f87171">45</span></div></td>
+                      <td class="text-muted" style="font-size:11px">Never</td>
+                      <td><span class="adm-badge adm-badge-purple">Maps</span></td>
+                      <td><button class="adm-btn adm-btn-ghost" style="padding:4px 8px;font-size:11px;color:hsl(142,76%,56%)">Enrich ✦</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px">
+              <div style="font-size:11px;color:var(--adm-muted)">Showing 1–5 of 847 contacts</div>
+              <div style="display:flex;gap:5px">
+                <button class="adm-btn adm-btn-outline" style="padding:5px 10px;font-size:11px">← Prev</button>
+                <button class="adm-btn adm-btn-outline" style="padding:5px 10px;font-size:11px">Next →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── PAGE: CAMPAIGN BUILDER ── -->
+          <div class="adm-page" id="page-builder">
+            <div class="adm-page-header">
+              <div>
+                <div class="adm-page-title">New Campaign</div>
+                <div class="adm-page-desc">AI-assisted multi-channel campaign builder</div>
+              </div>
+              <div class="adm-actions">
+                <button class="adm-btn adm-btn-ghost" onclick="switchAdminPage('hub', null)">Cancel</button>
+              </div>
+            </div>
+
+            <!-- Step indicator -->
+            <div class="builder-steps" id="builder-steps">
+              <div class="builder-step done" onclick="setBuilderStep(1)">
+                <div class="builder-step-num">✓</div>
+                <span class="builder-step-label">1. Audience</span>
+              </div>
+              <span class="builder-step-arrow">→</span>
+              <div class="builder-step active" onclick="setBuilderStep(2)" id="step-indicator-2">
+                <div class="builder-step-num">2</div>
+                <span class="builder-step-label">Generate Content</span>
+              </div>
+              <span class="builder-step-arrow">→</span>
+              <div class="builder-step" onclick="setBuilderStep(3)" id="step-indicator-3">
+                <div class="builder-step-num">3</div>
+                <span class="builder-step-label">Schedule</span>
+              </div>
+              <span class="builder-step-arrow">→</span>
+              <div class="builder-step" onclick="setBuilderStep(4)" id="step-indicator-4">
+                <div class="builder-step-num">4</div>
+                <span class="builder-step-label">Review & Send</span>
+              </div>
+            </div>
+
+            <!-- Step 1: Audience -->
+            <div class="builder-step-content" id="builder-content-1">
+              <div class="audience-grid">
+                <div>
+                  <div class="segment-picker">
+                    <div class="segment-picker-title">State</div>
+                    <span class="segment-tag selected" onclick="toggleSegTag(this)">All States</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">QLD</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">NSW</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">VIC</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">WA</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">SA</span>
+                  </div>
+                  <div class="segment-picker" style="margin-top:10px">
+                    <div class="segment-picker-title">Industry</div>
+                    <span class="segment-tag selected" onclick="toggleSegTag(this)">All Industries</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">Concrete</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">Quarry</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">Fleet</span>
+                  </div>
+                  <div class="segment-picker" style="margin-top:10px">
+                    <div class="segment-picker-title">Behaviour</div>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">No order 30+ days</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">New leads (unenriched)</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">Score 80+</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">Opened last email</span>
+                    <span class="segment-tag" onclick="toggleSegTag(this)">Never contacted</span>
+                  </div>
+                </div>
+                <div class="audience-preview">
+                  <div style="font-size:11px;color:var(--adm-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Matching Contacts</div>
+                  <div class="audience-count">847</div>
+                  <div class="audience-desc">All contacts · All states · All industries</div>
+                  <div style="margin-top:12px;font-size:11px;color:var(--adm-muted);line-height:1.7">
+                    <div>📧 742 with email address</div>
+                    <div>📱 301 with phone number</div>
+                    <div>🏢 QLD: 312 · NSW: 287 · VIC: 143</div>
+                    <div>⭐ 214 with lead score 80+</div>
+                  </div>
+                  <div style="margin-top:12px;display:flex;gap:8px">
+                    <select class="adm-filter-select" style="flex:1"><option>Email</option><option>SMS</option><option>Email + SMS</option></select>
+                  </div>
+                </div>
+              </div>
+              <div class="builder-nav">
+                <div></div>
+                <button class="adm-btn adm-btn-primary" onclick="setBuilderStep(2)">Next: Generate Content →</button>
+              </div>
+            </div>
+
+            <!-- Step 2: AI Content Generator -->
+            <div class="builder-step-content active" id="builder-content-2">
+              <div style="margin-bottom:14px">
+                <div class="ai-prompt-label">Tell Claude what this campaign is about</div>
+                <div class="ai-context-tags">
+                  <span class="ai-context-tag">847 contacts</span>
+                  <span class="ai-context-tag">Email + SMS</span>
+                  <span class="ai-context-tag">Green Acid Replacement</span>
+                  <span class="ai-context-tag">Concrete & Quarry</span>
+                  <span class="ai-context-tag">RAG: product spec loaded ✓</span>
+                </div>
+                <div class="ai-prompt-area">
+                  <div style="flex:1">
+                    <textarea class="ai-prompt-input" id="campaign-prompt" placeholder="e.g. Promote Green Acid Replacement as a safer, cost-effective alternative to hydrochloric acid for concrete plant cleaning. Highlight the safety angle and the price per litre vs competitors...">Promote Green Acid Replacement to concrete and quarry operators. Focus on safety (no HCl fumes), cost savings vs standard acid, and free freight for first order over $500. Tone: direct, industry-savvy, no fluff.</textarea>
+                  </div>
+                  <button class="adm-btn adm-btn-primary" id="gen-btn" onclick="runGenerate()" style="height:70px;align-self:flex-end;flex-direction:column;gap:4px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    Generate<br><span style="font-size:10px;opacity:0.8">5 Variants</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Loading state (hidden by default) -->
+              <div class="generate-loading" id="gen-loading">
+                <div class="gen-spinner"></div>
+                <div class="gen-label">Claude is generating 5 campaign variants…</div>
+                <div class="gen-steps-list">
+                  <div class="gen-step-done">✓ Reading product spec from knowledge base</div>
+                  <div class="gen-step-done">✓ Analysing top-performing Chem Connect emails</div>
+                  <div id="gen-step-3">⋯ Applying 5 copywriting frameworks…</div>
+                  <div id="gen-step-4" style="opacity:0.4">⋯ Scoring variants with expert panel…</div>
+                  <div id="gen-step-5" style="opacity:0.4">⋯ Ranking and preparing results…</div>
+                </div>
+              </div>
+
+              <!-- Variants (shown after generation) -->
+              <div id="variants-area">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                  <div style="font-size:12px;font-weight:600;color:var(--adm-muted)">5 VARIANTS GENERATED — Select one to use</div>
+                  <button class="adm-btn adm-btn-ghost" style="font-size:11px" onclick="runGenerate()">↺ Regenerate</button>
+                </div>
+                <div class="variants-grid">
+                  <div class="variant-card selected" onclick="selectVariant(this, 1)" id="variant-1">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                      <span class="variant-framework adm-badge-green">AIDA</span>
+                      <span class="variant-score" style="color:hsl(142,76%,56%)">94</span>
+                    </div>
+                    <div class="variant-subject">"Stop paying for acid that fights back"</div>
+                    <div class="variant-preview">If you're still cleaning your drums with hydrochloric acid, you're paying for a product that corrodes your equipment and puts your team at risk. Green Acid Replacement delivers the same clean…</div>
+                    <button class="variant-select-btn">✓ Selected</button>
+                  </div>
+                  <div class="variant-card" onclick="selectVariant(this, 2)" id="variant-2">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                      <span class="variant-framework adm-badge-blue">PAS</span>
+                      <span class="variant-score" style="color:#60a5fa">87</span>
+                    </div>
+                    <div class="variant-subject">"The acid your team hates using"</div>
+                    <div class="variant-preview">HCl acid gets the job done — but at what cost? Fume exposure, WHS compliance headaches, and a product that costs more per clean than you think…</div>
+                    <button class="variant-select-btn">Select</button>
+                  </div>
+                  <div class="variant-card" onclick="selectVariant(this, 3)" id="variant-3">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                      <span class="variant-framework adm-badge-amber">9-Word</span>
+                      <span class="variant-score" style="color:#fbbf24">82</span>
+                    </div>
+                    <div class="variant-subject">"Are you still using HCl at your plant?"</div>
+                    <div class="variant-preview">Quick question — what's your current cost per drum clean? Green Acid Replacement comes in at $X/L and we can have a 200L drum at your site by Friday…</div>
+                    <button class="variant-select-btn">Select</button>
+                  </div>
+                  <div class="variant-card" onclick="selectVariant(this, 4)" id="variant-4">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                      <span class="variant-framework adm-badge-purple">OCA</span>
+                      <span class="variant-score" style="color:#a78bfa">79</span>
+                    </div>
+                    <div class="variant-subject">"I noticed you order Truck Wash regularly"</div>
+                    <div class="variant-preview">Hey [name], noticed that [company] has been a Chem Connect customer for a while now. Most concrete operators we talk to are still on HCl acid for drum cleaning — wanted to share what Hanson NSW just switched to…</div>
+                    <button class="variant-select-btn">Select</button>
+                  </div>
+                  <div class="variant-card" onclick="selectVariant(this, 5)" id="variant-5">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                      <span class="variant-framework adm-badge-red">BAB</span>
+                      <span class="variant-score" style="color:#f87171">74</span>
+                    </div>
+                    <div class="variant-subject">"From HCl headaches to clean drums in 30 min"</div>
+                    <div class="variant-preview">Before: HCl drums, WHS notices, and a product your team actively avoids using. After: Green Acid Replacement — same result, safer handling, and $X cheaper per clean…</div>
+                    <button class="variant-select-btn">Select</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="builder-nav">
+                <button class="adm-btn adm-btn-outline" onclick="setBuilderStep(1)">← Back</button>
+                <button class="adm-btn adm-btn-primary" onclick="setBuilderStep(3)">Next: Schedule →</button>
+              </div>
+            </div>
+
+            <!-- Step 3: Schedule -->
+            <div class="builder-step-content" id="builder-content-3">
+              <div class="schedule-options">
+                <div class="schedule-option selected" onclick="selectSchedule(this)">
+                  <div class="schedule-option-icon">⚡</div>
+                  <div class="schedule-option-label">Send Now</div>
+                  <div class="schedule-option-desc">Deliver immediately to all 847 contacts</div>
+                </div>
+                <div class="schedule-option" onclick="selectSchedule(this)">
+                  <div class="schedule-option-icon">🕘</div>
+                  <div class="schedule-option-label">Schedule</div>
+                  <div class="schedule-option-desc">Pick a date and time for delivery</div>
+                </div>
+                <div class="schedule-option" onclick="selectSchedule(this)">
+                  <div class="schedule-option-icon">🔁</div>
+                  <div class="schedule-option-label">Recurring</div>
+                  <div class="schedule-option-desc">Weekly or monthly automated sends</div>
+                </div>
+              </div>
+              <div style="margin-top:14px;padding:14px;background:var(--adm-muted-bg);border-radius:var(--adm-radius);font-size:12px;color:var(--adm-muted)">
+                💡 <strong style="color:var(--adm-fg)">Optimal send time:</strong> Claude recommends Tuesday 9am AEST based on your highest open-rate data. 847 emails will be staggered over 15 minutes via Mailgun to maximise deliverability.
+              </div>
+              <div class="builder-nav">
+                <button class="adm-btn adm-btn-outline" onclick="setBuilderStep(2)">← Back</button>
+                <button class="adm-btn adm-btn-primary" onclick="setBuilderStep(4)">Next: Review →</button>
+              </div>
+            </div>
+
+            <!-- Step 4: Review & Send -->
+            <div class="builder-step-content" id="builder-content-4">
+              <div class="review-grid">
+                <div class="review-item"><div class="review-item-label">Audience</div><div class="review-item-value">847 contacts · All states · Email</div></div>
+                <div class="review-item"><div class="review-item-label">Variant Selected</div><div class="review-item-value">AIDA — Score 94 · "Stop paying for acid…"</div></div>
+                <div class="review-item"><div class="review-item-label">Schedule</div><div class="review-item-value">Send Now</div></div>
+                <div class="review-item"><div class="review-item-label">Sending From</div><div class="review-item-value">marketing@cqvs.com.au via Mailgun</div></div>
+                <div class="review-email-preview">
+                  <div style="font-size:11px;font-weight:600;color:var(--adm-muted);margin-bottom:8px">EMAIL PREVIEW</div>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:4px">Subject: Stop paying for acid that fights back</div>
+                  <div style="font-size:11px;color:var(--adm-muted);line-height:1.7">If you're still cleaning your drums with hydrochloric acid, you're paying for a product that corrodes your equipment and puts your team at risk. Green Acid Replacement delivers the same clean at [price]/L — without the fumes, the WHS headaches, or the hidden corrosion costs… <span style="color:hsl(142,76%,56%)">[View full email]</span></div>
+                </div>
+              </div>
+              <div class="builder-nav">
+                <button class="adm-btn adm-btn-outline" onclick="setBuilderStep(3)">← Back</button>
+                <button class="adm-btn adm-btn-primary" style="background:hsl(142,76%,56%);padding:9px 24px;font-size:14px;font-weight:600">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Send Campaign to 847 Contacts
+                </button>
+              </div>
+            </div>
+
+          </div><!-- end campaign builder page -->
+
+        </div><!-- end adm-content -->
+      </div><!-- end adm-main -->
+    </div><!-- end admin-shell -->
+  </div><!-- end admin-shell-wrap -->
+
+  <!-- Behaviour callouts -->
+  <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin:40px 0 14px;letter-spacing:-0.2px;">Key Behaviours & UX Patterns</h3>
+  <div class="behaviour-grid">
+    <div class="behaviour-card">
+      <div class="behaviour-icon" style="background:rgba(129,140,248,0.1)">🤖</div>
+      <div class="behaviour-title">Human-in-the-Loop, Always</div>
+      <div class="behaviour-desc">Claude never sends anything autonomously. Every campaign pauses at Step 4 for Jonny to review and approve. The AI generates options — humans make decisions. The Trigger.dev workflow literally suspends until you click "Send."</div>
+      <div class="behaviour-detail">Trigger.dev: await io.waitForEvent("campaign.approved")<br>Mastra: workflow.suspend() → resume on approval<br>No campaign fires without explicit human confirmation</div>
+    </div>
+    <div class="behaviour-card">
+      <div class="behaviour-icon" style="background:rgba(251,191,36,0.1)">⚡</div>
+      <div class="behaviour-title">Existing Integrations, Extended</div>
+      <div class="behaviour-desc">Marketing doesn't replace anything — it extends what's already built. The existing <code style="font-family:'JetBrains Mono',monospace;font-size:11px">sendEmail()</code> in <code style="font-family:'JetBrains Mono',monospace;font-size:11px">lib/email/send.ts</code> is called by the campaign bulk-sender. Stripe webhooks trigger Inngest automations. Xero's <code style="font-family:'JetBrains Mono',monospace;font-size:11px">xero_contact_id</code> links to CRM contacts.</div>
+      <div class="behaviour-detail">lib/email/send.ts → extended with sendBulkCampaign()<br>app/api/webhooks/stripe → fires inngest events<br>profiles.xero_contact_id → links to contacts table</div>
+    </div>
+    <div class="behaviour-card">
+      <div class="behaviour-icon" style="background:rgba(0,212,184,0.1)">🎯</div>
+      <div class="behaviour-title">Segment-Aware Content Generation</div>
+      <div class="behaviour-desc">Claude knows the audience when generating content. The prompt is automatically enriched with segment data (NSW quarry operators, concrete plants, fleet operators) and product RAG context (specs, pricing, MSDS). Content is never generic — it's targeted to the specific audience selected in Step 1.</div>
+      <div class="behaviour-detail">Context injected: segment tags + product embeddings<br>RAG: supabase pgvector over all 23 product specs<br>Personalisation: {company}, {contact_name}, {state}</div>
+    </div>
+    <div class="behaviour-card">
+      <div class="behaviour-icon" style="background:rgba(74,222,128,0.1)">📊</div>
+      <div class="behaviour-title">Behaviour-Triggered Automations</div>
+      <div class="behaviour-desc">Inngest listens to real database events from Supabase. When an order is marked "delivered" → rewards email fires. When 30 days pass with no order → re-engagement SMS queues. When a contact opens an email → Day 3 follow-up is scheduled. All without any manual action.</div>
+      <div class="behaviour-detail">order.delivered → rewards/upsell sequence<br>customer.lapsed_30d → re-engagement SMS via Twilio<br>email.opened → follow-up drip triggered<br>new_lead.scored → alert notification</div>
+    </div>
+  </div>
+
+  <!-- Existing → New connection map -->
+  <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin:32px 0 14px;letter-spacing:-0.2px;">How Marketing Connects to What's Already Built</h3>
+  <div class="adm-card" style="background:var(--bg2);border-color:var(--border)">
+    <div class="adm-card-body" style="padding:16px 20px">
+      <div class="integration-line">
+        <span class="il-from">lib/email/send.ts → sendEmail()</span>
+        <span class="il-arrow">→ extended into →</span>
+        <span class="il-to">sendBulkCampaign(contactIds, html)</span>
+        <span class="il-desc">Same Mailgun auth, adds batching</span>
+      </div>
+      <div class="integration-line">
+        <span class="il-from">app/api/webhooks/stripe/route.ts</span>
+        <span class="il-arrow">→ fires →</span>
+        <span class="il-to">inngest: order.paid event</span>
+        <span class="il-desc">Triggers receipt + reward sequence</span>
+      </div>
+      <div class="integration-line">
+        <span class="il-from">profiles.xero_contact_id</span>
+        <span class="il-arrow">→ links to →</span>
+        <span class="il-to">contacts.profile_id</span>
+        <span class="il-desc">Customer ↔ prospect unified</span>
+      </div>
+      <div class="integration-line">
+        <span class="il-from">orders.status = 'delivered'</span>
+        <span class="il-arrow">→ triggers →</span>
+        <span class="il-to">inngest: customer.delivered event</span>
+        <span class="il-desc">Upsell sequence fires D+3</span>
+      </div>
+      <div class="integration-line">
+        <span class="il-from">customer_rewards.current_tier</span>
+        <span class="il-arrow">→ segment tag →</span>
+        <span class="il-to">contacts segment: VIP/Bronze/Silver/Gold</span>
+        <span class="il-desc">Tier-specific campaign targeting</span>
+      </div>
+      <div class="integration-line">
+        <span class="il-from">admin_settings (key/value table)</span>
+        <span class="il-arrow">→ extended with →</span>
+        <span class="il-to">marketing.from_email, unsubscribe_url, sms_enabled</span>
+        <span class="il-desc">Marketing config in same table</span>
+      </div>
+      <div class="integration-line">
+        <span class="il-from">components/layouts/admin-sidebar.tsx</span>
+        <span class="il-arrow">→ add to navItems[] →</span>
+        <span class="il-to">{ label: "Marketing", href: "/admin/marketing", icon: Megaphone }</span>
+        <span class="il-desc">1 line change to existing nav</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTION: USER JOURNEYS                    -->
+<!-- ══════════════════════════════════════════ -->
+<section id="journeys">
+  <div class="section-label">
+    <span class="section-num">06</span>
+    <span class="section-title">User Journeys & Automation Flows</span>
+  </div>
+  <p class="section-desc">End-to-end flows showing exactly what happens at each step — which system fires, which human action is required, and what the outcome is.</p>
+
+  <div class="journey-tabs">
+    <button class="journey-tab active" onclick="switchJourney('campaign', this)">Run a Campaign</button>
+    <button class="journey-tab" onclick="switchJourney('lapsed', this)">Lapsed Customer</button>
+    <button class="journey-tab" onclick="switchJourney('leads', this)">Find New Leads</button>
+  </div>
+
+  <!-- Journey 1: Run a campaign -->
+  <div class="journey-flow active" id="journey-campaign">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;font-family:'JetBrains Mono',monospace;">JOURNEY: "I want to run a Green Acid Replacement campaign to NSW quarry operators"</div>
+    <div class="flow-steps">
+      <div class="flow-step human">
+        <div class="flow-step-icon">👤</div>
+        <div class="flow-step-title">Define Audience</div>
+        <div class="flow-step-desc">Jonny selects NSW + Quarry + Score 80+ in Step 1 of the builder</div>
+        <div class="flow-step-badge" style="background:rgba(96,165,250,0.1);color:#60a5fa">Human</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step ai-step">
+        <div class="flow-step-icon">🧠</div>
+        <div class="flow-step-title">Claude Generates</div>
+        <div class="flow-step-desc">5 variants using AIDA, PAS, 9-Word, OCA, BAB frameworks. RAG pulls product specs.</div>
+        <div class="flow-step-badge" style="background:rgba(129,140,248,0.1);color:#818cf8">Claude</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step human">
+        <div class="flow-step-icon">✅</div>
+        <div class="flow-step-title">Pick Best Variant</div>
+        <div class="flow-step-desc">Jonny reads all 5, selects AIDA (score 94). Can edit before approving.</div>
+        <div class="flow-step-badge" style="background:rgba(96,165,250,0.1);color:#60a5fa">Human</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step send">
+        <div class="flow-step-icon">📬</div>
+        <div class="flow-step-title">Mailgun Sends</div>
+        <div class="flow-step-desc">Trigger.dev resumes. 214 emails staggered over 15 min via existing Mailgun integration.</div>
+        <div class="flow-step-badge" style="background:rgba(74,222,128,0.1);color:#4ade80">Mailgun</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step outcome">
+        <div class="flow-step-icon">📊</div>
+        <div class="flow-step-title">Track & Trigger</div>
+        <div class="flow-step-desc">Mailgun webhooks update open/click rates. Inngest fires Day 3 follow-up for openers.</div>
+        <div class="flow-step-badge" style="background:rgba(0,212,184,0.1);color:#00d4b8">Inngest</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step ai-step">
+        <div class="flow-step-icon">💬</div>
+        <div class="flow-step-title">Auto Follow-Up</div>
+        <div class="flow-step-desc">Openers who didn't click get a D+3 SMS from Twilio. Non-openers get a resend with subject line variant.</div>
+        <div class="flow-step-badge" style="background:rgba(129,140,248,0.1);color:#818cf8">Twilio</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px"><strong>Total Jonny effort:</strong> ~10 minutes to define audience + review variants + click send. Everything else is automated. The Day 3 follow-up fires with zero additional action.</div>
+  </div>
+
+  <!-- Journey 2: Lapsed customer -->
+  <div class="journey-flow" id="journey-lapsed">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;font-family:'JetBrains Mono',monospace;">JOURNEY: "A customer (Boral Parramatta) hasn't ordered in 31 days — automated re-engagement"</div>
+    <div class="flow-steps">
+      <div class="flow-step trigger">
+        <div class="flow-step-icon">⏱️</div>
+        <div class="flow-step-title">Inngest Detects</div>
+        <div class="flow-step-desc">Cron job runs daily. Queries Supabase: orders where last_order_date < now() - 30 days.</div>
+        <div class="flow-step-badge" style="background:rgba(251,191,36,0.1);color:#fbbf24">Trigger</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step ai-step">
+        <div class="flow-step-icon">🧠</div>
+        <div class="flow-step-title">Claude Drafts SMS</div>
+        <div class="flow-step-desc">Claude uses Dean Jackson 9-Word Email format: "Are you still looking for Truck Wash, [name]?"</div>
+        <div class="flow-step-badge" style="background:rgba(129,140,248,0.1);color:#818cf8">Claude</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step human">
+        <div class="flow-step-icon">👀</div>
+        <div class="flow-step-title">Jonny Reviews</div>
+        <div class="flow-step-desc">Dashboard shows "3 re-engagement SMS pending approval." One-click approve all or edit individually.</div>
+        <div class="flow-step-badge" style="background:rgba(96,165,250,0.1);color:#60a5fa">Human</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step send">
+        <div class="flow-step-icon">📱</div>
+        <div class="flow-step-title">Twilio Sends SMS</div>
+        <div class="flow-step-desc">SMS fires from AU number. "Are you still looking for Truck Wash, Mark?" — personalised from contact name.</div>
+        <div class="flow-step-badge" style="background:rgba(74,222,128,0.1);color:#4ade80">Twilio</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step outcome">
+        <div class="flow-step-icon">🛒</div>
+        <div class="flow-step-title">Customer Replies</div>
+        <div class="flow-step-desc">Two-way Twilio conversation. Reply links back to Chem Connect checkout. Or flags for call.</div>
+        <div class="flow-step-badge" style="background:rgba(0,212,184,0.1);color:#00d4b8">Revenue</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step ai-step">
+        <div class="flow-step-icon">📧</div>
+        <div class="flow-step-title">D+7 Email Fallback</div>
+        <div class="flow-step-desc">If no reply after 7 days, email drip fires automatically with a product promotion.</div>
+        <div class="flow-step-badge" style="background:rgba(129,140,248,0.1);color:#818cf8">Inngest</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px"><strong>Triggered by:</strong> <code style="font-family:'JetBrains Mono',monospace;font-size:12px">orders</code> table · <strong>Fires:</strong> Inngest daily cron · <strong>Jonny effort:</strong> 30 seconds to approve the batch. The entire sequence from detection to D+7 fallback is automated.</div>
+  </div>
+
+  <!-- Journey 3: Find new leads -->
+  <div class="journey-flow" id="journey-leads">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;font-family:'JetBrains Mono',monospace;">JOURNEY: "Find every concrete batching plant in Victoria that isn't already a Chem Connect customer"</div>
+    <div class="flow-steps">
+      <div class="flow-step human">
+        <div class="flow-step-icon">🗺️</div>
+        <div class="flow-step-title">Maps Scraper</div>
+        <div class="flow-step-desc">n8n runs Google Maps Scraper: "concrete batching plant VIC". Returns 63 businesses with address, phone, website.</div>
+        <div class="flow-step-badge" style="background:rgba(96,165,250,0.1);color:#60a5fa">n8n + Scraper</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step ai-step">
+        <div class="flow-step-icon">🇦🇺</div>
+        <div class="flow-step-title">ABN Validation</div>
+        <div class="flow-step-desc">Free AU Gov API validates each business. Filters: active + GST registered. 57 pass, 6 deregistered removed.</div>
+        <div class="flow-step-badge" style="background:rgba(52,211,153,0.1);color:#34d399">Free API</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step ai-step">
+        <div class="flow-step-icon">🔍</div>
+        <div class="flow-step-title">Apollo Enrichment</div>
+        <div class="flow-step-desc">Apollo MCP finds: procurement manager names, emails, LinkedIn. 41 of 57 enriched with decision-maker contact.</div>
+        <div class="flow-step-badge" style="background:rgba(129,140,248,0.1);color:#818cf8">Apollo MCP</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step ai-step">
+        <div class="flow-step-icon">⭐</div>
+        <div class="flow-step-title">Lead Scoring</div>
+        <div class="flow-step-desc">Claude scores each contact: company size, location proximity to CQVS warehouses, industry match, contact quality. Top 15 flagged.</div>
+        <div class="flow-step-badge" style="background:rgba(129,140,248,0.1);color:#818cf8">Claude</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step send">
+        <div class="flow-step-icon">📥</div>
+        <div class="flow-step-title">Auto-Import</div>
+        <div class="flow-step-desc">57 contacts imported to Supabase contacts table, tagged "VIC · Concrete · Maps · Unenriched", visible in /admin/contacts.</div>
+        <div class="flow-step-badge" style="background:rgba(74,222,128,0.1);color:#4ade80">Supabase</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step human">
+        <div class="flow-step-icon">👤</div>
+        <div class="flow-step-title">Jonny Reviews</div>
+        <div class="flow-step-desc">Jonny sees 57 new VIC concrete contacts in the dashboard, reviews the top 15, adds to a new campaign in one click.</div>
+        <div class="flow-step-badge" style="background:rgba(96,165,250,0.1);color:#60a5fa">Human</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="flow-step outcome">
+        <div class="flow-step-icon">🚀</div>
+        <div class="flow-step-title">Campaign Fires</div>
+        <div class="flow-step-desc">personalised cold email to 15 high-score VIC concrete plants. All within 2 hours of triggering the scraper.</div>
+        <div class="flow-step-badge" style="background:rgba(0,212,184,0.1);color:#00d4b8">Revenue</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px"><strong>Jonny's total effort:</strong> Set up the n8n pipeline once (2 hours). Then: click "Run scraper" → wait 30 mins → review contacts → send campaign. <strong>From zero to personalised cold outreach to 15 qualified VIC concrete plants in under 3 hours.</strong> Then do it for every other state.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="doc-footer">
+  Chem Connect AI Sales Engine Blueprint &nbsp;·&nbsp; Prepared for Jonny Harper &amp; Sohaib &nbsp;·&nbsp; April 2026<br>
+  <span style="opacity:0.5">Next.js 16 · React 19 · Supabase · Vercel · Claude Sonnet 4.6 · TypeScript</span>
+</div>
+
+</main>
+</div>
+
+<script>
+// ── Layer toggle ──
+function toggleLayer(card) {
+  card.classList.toggle('open');
+}
+
+// ── Main nav ──
+function setActive(el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Scroll spy
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.nav-item[href]');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navItems.forEach(item => {
+        item.classList.toggle('active', item.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { threshold: 0.2 });
+sections.forEach(s => observer.observe(s));
+
+// Auto-open first layer
+document.querySelector('.layer-card').classList.add('open');
+
+// ── Admin shell page switching ──
+const pageUrls = {
+  hub: '/admin/marketing',
+  contacts: '/admin/contacts',
+  builder: '/admin/campaigns/new'
+};
+function switchAdminPage(page, tabEl) {
+  // Switch page content
+  document.querySelectorAll('.adm-page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + page);
+  if (target) target.classList.add('active');
+  // Update chrome URL
+  const urlEl = document.getElementById('chrome-url');
+  if (urlEl) urlEl.textContent = 'chem-connect.vercel.app' + (pageUrls[page] || '/admin/marketing');
+  // Update chrome tabs
+  if (tabEl) {
+    document.querySelectorAll('.chrome-page-tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+  } else {
+    document.querySelectorAll('.chrome-page-tab').forEach(t => {
+      const txt = t.textContent.toLowerCase();
+      const match = (page === 'hub' && txt.includes('hub')) ||
+                    (page === 'contacts' && txt.includes('contact')) ||
+                    (page === 'builder' && txt.includes('campaign'));
+      t.classList.toggle('active', match);
+    });
+  }
+  // Update sidebar active states
+  document.querySelectorAll('.adm-nav-item, .adm-nav-sub-item').forEach(n => n.classList.remove('active'));
+  if (page === 'hub')      { document.getElementById('nav-hub')?.classList.add('active'); }
+  if (page === 'contacts') { document.getElementById('nav-contacts-sub')?.classList.add('active'); }
+  if (page === 'builder')  { document.getElementById('nav-campaigns-sub')?.classList.add('active'); }
+}
+
+// ── Campaign builder steps ──
+function setBuilderStep(step) {
+  // Update step indicators
+  for (let i = 1; i <= 4; i++) {
+    const ind = document.getElementById('step-indicator-' + i);
+    if (ind) {
+      ind.classList.remove('active', 'done');
+      if (i < step) ind.classList.add('done');
+      if (i === step) ind.classList.add('active');
+    }
+  }
+  // Update first step indicator (no id, first child)
+  const steps = document.querySelectorAll('#builder-steps .builder-step');
+  steps.forEach((s, idx) => {
+    s.classList.remove('active', 'done');
+    if (idx + 1 < step) s.classList.add('done');
+    if (idx + 1 === step) s.classList.add('active');
+  });
+  // Show correct content
+  document.querySelectorAll('.builder-step-content').forEach(c => c.classList.remove('active'));
+  const content = document.getElementById('builder-content-' + step);
+  if (content) content.classList.add('active');
+  // If step 2 and variants not shown yet, show them
+  if (step === 2) {
+    const va = document.getElementById('variants-area');
+    const gl = document.getElementById('gen-loading');
+    if (va) va.style.display = 'block';
+    if (gl) gl.classList.remove('visible');
+  }
+}
+
+// ── AI variant generation ──
+let isGenerating = false;
+function runGenerate() {
+  if (isGenerating) return;
+  isGenerating = true;
+  const btn = document.getElementById('gen-btn');
+  const loading = document.getElementById('gen-loading');
+  const variantsArea = document.getElementById('variants-area');
+  if (btn) btn.style.opacity = '0.5';
+  if (variantsArea) variantsArea.style.display = 'none';
+  if (loading) loading.classList.add('visible');
+  // Animate loading steps
+  const step3 = document.getElementById('gen-step-3');
+  const step4 = document.getElementById('gen-step-4');
+  const step5 = document.getElementById('gen-step-5');
+  setTimeout(() => {
+    if (step3) { step3.classList.add('gen-step-done'); step3.textContent = '✓ Applying 5 copywriting frameworks…'; }
+    if (step4) step4.style.opacity = '1';
+  }, 900);
+  setTimeout(() => {
+    if (step4) { step4.classList.add('gen-step-done'); step4.textContent = '✓ Scoring variants with expert panel…'; }
+    if (step5) step5.style.opacity = '1';
+  }, 1800);
+  setTimeout(() => {
+    if (step5) { step5.classList.add('gen-step-done'); step5.textContent = '✓ Ranking and preparing results…'; }
+  }, 2400);
+  setTimeout(() => {
+    isGenerating = false;
+    if (loading) loading.classList.remove('visible');
+    if (variantsArea) variantsArea.style.display = 'block';
+    if (btn) btn.style.opacity = '1';
+    // Reset step text for next time
+    if (step3) { step3.classList.remove('gen-step-done'); step3.textContent = '⋯ Applying 5 copywriting frameworks…'; }
+    if (step4) { step4.classList.remove('gen-step-done'); step4.textContent = '⋯ Scoring variants with expert panel…'; step4.style.opacity = '0.4'; }
+    if (step5) { step5.classList.remove('gen-step-done'); step5.textContent = '⋯ Ranking and preparing results…'; step5.style.opacity = '0.4'; }
+    // Deselect all, re-select first
+    document.querySelectorAll('.variant-card').forEach(c => c.classList.remove('selected'));
+    const first = document.getElementById('variant-1');
+    if (first) {
+      first.classList.add('selected');
+      first.querySelector('.variant-select-btn').textContent = '✓ Selected';
+    }
+  }, 3000);
+}
+
+// ── Select variant ──
+function selectVariant(card, num) {
+  document.querySelectorAll('.variant-card').forEach(c => {
+    c.classList.remove('selected');
+    const btn = c.querySelector('.variant-select-btn');
+    if (btn) btn.textContent = 'Select';
+  });
+  card.classList.add('selected');
+  const btn = card.querySelector('.variant-select-btn');
+  if (btn) btn.textContent = '✓ Selected';
+}
+
+// ── Segment tags toggle ──
+function toggleSegTag(el) {
+  const parent = el.closest('.segment-picker');
+  const allTag = parent.querySelector('.segment-tag:first-child');
+  if (el === allTag) {
+    parent.querySelectorAll('.segment-tag').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+  } else {
+    if (allTag) allTag.classList.remove('selected');
+    el.classList.toggle('selected');
+  }
+}
+
+// ── Schedule option select ──
+function selectSchedule(el) {
+  document.querySelectorAll('.schedule-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── Journey tabs ──
+function switchJourney(id, tabEl) {
+  document.querySelectorAll('.journey-flow').forEach(f => f.classList.remove('active'));
+  document.querySelectorAll('.journey-tab').forEach(t => t.classList.remove('active'));
+  const target = document.getElementById('journey-' + id);
+  if (target) target.classList.add('active');
+  if (tabEl) tabEl.classList.add('active');
+}
+
+
+</body>
+</html>
