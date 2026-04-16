@@ -70,7 +70,7 @@ async function getProduct(slug: string) {
   if (supabaseUrl && supabaseKey) {
     try {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/products?slug=eq.${encodeURIComponent(slug)}&select=*,packaging_prices:product_packaging_prices(*,packaging_size:packaging_sizes(*))&limit=1`,
+        `${supabaseUrl}/rest/v1/products?slug=eq.${encodeURIComponent(slug)}&is_active=eq.true&select=*,packaging_prices:product_packaging_prices(*,packaging_size:packaging_sizes(*))&limit=1`,
         {
           headers: {
             apikey: supabaseKey,
@@ -149,7 +149,7 @@ async function getRelatedProducts(category: string, excludeSlug: string) {
   if (supabaseUrl && supabaseKey) {
     try {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/products?category=eq.${encodeURIComponent(category)}&slug=neq.${encodeURIComponent(excludeSlug)}&select=id,name,slug,price,unit,manufacturer,category,image_url,badge&limit=8`,
+        `${supabaseUrl}/rest/v1/products?category=eq.${encodeURIComponent(category)}&slug=neq.${encodeURIComponent(excludeSlug)}&is_active=eq.true&select=id,name,slug,price,unit,manufacturer,category,image_url,badge&limit=8`,
         {
           headers: {
             apikey: supabaseKey,

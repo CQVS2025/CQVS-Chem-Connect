@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
-import { Search, Plus, Pencil, Trash2 } from "lucide-react"
+import { Search, Plus, Pencil, Trash2, EyeOff, Eye } from "lucide-react"
 import { toast } from "sonner"
 
 import {
   useProducts,
+  useUpdateProduct,
   useDeleteProduct,
 } from "@/lib/hooks/use-products"
 import { products as staticProducts, categories } from "@/lib/data/products"
@@ -49,7 +50,8 @@ export default function AdminProductsPage() {
   const [pageSize, setPageSize] = useState(10)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  const { data: apiProducts, isLoading } = useProducts()
+  const { data: apiProducts, isLoading } = useProducts({ includeInactive: true })
+  const updateProduct = useUpdateProduct()
   const deleteProduct = useDeleteProduct()
 
   // Normalize products - API returns snake_case, static uses camelCase
@@ -65,6 +67,7 @@ export default function AdminProductsPage() {
         classification: p.classification,
         stockQty: p.stock_qty,
         inStock: p.in_stock,
+        isActive: (p as unknown as { is_active?: boolean }).is_active !== false,
         priceType: (p.price_type ?? "per_litre") as ProductPriceType,
       }))
     }
@@ -78,9 +81,20 @@ export default function AdminProductsPage() {
       classification: p.classification,
       stockQty: p.stockQty,
       inStock: p.inStock,
+      isActive: true,
       priceType: "per_litre" as ProductPriceType,
     }))
   }, [apiProducts])
+
+  function handleToggleActive(id: string, currentlyActive: boolean) {
+    updateProduct.mutate(
+      { id, data: { is_active: !currentlyActive } as never },
+      {
+        onSuccess: () => toast.success(currentlyActive ? "Product set to inactive" : "Product set to active"),
+        onError: () => toast.error("Failed to update product status"),
+      },
+    )
+  }
 
   const filtered = allProducts.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase())
@@ -200,24 +214,43 @@ export default function AdminProductsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {product.inStock ? (
-                          <Badge
-                            variant="outline"
-                            className="border-emerald-500/20 bg-emerald-500/10 text-emerald-500"
-                          >
-                            In Stock
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="border-red-500/20 bg-red-500/10 text-red-500"
-                          >
-                            Out of Stock
-                          </Badge>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          {product.isActive ? (
+                            <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/10 text-emerald-500 w-fit">
+                              Active
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-zinc-500/20 bg-zinc-500/10 text-zinc-400 w-fit">
+                              Inactive
+                            </Badge>
+                          )}
+                          {product.isActive && (
+                            product.inStock ? (
+                              <Badge variant="outline" className="border-blue-500/20 bg-blue-500/10 text-blue-400 w-fit text-[10px]">
+                                In Stock
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="border-red-500/20 bg-red-500/10 text-red-500 w-fit text-[10px]">
+                                Out of Stock
+                              </Badge>
+                            )
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            title={product.isActive ? "Set inactive" : "Set active"}
+                            onClick={() => handleToggleActive(product.id, product.isActive)}
+                          >
+                            {product.isActive
+                              ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+                              : <Eye className="h-3.5 w-3.5 text-emerald-500" />
+                            }
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"

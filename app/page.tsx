@@ -94,7 +94,7 @@ async function getProductsByIds(ids: string[]): Promise<FeaturedProduct[]> {
   if (ids.length === 0) return []
   const idList = ids.map((id) => `"${id}"`).join(",")
   const rows = await supabaseFetch(
-    `products?select=id,name,slug,price,unit,manufacturer,category,badge,image_url&id=in.(${idList})`,
+    `products?select=id,name,slug,price,unit,manufacturer,category,badge,image_url&id=in.(${idList})&is_active=eq.true`,
   )
   if (!rows) return []
 
@@ -109,7 +109,7 @@ async function getProductsByIds(ids: string[]): Promise<FeaturedProduct[]> {
 
 async function getFallbackProducts(limit: number): Promise<FeaturedProduct[]> {
   const rows = await supabaseFetch(
-    `products?select=id,name,slug,price,unit,manufacturer,category,badge,image_url&order=name.asc&limit=${limit}`,
+    `products?select=id,name,slug,price,unit,manufacturer,category,badge,image_url&is_active=eq.true&order=name.asc&limit=${limit}`,
   )
   if (rows && rows.length > 0) {
     return (rows as Record<string, unknown>[]).map(mapProductRow)

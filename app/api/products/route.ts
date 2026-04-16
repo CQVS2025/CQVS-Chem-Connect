@@ -13,12 +13,19 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get("search")
   const sort = searchParams.get("sort")
   const includePricing = searchParams.get("includePricing") === "true"
+  const includeInactive = searchParams.get("include_inactive") === "true"
 
   const selectClause = includePricing
     ? `*, packaging_prices:product_packaging_prices(*, packaging_size:packaging_sizes(*))`
     : "*"
 
   let query = supabase.from("products").select(selectClause)
+
+  // Always hide inactive products from public queries.
+  // Pass ?include_inactive=true (admin only) to see all products.
+  if (!includeInactive) {
+    query = query.eq("is_active", true)
+  }
 
   if (category && category !== "All") {
     query = query.eq("category", category)

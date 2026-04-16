@@ -10,6 +10,7 @@ interface ProductFilters {
   inStock?: boolean
   search?: string
   sort?: string
+  includeInactive?: boolean
 }
 
 export function useProducts(filters: ProductFilters = {}) {
@@ -21,6 +22,7 @@ export function useProducts(filters: ProductFilters = {}) {
   if (filters.inStock) params.inStock = "true"
   if (filters.search) params.search = filters.search
   if (filters.sort) params.sort = filters.sort
+  if (filters.includeInactive) params.include_inactive = "true"
 
   return useQuery({
     queryKey: ["products", filters],
