@@ -53,7 +53,6 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
 
   const { id } = await params
 
-  // Soft delete by deactivating - hard delete would break historical orders
   const { error } = await supabase
     .from("packaging_sizes")
     .update({ is_active: false })

@@ -31,6 +31,7 @@ interface ProductDetail {
     packaging_size_id: string
     price_per_litre: number | null
     fixed_price: number | null
+    minimum_order_quantity: number | null
   }>
 }
 
@@ -88,6 +89,7 @@ export default function EditProductPage({
       packaging_size_id: pp.packaging_size_id,
       price_per_litre: pp.price_per_litre,
       fixed_price: pp.fixed_price,
+      minimum_order_quantity: pp.minimum_order_quantity ?? null,
     })),
   }
 
