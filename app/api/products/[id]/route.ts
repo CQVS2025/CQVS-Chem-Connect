@@ -82,6 +82,22 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       if (ppError) {
         console.error("Failed to update packaging prices:", ppError.message)
       }
+
+      // Remove warehouse mappings for sizes that no longer exist on this product
+      const newSizeIds = packagingPrices.map((pp: { packaging_size_id: string }) => pp.packaging_size_id)
+      await supabase
+        .from("product_warehouses")
+        .delete()
+        .eq("product_id", id)
+        .not("packaging_size_id", "is", null)
+        .not("packaging_size_id", "in", `(${newSizeIds.join(",")})`)
+    } else {
+      // All sizes removed — delete all specific-size warehouse mappings for this product
+      await supabase
+        .from("product_warehouses")
+        .delete()
+        .eq("product_id", id)
+        .not("packaging_size_id", "is", null)
     }
   }
 

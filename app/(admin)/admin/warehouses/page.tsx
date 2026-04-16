@@ -1197,9 +1197,11 @@ function ProductMappingTab() {
                 </TableRow>
               )}
               {allProducts.map((product) => {
-                // Use all configured packaging sizes regardless of is_available.
-                // is_available controls customer visibility, not warehouse mapping.
-                const activeSizes = (product.packaging_prices ?? [])
+                // Use all configured packaging sizes regardless of is_available,
+                // sorted by sort_order so they appear in consistent order.
+                const activeSizes = (product.packaging_prices ?? []).sort(
+                  (a, b) => (a.packaging_size?.sort_order ?? 0) - (b.packaging_size?.sort_order ?? 0),
+                )
 
                 if (activeSizes.length === 0) {
                   // Legacy: no packaging sizes configured — single "all sizes" row
@@ -1352,8 +1354,9 @@ function WarehousePricingTab() {
   const productSizeMap = useMemo(() => {
     const map = new Map<string, Array<{ id: string; name: string }>>()
     for (const p of allProducts) {
-      // Use all configured packaging sizes regardless of is_available.
+      // Use all configured packaging sizes regardless of is_available, sorted by sort_order.
       const sizes = (p.packaging_prices ?? [])
+        .sort((a, b) => (a.packaging_size?.sort_order ?? 0) - (b.packaging_size?.sort_order ?? 0))
         .map((pp) => ({ id: pp.packaging_size_id, name: pp.packaging_size?.name ?? pp.packaging_size_id }))
       if (sizes.length > 0) map.set(p.id, sizes)
     }
@@ -1383,6 +1386,13 @@ function WarehousePricingTab() {
         }
         // if specific-size entries already exist, prefer them over the all-sizes fallback
       } else {
+        // If the product has per-size pricing configured, only show sizes still on the product.
+        // This guards against stale product_warehouses rows when a size is removed from a product.
+        const productSizes = productSizeMap.get(m.product_id)
+        if (productSizes && !productSizes.some((s) => s.id === m.packaging_size_id)) {
+          continue
+        }
+
         const sizeEntry = { id: m.packaging_size_id, name: m.packaging_size?.name ?? m.packaging_size_id }
         if (!existing) {
           groups.set(m.product_id, {

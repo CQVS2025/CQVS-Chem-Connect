@@ -153,7 +153,6 @@ export function useProductWarehouses(
       return get<ProductWarehouseMapping[]>("/product-warehouses", { params })
     },
     enabled: Boolean(filters.warehouseId ?? filters.productId),
-    staleTime: 5 * 60 * 1000,
   })
 }
 
@@ -211,7 +210,7 @@ export interface ProductWithPackagingSizes {
     id: string
     packaging_size_id: string
     is_available: boolean
-    packaging_size: { id: string; name: string }
+    packaging_size: { id: string; name: string; sort_order: number }
   }>
 }
 
@@ -222,6 +221,5 @@ export function useProductsWithPackagingSizes() {
       get<ProductWithPackagingSizes[]>("/products", {
         params: { includePricing: "true" },
       }),
-    staleTime: 5 * 60 * 1000,
   })
 }
