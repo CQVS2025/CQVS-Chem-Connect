@@ -1197,9 +1197,9 @@ function ProductMappingTab() {
                 </TableRow>
               )}
               {allProducts.map((product) => {
-                const activeSizes = (product.packaging_prices ?? []).filter(
-                  (pp) => pp.is_available,
-                )
+                // Use all configured packaging sizes regardless of is_available.
+                // is_available controls customer visibility, not warehouse mapping.
+                const activeSizes = (product.packaging_prices ?? [])
 
                 if (activeSizes.length === 0) {
                   // Legacy: no packaging sizes configured — single "all sizes" row
@@ -1283,7 +1283,7 @@ function ProductMappingTab() {
 // ----------------------------------------------------------------
 function WarehousePricingTab() {
   const { data: warehouses = [] } = useWarehouses()
-  const { data: packagingSizes = [] } = usePackagingSizes()
+  const { data: allProducts = [] } = useProductsWithPackagingSizes()
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("")
 
   const { data: mappings = [], isLoading: loadingMappings } = useProductWarehouses({
@@ -1348,7 +1348,17 @@ function WarehousePricingTab() {
     }
   }
 
-  const activeSizes = packagingSizes.filter((s) => s.is_active)
+  // Build a lookup: product_id → sizes from product_packaging_prices
+  const productSizeMap = useMemo(() => {
+    const map = new Map<string, Array<{ id: string; name: string }>>()
+    for (const p of allProducts) {
+      // Use all configured packaging sizes regardless of is_available.
+      const sizes = (p.packaging_prices ?? [])
+        .map((pp) => ({ id: pp.packaging_size_id, name: pp.packaging_size?.name ?? pp.packaging_size_id }))
+      if (sizes.length > 0) map.set(p.id, sizes)
+    }
+    return map
+  }, [allProducts])
 
   // Group mappings by product — deduplicate and collect mapped sizes per product.
   // Each product_warehouses row is either a specific size or null (all sizes).
@@ -1356,33 +1366,37 @@ function WarehousePricingTab() {
     const groups = new Map<string, {
       productId: string
       productName: string
-      sizes: Array<{ id: string; name: string }> | null // null = all sizes
+      sizes: Array<{ id: string; name: string }>
     }>()
     for (const m of mappings) {
       const existing = groups.get(m.product_id)
       if (m.packaging_size_id === null) {
-        // "all sizes" mapping — override to null to signal use activeSizes
-        groups.set(m.product_id, {
-          productId: m.product_id,
-          productName: m.product?.name ?? m.product_id,
-          sizes: null,
-        })
-      } else if (!existing) {
-        groups.set(m.product_id, {
-          productId: m.product_id,
-          productName: m.product?.name ?? m.product_id,
-          sizes: [{ id: m.packaging_size_id, name: m.packaging_size?.name ?? m.packaging_size_id }],
-        })
-      } else if (existing.sizes !== null) {
-        // already has specific sizes — add this one if not already present
-        if (!existing.sizes.some((s) => s.id === m.packaging_size_id)) {
-          existing.sizes.push({ id: m.packaging_size_id, name: m.packaging_size?.name ?? m.packaging_size_id })
+        // "all sizes" mapping — use the product's actual configured sizes, not every active size
+        const productSizes = productSizeMap.get(m.product_id)
+        if (!productSizes || productSizes.length === 0) continue // no per-size pricing, skip
+        if (!existing) {
+          groups.set(m.product_id, {
+            productId: m.product_id,
+            productName: m.product?.name ?? m.product_id,
+            sizes: productSizes,
+          })
+        }
+        // if specific-size entries already exist, prefer them over the all-sizes fallback
+      } else {
+        const sizeEntry = { id: m.packaging_size_id, name: m.packaging_size?.name ?? m.packaging_size_id }
+        if (!existing) {
+          groups.set(m.product_id, {
+            productId: m.product_id,
+            productName: m.product?.name ?? m.product_id,
+            sizes: [sizeEntry],
+          })
+        } else if (!existing.sizes.some((s) => s.id === m.packaging_size_id)) {
+          existing.sizes.push(sizeEntry)
         }
       }
-      // if existing.sizes === null (all sizes) leave it as-is
     }
     return Array.from(groups.values())
-  }, [mappings])
+  }, [mappings, productSizeMap])
 
   return (
     <Card>
@@ -1436,7 +1450,7 @@ function WarehousePricingTab() {
               </TableHeader>
               <TableBody>
                 {productGroups.flatMap(({ productId, productName, sizes }) => {
-                  const sizesToShow = sizes ?? activeSizes.map((s) => ({ id: s.id, name: s.name }))
+                  const sizesToShow = sizes
                   return sizesToShow.map((ps) => {
                     const k = priceKey(productId, ps.id)
                     return (
