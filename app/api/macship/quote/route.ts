@@ -10,6 +10,7 @@ import { getOrderPickupDate } from "@/lib/macship/lead-time"
 import {
   buildConsolidatedCart,
   buildCapacityMap,
+  buildParcelCart,
 } from "@/lib/macship/pallet-consolidation"
 
 // ============================================================
@@ -154,19 +155,27 @@ export async function POST(request: NextRequest) {
       : { data: [] as Array<{ id: string; name: string; units_per_pallet: number | null; unit_weight_kg: number | null }> }
     const capacityMap = buildCapacityMap(packagingSizesData ?? [])
 
-    // 3. Build Machship items via the whole-cart consolidation helper.
-    // This aggregates lines sharing a packaging size onto shared pallets
-    // (CQVS' "Option B" pricing rule - approved April 2026).
-    const machshipItems: MachshipItem[] = buildConsolidatedCart(
-      cart_items.map((item) => {
-        const product = productMap.get(item.product_id)
-        return {
-          product_name: product?.name ?? item.packaging_size_name,
-          packaging_size_name: item.packaging_size_name,
-          packaging_size_id: item.packaging_size_id,
-          quantity: item.quantity,
-        }
-      }),
+    // 3. Build Machship items. Two candidate shapes:
+    //    - parcelItems: send as N Aramex cartons (only if cart is parcel-
+    //      eligible — small containers under 30 kg each). Can be null.
+    //    - palletItems: consolidate onto pallets per "Option B" rules.
+    //      Always non-empty.
+    // We try parcel first and fall back to pallet only if parcel returns
+    // zero routes (Option 2 — approved by Jonny Harper, April 2026). This
+    // fixes the prod bug where qty 2+ of 20L drums became "not serviceable"
+    // on lanes that pallet carriers didn't cover but Aramex did.
+    const consolidationInput = cart_items.map((item) => {
+      const product = productMap.get(item.product_id)
+      return {
+        product_name: product?.name ?? item.packaging_size_name,
+        packaging_size_name: item.packaging_size_name,
+        packaging_size_id: item.packaging_size_id,
+        quantity: item.quantity,
+      }
+    })
+    const parcelItems = buildParcelCart(consolidationInput, capacityMap)
+    const palletItems: MachshipItem[] = buildConsolidatedCart(
+      consolidationInput,
       capacityMap,
     )
 
@@ -203,7 +212,7 @@ export async function POST(request: NextRequest) {
     const machshipCompanyId = process.env.MACSHIP_COMPANY_ID
       ? parseInt(process.env.MACSHIP_COMPANY_ID, 10)
       : undefined
-    const routeRequest = {
+    const baseRouteRequest = {
       companyId: machshipCompanyId,
       despatchDateTimeLocal: despatchDateLocal,
       fromLocation: {
@@ -217,22 +226,56 @@ export async function POST(request: NextRequest) {
         postcode: delivery_postcode,
       },
       toName: "Customer",
-      items: machshipItems,
       // Question ID 7 = "Hydraulic Tailgate required" in Machship.
       // When customer has no forklift, tailgate delivery is needed which
       // adds a surcharge (e.g. Hi Trans Tailgate Surcharge ~$180).
       questionIds: forklift_available === false ? [7] : [],
     }
-    console.log("[Machship quote] request:", JSON.stringify(routeRequest))
-    const routesResponse = await getRoutes(routeRequest)
-    console.log(
-      "[Machship quote] response:",
-      JSON.stringify({
-        id: routesResponse.id,
-        routesCount: routesResponse.routes?.length ?? 0,
-        firstRoute: routesResponse.routes?.[0],
-      }),
-    )
+
+    // Parcel-first attempt (only when cart is parcel-eligible).
+    let routesResponse: Awaited<ReturnType<typeof getRoutes>> | null = null
+    let itemShape: "parcel" | "pallet" = "pallet"
+    if (parcelItems) {
+      const parcelRequest = { ...baseRouteRequest, items: parcelItems }
+      console.log(
+        "[Machship quote] parcel-first request:",
+        JSON.stringify(parcelRequest),
+      )
+      routesResponse = await getRoutes(parcelRequest)
+      console.log(
+        "[Machship quote] parcel-first response:",
+        JSON.stringify({
+          id: routesResponse.id,
+          routesCount: routesResponse.routes?.length ?? 0,
+          firstRoute: routesResponse.routes?.[0],
+        }),
+      )
+      if (routesResponse.routes && routesResponse.routes.length > 0) {
+        itemShape = "parcel"
+      } else {
+        routesResponse = null // force fallback
+      }
+    }
+
+    // Pallet fallback — runs when parcel wasn't eligible or parcel carriers
+    // returned no routes for this lane.
+    if (!routesResponse) {
+      const palletRequest = { ...baseRouteRequest, items: palletItems }
+      console.log(
+        "[Machship quote] pallet request:",
+        JSON.stringify(palletRequest),
+      )
+      routesResponse = await getRoutes(palletRequest)
+      console.log(
+        "[Machship quote] pallet response:",
+        JSON.stringify({
+          id: routesResponse.id,
+          routesCount: routesResponse.routes?.length ?? 0,
+          firstRoute: routesResponse.routes?.[0],
+        }),
+      )
+      itemShape = "pallet"
+    }
 
     if (!routesResponse.routes || routesResponse.routes.length === 0) {
       return NextResponse.json({
@@ -282,6 +325,10 @@ export async function POST(request: NextRequest) {
       is_partial_fulfillment: selectedWarehouse.isPartialFulfillment,
       missing_product_ids: selectedWarehouse.missingProductIds,
       request_id: routesResponse.id,
+      // Which shape ultimately succeeded with MacShip. Useful for dev
+      // diagnostics ("did the parcel-first path win?") without exposing
+      // internals to the customer.
+      quote_shape: itemShape,
       is_dg: isDG,
       // Transparent pricing breakdown
       pricing: {

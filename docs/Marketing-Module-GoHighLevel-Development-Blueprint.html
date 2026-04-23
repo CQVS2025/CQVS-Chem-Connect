@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Marketing Module - GoHighLevel Development Blueprint</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #8b5cf6; border-bottom: 3px solid #8b5cf6; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #8b5cf6; margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f5f3ff; color: #6d28d9; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #8b5cf6; background: #f5f3ff; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-green { border-left-color: #16a34a; background: #f0fdf4; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 5px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #8b5cf6; margin: 44px 0; }
+  .section-num { color: #8b5cf6; font-weight: 700; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; }
+  .b-ghl { background: #ede9fe; color: #6d28d9; }
+  .b-cc { background: #dcfce7; color: #166534; }
+  .b-both { background: #fef3c7; color: #92400e; }
+  .b-new { background: #dbeafe; color: #1e40af; }
+  .b-ext { background: #fed7aa; color: #9a3412; }
+  .b-done { background: #dcfce7; color: #166534; }
+  .b-pending { background: #fef3c7; color: #92400e; }
+  .screen-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin: 14px 0; background: #ffffff; border-left: 4px solid #8b5cf6; }
+  .screen-card h3 { margin-top: 0; color: #8b5cf6; }
+  .arch-diagram { background: #1f2937; color: #e5e7eb; padding: 18px 22px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7; margin: 14px 0; white-space: pre; overflow-x: auto; }
+  .flow-step { display: flex; gap: 12px; margin: 10px 0; align-items: flex-start; }
+  .flow-n { background: #8b5cf6; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .flow-c { flex: 1; font-size: 13px; }
+  .highlight { background: #fef3c7; padding: 1px 6px; border-radius: 3px; font-weight: 600; color: #92400e; }
+  code { background: #f3f4f6; color: #6d28d9; padding: 1px 5px; border-radius: 3px; font-family: 'SF Mono', Consolas, monospace; font-size: 12px; }
+  .file-tree { background: #1f2937; color: #e5e7eb; padding: 14px 18px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; margin: 12px 0; white-space: pre; overflow-x: auto; }
+  .file-tree .new { color: #a78bfa; }
+  .file-tree .ext { color: #fdba74; }
+  .file-tree .old { color: #9ca3af; }
+  .confirmed-banner { background: linear-gradient(90deg, #8b5cf6, #6d28d9); color: white; padding: 16px 22px; border-radius: 8px; margin: 20px 0; font-size: 14px; }
+  .confirmed-banner strong { font-size: 15px; }
+  .kv-table th { width: 28%; }
+  .migration-table th:first-child { width: 30%; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Marketing Module &mdash; GoHighLevel Development Blueprint</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib | 17 April 2026</p>
+</div>
+
+<div class="confirmed-banner">
+  <strong>ALL PREREQUISITES CONFIRMED</strong><br>
+  With Jonny's answers locked in today (17 Apr), every input required to build the marketing module is now known. This document is the end-to-end <em>engineering</em> plan &mdash; architecture, data model, API surface, UI structure, sync logic, and milestone-level development sequencing. It translates the Final Integration Plan into concrete build decisions so development can start immediately against the CQVS sub-account.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">1.</span> Confirmed Inputs</h2>
+
+<div class="screen-card">
+  <h3>GHL account</h3>
+  <table class="kv-table">
+    <tr><th>Plan</th><td>GoHighLevel <strong>Unlimited</strong> ($297/mo USD) &mdash; full API surface, no endpoint restrictions <span class="badge b-done">confirmed</span></td></tr>
+    <tr><th>Sub-account name</th><td>CQVS (Burleigh Heads, QLD, AU)</td></tr>
+    <tr><th>Location ID</th><td><code>FQ5OnSrbC8BdZbTnWvp8</code></td></tr>
+    <tr><th>Company / Agency ID</th><td><code>uky5EY0ED45W2IsIn9SL</code></td></tr>
+    <tr><th>Timezone</th><td><code>Australia/Brisbane</code></td></tr>
+    <tr><th>Auth</th><td>Private Integration token (<code>pit-&hellip;</code>) &mdash; stored in <code>.env.local</code>, verified via <code>npm run ghl:test</code> <span class="badge b-done">confirmed</span></td></tr>
+    <tr><th>Existing contacts</th><td>338 quarry / mining contacts, tagged <code>quarries</code> + 4 others, imported Dec 2025 <span class="badge b-done">confirmed</span></td></tr>
+    <tr><th>Sending domain</th><td><code>send.cqvs-chemconnect.com.au</code> &mdash; already provisioned by GHL (LeadConnector Email System) <span class="badge b-done">confirmed</span></td></tr>
+  </table>
+
+  <h3>Sender identity (Jonny, 17 Apr)</h3>
+  <table class="kv-table">
+    <tr><th>From email</th><td><code>jonny@cqvs.com.au</code></td></tr>
+    <tr><th>Display name</th><td>Jonny Harper</td></tr>
+    <tr><th>Business address (footer)</th><td>7/17 Rothcote Court, Burleigh Heads QLD, Australia</td></tr>
+  </table>
+
+  <h3>Outstanding (non-blocking)</h3>
+  <ul>
+    <li><span class="badge b-pending">pending</span> <strong>LC Phone activation</strong> &mdash; Jonny connecting Stripe to agency within ~1hr to self-activate phone system. Needed before M3 (SMS + Inbox). Does not block M0&ndash;M2.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">2.</span> System Architecture</h2>
+
+<div class="screen-card">
+  <div class="arch-diagram">
+  +----------------------------------------------------------+
+  |  BROWSER  --  ChemConnect Admin  (Next.js 16 / React 19) |
+  |                                                          |
+  |   /admin/marketing/contacts     /marketing/campaigns     |
+  |   /admin/marketing/sequences    /marketing/inbox         |
+  |   /admin/marketing/dashboard    /marketing/settings      |
+  +----------------------------------------------------------+
+          |                                  ^
+          | Server Actions / fetch           | Realtime UI updates
+          v                                  | (SWR / React Query)
+  +----------------------------------------------------------+
+  |  NEXT.JS APP ROUTER  --  API routes                      |
+  |   app/api/marketing/*       (CC-internal admin API)      |
+  |   app/api/webhooks/ghl/*    (GHL -> CC webhook ingest)   |
+  +----------------------------------------------------------+
+          |                                  ^
+          | Uses lib/ghl/client.ts           | Writes to supabase
+          v                                  | tables (RLS enforced)
+  +---------------------+          +-------------------------+
+  |  GHL API CLIENT     |          |  SUPABASE DB (Postgres) |
+  |  lib/ghl/           |          |  marketing_* tables     |
+  |  - auth + headers   |          |  + audit_log + events   |
+  |  - contacts, camp., |          +-------------------------+
+  |  - conversations,   |
+  |  - workflows        |
+  +---------------------+
+          |
+          | HTTPS + Bearer (pit-...)
+          v
+  +----------------------------------------------------------+
+  |                    GoHighLevel                            |
+  |   Contacts  |  Email Engine  |  SMS/Twilio  |  Workflows  |
+  |           (source of truth for marketing data)            |
+  +----------------------------------------------------------+
+</div>
+
+  <h4>Design principles</h4>
+  <ul>
+    <li><strong>GHL is source of truth</strong> for marketing contacts, sends, sequences, analytics. Local Supabase holds a <em>cache + augmentation layer</em> only.</li>
+    <li><strong>Supabase tables hold durable marketing state</strong> (campaign records, event stream, SMS threads, audit log). They survive if GHL webhooks lag or a webhook is missed &mdash; we can reconcile.</li>
+    <li><strong>All writes go through a single GHL API client</strong> (<code>lib/ghl/client.ts</code>) &mdash; centralised auth, retries, error handling. No direct <code>fetch()</code> to GHL scattered around the codebase.</li>
+    <li><strong>Webhooks are idempotent</strong> &mdash; GHL may retry on 5xx, so every handler keys events by a GHL event ID and upserts.</li>
+    <li><strong>No background workers required</strong> &mdash; GHL owns scheduling. CC only runs request-response and webhook-response flows, which fit Vercel serverless perfectly.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">3.</span> Data Model (Supabase Migrations)</h2>
+
+<div class="screen-card">
+  <p>Seven new tables, one migration file <code>supabase/migrations/030_marketing_module.sql</code>. Every table has RLS enabled and policies allowing <code>admin</code> / <code>marketing_admin</code> / <code>marketing_editor</code> roles. <code>service_role</code> is used by webhook receivers.</p>
+
+  <table class="migration-table">
+    <tr><th>Table</th><th>Purpose &amp; key columns</th></tr>
+
+    <tr>
+      <td><code>ghl_oauth_tokens</code></td>
+      <td>
+        Stores the Private Integration token encrypted at rest. One row per install. Columns: <code>id</code>, <code>location_id</code>, <code>encrypted_token</code>, <code>scopes</code> (text[]), <code>created_at</code>, <code>rotated_at</code>.<br>
+        <em>Why a table and not just env? </em> Future-proofs for OAuth if we later upgrade from a Private Integration to a Marketplace app, and lets us rotate without a redeploy.
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>marketing_contacts</code></td>
+      <td>
+        Local cache of GHL contacts. Columns: <code>id</code> (uuid), <code>ghl_contact_id</code> (text, unique), <code>email</code>, <code>phone</code> (E.164), <code>first_name</code>, <code>last_name</code>, <code>company_name</code>, <code>state</code>, <code>country</code>, <code>tags</code> (text[]), <code>custom_fields</code> (jsonb), <code>is_opted_out</code>, <code>opted_out_at</code>, <code>source</code> (enum: <code>csv_import</code> / <code>manual</code> / <code>ghl_initial_sync</code> / <code>ghl_webhook</code>), <code>profile_id</code> (fk to <code>profiles</code>, nullable &mdash; links marketing contact to ChemConnect customer), <code>last_synced_at</code>, timestamps.<br>
+        Indexes on <code>ghl_contact_id</code>, <code>email</code>, <code>phone</code>, <code>tags</code> (GIN).
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>marketing_campaigns</code></td>
+      <td>
+        One row per campaign launched from CC. Columns: <code>id</code>, <code>ghl_bulk_action_id</code>, <code>name</code>, <code>type</code> (enum: <code>email</code> / <code>sms</code>), <code>status</code> (enum: <code>draft</code> / <code>scheduled</code> / <code>sending</code> / <code>sent</code> / <code>failed</code>), <code>audience_filter</code> (jsonb: tags, segment rules), <code>audience_count</code>, <code>subject</code>, <code>body_html</code>, <code>body_text</code> (SMS), <code>from_email</code>, <code>from_name</code>, <code>scheduled_at</code>, <code>sent_at</code>, <code>created_by</code> (fk to <code>profiles</code>), <code>recurring_rule</code> (jsonb, nullable), timestamps.
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>marketing_events</code></td>
+      <td>
+        Append-only event stream from GHL webhooks. Columns: <code>id</code>, <code>ghl_event_id</code> (unique, idempotency key), <code>event_type</code> (enum: <code>delivered</code> / <code>opened</code> / <code>clicked</code> / <code>bounced</code> / <code>unsubscribed</code> / <code>complained</code> / <code>sms_delivered</code> / <code>sms_failed</code>), <code>campaign_id</code> (fk, nullable), <code>contact_id</code> (fk), <code>ghl_contact_id</code>, <code>metadata</code> (jsonb: link URL, user agent, device, etc.), <code>occurred_at</code>, <code>received_at</code>.<br>
+        Indexes on (<code>campaign_id</code>, <code>event_type</code>), <code>contact_id</code>, <code>occurred_at</code>.
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>sms_conversations</code></td>
+      <td>
+        One row per contact-thread. Columns: <code>id</code>, <code>ghl_conversation_id</code> (unique), <code>contact_id</code> (fk), <code>unread_count</code>, <code>last_message_at</code>, <code>last_message_preview</code>, timestamps.
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>sms_messages</code></td>
+      <td>
+        Every inbound and outbound SMS. Columns: <code>id</code>, <code>ghl_message_id</code> (unique), <code>conversation_id</code> (fk), <code>direction</code> (enum: <code>inbound</code> / <code>outbound</code>), <code>body</code>, <code>from_number</code>, <code>to_number</code>, <code>status</code> (<code>queued</code> / <code>sent</code> / <code>delivered</code> / <code>failed</code> / <code>received</code>), <code>sent_by</code> (fk to <code>profiles</code>, nullable), <code>occurred_at</code>.
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>marketing_audit_log</code></td>
+      <td>
+        Who did what, when. Columns: <code>id</code>, <code>actor_profile_id</code>, <code>action</code> (text: <code>contact.imported</code>, <code>campaign.sent</code>, <code>sequence.enrolled</code>, <code>settings.changed</code>, &hellip;), <code>target_type</code>, <code>target_id</code>, <code>meta</code> (jsonb), <code>occurred_at</code>. Required for Australian Spam Act consent-trail evidence.
+      </td>
+    </tr>
+  </table>
+
+  <h4>Extension to existing tables</h4>
+  <ul>
+    <li><code>profiles</code> gets two new enum values on the <code>role</code> column: <code>marketing_admin</code>, <code>marketing_editor</code>.</li>
+    <li><code>admin_settings</code> (existing key/value table) gets four new keys: <code>marketing.from_email</code>, <code>marketing.from_name</code>, <code>marketing.business_address</code>, <code>marketing.sending_domain</code>.</li>
+  </ul>
+
+  <h4>Seed values</h4>
+  <p>The migration seeds <code>admin_settings</code> with Jonny's confirmed values:</p>
+  <div class="file-tree">marketing.from_email       = jonny@cqvs.com.au
+marketing.from_name        = Jonny Harper
+marketing.business_address = 7/17 Rothcote Court, Burleigh Heads QLD, Australia
+marketing.sending_domain   = send.cqvs-chemconnect.com.au</div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">4.</span> GHL API Client Layer</h2>
+
+<div class="screen-card">
+  <h3>Folder: <code>lib/ghl/</code></h3>
+
+  <div class="file-tree">lib/ghl/
+├── <span class="new">client.ts</span>            - Base fetch wrapper: auth header, version header, retry, error types
+├── <span class="new">config.ts</span>            - Env + constants (base URL, version, rate-limit tuning)
+├── <span class="new">errors.ts</span>            - GHLApiError, GHLRateLimitError, GHLAuthError classes
+├── <span class="new">types.ts</span>             - TypeScript types for GHL entities (Contact, Campaign, Workflow, Message, Event)
+├── <span class="new">contacts.ts</span>          - list, get, create, update, delete, addTags, removeTags, search, bulkUpsert
+├── <span class="new">campaigns.ts</span>         - createBulkAction, getBulkAction, cancelBulkAction
+├── <span class="new">conversations.ts</span>     - listConversations, getMessages, sendSms, sendEmail
+├── <span class="new">workflows.ts</span>         - listWorkflows, getWorkflow, enrollContact, unenrollContact
+├── <span class="new">locations.ts</span>         - getLocation (used for health checks)
+└── <span class="new">webhooks.ts</span>          - verifySignature, parsePayload (shared by all webhook routes)</div>
+
+  <h4>Client behaviour</h4>
+  <ul>
+    <li><strong>Auth:</strong> every request gets <code>Authorization: Bearer ${token}</code> and <code>Version: 2021-07-28</code>.</li>
+    <li><strong>Retries:</strong> exponential backoff on 429 and 5xx; up to 3 retries; surfaces a typed error after that.</li>
+    <li><strong>Rate-limit guard:</strong> reads <code>X-RateLimit-Remaining</code> header; pauses briefly if remaining &lt; 5.</li>
+    <li><strong>Logging:</strong> every call logs <code>method</code>, <code>endpoint</code>, <code>status</code>, <code>duration_ms</code> to <code>marketing_audit_log</code> at debug level (opt-in via env flag).</li>
+    <li><strong>Type safety:</strong> Zod schemas validate GHL responses at the boundary &mdash; protects the rest of the codebase from GHL API changes.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">5.</span> Internal API Surface (ChemConnect Routes)</h2>
+
+<div class="screen-card">
+  <p>Every admin action goes through a CC-internal route. The route enforces RBAC, then calls the GHL client. This keeps tokens server-side and lets the React admin stay dumb about GHL.</p>
+
+  <div class="file-tree">app/api/marketing/
+├── <span class="new">contacts/</span>
+│   ├── route.ts              GET (list), POST (create)
+│   ├── [id]/route.ts         GET, PATCH, DELETE
+│   ├── import/route.ts       POST (multipart CSV upload + column map)
+│   ├── tags/route.ts         POST (bulk tag)
+│   └── sync/route.ts         POST (force full re-sync from GHL)
+├── <span class="new">campaigns/</span>
+│   ├── route.ts              GET (list), POST (create draft)
+│   ├── [id]/route.ts         GET, PATCH, DELETE
+│   ├── [id]/send/route.ts    POST (send now or schedule)
+│   ├── [id]/cancel/route.ts  POST
+│   └── [id]/preview/route.ts POST (returns rendered HTML + audience count)
+├── <span class="new">sequences/</span>
+│   ├── route.ts              GET (list mirrored from GHL)
+│   └── [id]/enroll/route.ts  POST (enroll a contact via tag trigger)
+├── <span class="new">conversations/</span>
+│   ├── route.ts              GET (threads list)
+│   ├── [id]/route.ts         GET (messages in thread)
+│   ├── [id]/send/route.ts    POST (send SMS reply)
+│   └── [id]/read/route.ts    POST (mark read)
+├── <span class="new">dashboard/</span>
+│   └── route.ts              GET (aggregate widgets)
+└── <span class="new">settings/</span>
+    └── route.ts              GET, PATCH (sender identity, etc.)
+
+app/api/webhooks/ghl/
+├── <span class="new">contacts/route.ts</span>        Contact created / updated / deleted / tagged
+├── <span class="new">events/route.ts</span>          Email + SMS events (opened, clicked, bounced, delivered)
+├── <span class="new">conversations/route.ts</span>   Inbound SMS messages
+└── <span class="new">workflows/route.ts</span>       Sequence enrollment + completion events</div>
+
+  <h4>Webhook security</h4>
+  <ul>
+    <li>Each webhook URL registered with GHL has a shared secret (env: <code>GHL_WEBHOOK_SECRET</code>).</li>
+    <li>Every incoming request is verified via HMAC-SHA256 signature in the <code>X-GHL-Signature</code> header.</li>
+    <li>Requests without a valid signature are rejected with 401 and logged.</li>
+    <li>Duplicate events (same <code>ghl_event_id</code>) return 200 immediately without re-processing (idempotent).</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">6.</span> Admin UI Structure</h2>
+
+<div class="screen-card">
+  <h3>Navigation</h3>
+  <p>One new sidebar item <strong>Marketing</strong> inserted after <em>Quotes</em> in the admin nav (<code>components/layouts/admin-sidebar.tsx</code>). Clicking it expands to five sub-items:</p>
+
+  <div class="file-tree">Marketing
+├── Contacts
+├── Campaigns
+├── Sequences
+├── Inbox
+├── Dashboard
+└── Settings</div>
+
+  <h3>File structure</h3>
+  <div class="file-tree">app/(admin)/admin/marketing/
+├── <span class="new">layout.tsx</span>                 Shared marketing layout + role guard
+├── <span class="new">page.tsx</span>                   Redirects to /dashboard
+├── <span class="new">contacts/</span>
+│   ├── page.tsx                  List + filter + bulk actions
+│   ├── [id]/page.tsx             Contact profile (timeline + SMS thread + orders)
+│   ├── import/page.tsx           CSV upload + column mapper + progress
+│   └── components/
+│       ├── contact-table.tsx
+│       ├── tag-picker.tsx
+│       └── csv-import-wizard.tsx
+├── <span class="new">campaigns/</span>
+│   ├── page.tsx                  List + status filter
+│   ├── new/page.tsx              4-step wizard (who / what / when / review)
+│   ├── [id]/page.tsx             Campaign detail + per-link stats + GHL deep-link
+│   └── components/
+│       ├── campaign-wizard.tsx
+│       ├── audience-picker.tsx
+│       ├── html-paste-editor.tsx
+│       ├── email-preview.tsx
+│       └── schedule-picker.tsx
+├── <span class="new">sequences/</span>
+│   ├── page.tsx                  List mirrored from GHL
+│   └── components/
+│       ├── sequence-card.tsx
+│       └── enroll-dialog.tsx
+├── <span class="new">inbox/</span>
+│   ├── page.tsx                  Threads list
+│   ├── [id]/page.tsx             Conversation view + reply composer
+│   └── components/
+│       ├── thread-list.tsx
+│       ├── message-bubble.tsx
+│       └── reply-composer.tsx
+├── <span class="new">dashboard/</span>
+│   ├── page.tsx                  Summary widgets
+│   └── components/
+│       ├── summary-widget.tsx
+│       ├── recent-campaigns.tsx
+│       └── ghl-deep-link.tsx
+└── <span class="new">settings/</span>
+    └── page.tsx                  Sender identity + GHL connection status + audit log</div>
+
+  <h3>Key interaction flows</h3>
+
+  <h4>CSV Import (contacts/import)</h4>
+  <div class="flow-step"><div class="flow-n">1</div><div class="flow-c">User drops CSV. Browser parses first 5 rows for preview.</div></div>
+  <div class="flow-step"><div class="flow-n">2</div><div class="flow-c">Column mapper auto-detects: <code>Contact Name &rarr; name</code>, <code>Phone &rarr; phone</code>, <code>Email &rarr; email</code>, <code>Business Name &rarr; companyName</code>, <code>Tags &rarr; tags</code>. User can override any mapping or mark a column as "ignore."</div></div>
+  <div class="flow-step"><div class="flow-n">3</div><div class="flow-c">Validation pass: phone numbers normalised to E.164 (<code>0412&hellip;</code> &rarr; <code>+61412&hellip;</code>); emails lowercased; duplicate detection against existing <code>marketing_contacts</code> by email then phone.</div></div>
+  <div class="flow-step"><div class="flow-n">4</div><div class="flow-c">Submission hits <code>POST /api/marketing/contacts/import</code>. Server streams rows to GHL via <code>contacts.bulkUpsert</code> in batches of 50. Per-batch result (created / updated / failed) returned as SSE to the UI for a live progress bar.</div></div>
+  <div class="flow-step"><div class="flow-n">5</div><div class="flow-c">Each successful upsert mirrors into <code>marketing_contacts</code>. Failures collected into a downloadable error report CSV.</div></div>
+
+  <h4>Send Campaign (campaigns/new)</h4>
+  <div class="flow-step"><div class="flow-n">1</div><div class="flow-c"><strong>Who</strong> &mdash; user picks: all contacts, one or more tags, or a smart segment. Live count shown by calling <code>GHL contacts.search</code> with the filter.</div></div>
+  <div class="flow-step"><div class="flow-n">2</div><div class="flow-c"><strong>What</strong> &mdash; paste Claude-generated HTML into a Monaco-style editor. Preview pane renders both a desktop and mobile view via iframe sandbox. Subject + preheader inputs separately.</div></div>
+  <div class="flow-step"><div class="flow-n">3</div><div class="flow-c"><strong>When</strong> &mdash; Send Now / Schedule / Recurring. Date picker in <code>Australia/Brisbane</code>. Recurring rules serialised as RRULE-ish JSON, translated to GHL format at submit time.</div></div>
+  <div class="flow-step"><div class="flow-n">4</div><div class="flow-c"><strong>Review</strong> &mdash; final audience count, from identity preview, test-send button (sends to the logged-in user's email only), and a big Send button.</div></div>
+  <div class="flow-step"><div class="flow-n">5</div><div class="flow-c">Send triggers <code>POST /api/marketing/campaigns/[id]/send</code> which calls GHL's bulk-action create endpoint, stores the returned <code>bulk_action_id</code> against the campaign row, and flips status to <em>sending</em> (or <em>scheduled</em>).</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">7.</span> Contact Sync Logic</h2>
+
+<div class="screen-card">
+  <h3>Initial sync (run once during M1)</h3>
+  <ol>
+    <li>A one-off script <code>scripts/ghl-initial-contact-sync.ts</code> paginates through <code>GHL contacts.search</code> (100/page).</li>
+    <li>Each contact is upserted into <code>marketing_contacts</code> with <code>source = 'ghl_initial_sync'</code>.</li>
+    <li>Tag list preserved verbatim. Custom fields flattened into the <code>custom_fields</code> jsonb column.</li>
+    <li>338 contacts &rarr; ~4 pages &rarr; expected runtime &lt; 10s.</li>
+  </ol>
+
+  <h3>Ongoing sync (steady state)</h3>
+  <ul>
+    <li><strong>CC &rarr; GHL (writes):</strong> every admin mutation goes through a CC API route, which first calls GHL, then mirrors the result locally. GHL response is authoritative &mdash; if the GHL write fails, the local row is not touched.</li>
+    <li><strong>GHL &rarr; CC (webhooks):</strong> the <code>/api/webhooks/ghl/contacts</code> handler upserts on <code>contact.create</code> / <code>contact.update</code> / <code>contact.tag_added</code> / <code>contact.tag_removed</code> / <code>contact.dnd</code>.</li>
+    <li><strong>Reconciliation job:</strong> a manual "Force re-sync" button in settings calls <code>/api/marketing/contacts/sync</code> which runs the initial-sync script again. Upserts are idempotent so it's safe to run whenever.</li>
+  </ul>
+
+  <h3>Conflict rules</h3>
+  <table>
+    <tr><th>Field</th><th>Winner</th><th>Rationale</th></tr>
+    <tr><td>Email, phone, name, company, tags, DND flags</td><td>GHL</td><td>GHL is source of truth for marketing data.</td></tr>
+    <tr><td><code>profile_id</code> (link to ChemConnect customer)</td><td>CC</td><td>GHL doesn't know about ChemConnect customers.</td></tr>
+    <tr><td>Deletions</td><td>GHL</td><td>A webhook <code>contact.delete</code> soft-deletes in CC (sets <code>deleted_at</code>), preserving historical campaign stats.</td></tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">8.</span> Event Pipeline (Analytics)</h2>
+
+<div class="screen-card">
+  <div class="arch-diagram">
+  GHL campaign fires -> email sent -> recipient opens
+         |
+         v
+  GHL webhook POST -> /api/webhooks/ghl/events
+         |
+         v
+  verify HMAC signature
+         |
+         v
+  is ghl_event_id already in marketing_events? ---yes--> 200 OK (idempotent)
+         |
+         no
+         v
+  INSERT INTO marketing_events (event_type, campaign_id, contact_id, occurred_at, metadata)
+         |
+         v
+  update marketing_campaigns aggregates (opened_count, etc.) via trigger
+         |
+         v
+  update marketing_contacts.is_opted_out on unsubscribed/complained
+</div>
+
+  <h4>Dashboard queries</h4>
+  <ul>
+    <li><strong>Campaign card metrics</strong> &mdash; direct count queries against <code>marketing_events</code> filtered by <code>campaign_id</code> and <code>event_type</code>.</li>
+    <li><strong>Monthly summary widgets</strong> &mdash; materialised view refreshed every 5 minutes; cheap to render.</li>
+    <li><strong>Per-contact timeline</strong> &mdash; <code>SELECT * FROM marketing_events WHERE contact_id = $1 ORDER BY occurred_at DESC LIMIT 50</code>.</li>
+    <li><strong>Deep analytics</strong> (best-time heatmap, per-link breakdown) &mdash; <em>not</em> calculated in CC. UI shows a "Open full analytics in GoHighLevel" button that deep-links to <code>https://app.gohighlevel.com/v2/location/{locationId}/campaigns/{ghl_id}</code>.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">9.</span> Two-Way SMS Inbox Logic</h2>
+
+<div class="screen-card">
+  <p>This is the most stateful part of the module &mdash; data is actively mutated from both sides.</p>
+
+  <h4>Inbound flow</h4>
+  <div class="flow-step"><div class="flow-n">1</div><div class="flow-c">Recipient sends SMS to the CQVS number.</div></div>
+  <div class="flow-step"><div class="flow-n">2</div><div class="flow-c">GHL receives via Twilio, fires <code>conversation.message.inbound</code> webhook to <code>/api/webhooks/ghl/conversations</code>.</div></div>
+  <div class="flow-step"><div class="flow-n">3</div><div class="flow-c">CC looks up the contact by <code>ghl_contact_id</code>. If not found (unknown number), auto-creates a new <code>marketing_contacts</code> row so we never lose a lead.</div></div>
+  <div class="flow-step"><div class="flow-n">4</div><div class="flow-c">Upsert <code>sms_conversations</code> row, insert <code>sms_messages</code> row with <code>direction='inbound'</code>, bump <code>unread_count</code>, update <code>last_message_at</code>.</div></div>
+  <div class="flow-step"><div class="flow-n">5</div><div class="flow-c">If body matches STOP / UNSUBSCRIBE / OPT OUT regex, set <code>is_opted_out = true</code> on the contact. GHL already does this on its side &mdash; we mirror so CC's suppression badges show correctly.</div></div>
+  <div class="flow-step"><div class="flow-n">6</div><div class="flow-c">Supabase Realtime broadcasts the new row; open admin tabs update the inbox in real time with a red badge.</div></div>
+
+  <h4>Outbound flow (reply from CC)</h4>
+  <div class="flow-step"><div class="flow-n">1</div><div class="flow-c">User types a reply in the conversation view, hits send.</div></div>
+  <div class="flow-step"><div class="flow-n">2</div><div class="flow-c"><code>POST /api/marketing/conversations/[id]/send</code> optimistically inserts a local <code>sms_messages</code> row with <code>status='queued'</code>.</div></div>
+  <div class="flow-step"><div class="flow-n">3</div><div class="flow-c">Backend calls <code>GHL conversations.sendSms</code> with the contact's phone and the body.</div></div>
+  <div class="flow-step"><div class="flow-n">4</div><div class="flow-c">GHL returns a <code>message_id</code>; we store it against the local row and flip status to <code>sent</code>.</div></div>
+  <div class="flow-step"><div class="flow-n">5</div><div class="flow-c">Later, GHL fires a <code>sms.delivered</code> or <code>sms.failed</code> webhook; the event lands in <code>marketing_events</code> and the local <code>sms_messages.status</code> is updated.</div></div>
+
+  <div class="box-amber box">
+    <strong>Fallback:</strong> If GHL's conversations-send endpoint is unexpectedly restricted even on the Unlimited plan, the outbound flow is shut off with a flag and the UI shows "Reply from GoHighLevel" deep-link instead. This was the risk flagged in the Final Integration Plan &mdash; first thing validated on day 1 of M3.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">10.</span> Sequences &amp; Workflow Enrollment</h2>
+
+<div class="screen-card">
+  <p>Sequences are designed and live inside GHL. CC provides a thin enrollment layer only.</p>
+
+  <h4>How a sequence fires from CC</h4>
+  <ol>
+    <li>User tags a contact in CC as <code>Lead</code>, <code>VIP</code>, etc.</li>
+    <li>CC <code>POST /api/marketing/contacts/[id]/tags</code> adds the tag via GHL contacts API.</li>
+    <li>If the tag is linked to a workflow (mapping stored in <code>admin_settings</code>: <code>sequences.tag_map</code>), CC additionally calls <code>GHL workflows.enrollContact</code> explicitly &mdash; this is redundant with GHL's own tag-triggered workflows but guarantees enrollment even if GHL's trigger lags.</li>
+    <li>GHL executes all steps (delays, branching, conditions) server-side. CC has zero execution responsibility.</li>
+    <li>When a contact finishes a sequence, GHL fires a webhook; CC logs it to <code>marketing_audit_log</code>.</li>
+  </ol>
+
+  <h4>Lead Nurture seed sequence (configured in GHL during M4)</h4>
+  <p>I'll build this inside GHL on Jonny's behalf so there's at least one working example wired up before go-live:</p>
+  <div class="file-tree">Trigger: contact tagged "Lead"
+
+Day 1  -> Email: "Welcome to CQVS"
+Day 3  -> Email: "Our product range"
+Day 5  -> IF not opened -> SMS follow-up
+          ELSE IF no order -> Email: "Any questions?"
+Day 7  -> Email: "10% off — 48hr offer"
+Day 14 -> IF no order -> tag "Cold"
+          ELSE -> tag "Customer", exit</div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">11.</span> Permissions, Compliance, Auditing</h2>
+
+<div class="screen-card">
+  <h4>Roles</h4>
+  <table>
+    <tr><th>Role</th><th>Permissions</th></tr>
+    <tr><td><code>admin</code> / <code>marketing_admin</code></td><td>Full access: create/edit/delete campaigns, import contacts, edit sender identity, rotate GHL token, view audit log, force re-sync.</td></tr>
+    <tr><td><code>marketing_editor</code></td><td>Create and send campaigns, manage contacts, reply from inbox. Cannot delete campaigns, cannot edit sender identity, cannot access GHL connection settings.</td></tr>
+    <tr><td>All other roles</td><td>No access to <code>/admin/marketing/*</code>. Enforced in <code>layout.tsx</code> and in every API route via a middleware helper <code>requireMarketingRole()</code>.</td></tr>
+  </table>
+
+  <h4>Australian Spam Act 2003 compliance</h4>
+  <ul>
+    <li><strong>Consent source tracked</strong> &mdash; every contact row records how it got there (CSV import / existing customer / manual / GHL sync).</li>
+    <li><strong>Unsubscribe link</strong> &mdash; GHL injects automatically; we verify by sending ourselves a test email on day 1 of M2.</li>
+    <li><strong>STOP keyword</strong> &mdash; GHL handles natively; CC mirrors opt-out to local cache.</li>
+    <li><strong>Business address</strong> &mdash; pulled from <code>admin_settings.marketing.business_address</code> and injected by GHL in every footer.</li>
+    <li><strong>Audit trail</strong> &mdash; every send, every tag change, every sequence enrollment logged to <code>marketing_audit_log</code> with actor + timestamp.</li>
+    <li><strong>Data export</strong> &mdash; a contact's full record (profile + events + messages) exportable as JSON from their profile page, satisfying data-access requests.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">12.</span> Environment Variables</h2>
+
+<div class="screen-card">
+  <p>New entries for <code>.env.local</code> and <code>.env.example</code>:</p>
+  <div class="file-tree"># GoHighLevel
+GHL_LOCATION_ID=FQ5OnSrbC8BdZbTnWvp8
+GHL_PRIVATE_INTEGRATION_TOKEN=pit-...
+GHL_API_BASE_URL=https://services.leadconnectorhq.com
+GHL_API_VERSION=2021-07-28
+GHL_WEBHOOK_SECRET=<random-32-char-string>    # generated in M1
+
+# Marketing feature flags
+MARKETING_ENABLED=true
+MARKETING_SMS_ENABLED=false                    # flipped to true when LC Phone is live</div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">13.</span> Milestone-Mapped Development Sequence</h2>
+
+<div class="screen-card">
+  <p>Each milestone from the Final Integration Plan maps to a concrete development pass. No new scope &mdash; this is the <em>how</em> for each <em>what</em>.</p>
+
+  <table>
+    <tr><th style="width:20%;">Milestone</th><th>Engineering tasks</th><th style="width:14%;">Key deliverables</th></tr>
+
+    <tr>
+      <td><strong>M0 &mdash; Prep</strong> <span class="badge b-done">done</span></td>
+      <td>
+        GHL API access confirmed via <code>npm run ghl:test</code>. Plan tier (Unlimited) logged. Existing contacts inventoried (338). Sender identity captured from Jonny. Sending domain (<code>send.cqvs-chemconnect.com.au</code>) confirmed. Only LC Phone activation remains (Jonny on it).
+      </td>
+      <td>Credentials live, baseline verified</td>
+    </tr>
+
+    <tr>
+      <td><strong>M1 &mdash; Foundation</strong></td>
+      <td>
+        Write migration <code>030_marketing_module.sql</code> (7 tables + role enum + seed settings). Build <code>lib/ghl/*</code> client with typed wrappers. Build contact sync (initial backfill script + webhook receiver). Build CSV import route with streaming progress. Build contacts list + profile UI. Wire <code>/admin/marketing/contacts</code>, <code>/admin/marketing/contacts/import</code>, <code>/admin/marketing/contacts/[id]</code>. Generate <code>GHL_WEBHOOK_SECRET</code>, register webhook URLs in GHL.
+      </td>
+      <td>All 338 contacts visible + importable in CC</td>
+    </tr>
+
+    <tr>
+      <td><strong>M2 &mdash; Email Campaigns</strong></td>
+      <td>
+        Build campaign wizard (audience picker &rarr; HTML editor &rarr; schedule &rarr; review). Build <code>campaigns.ts</code> wrapper for bulk-action API. Implement <code>/api/webhooks/ghl/events</code> for email events. Campaign list + detail UI with per-event stats. Materialised view for dashboard widgets. Test-send from real CQVS sub-account to Jonny and me. First end-to-end send of a dummy campaign.
+      </td>
+      <td>End-to-end email campaign working</td>
+    </tr>
+
+    <tr>
+      <td><strong>M3 &mdash; SMS + Inbox</strong></td>
+      <td>
+        <strong>Prerequisite:</strong> LC Phone activated and AU number purchased. Build SMS campaign path (same wizard, different message editor). Build <code>sms_conversations</code> + <code>sms_messages</code> tables, inbox UI, conversation view, reply composer. Supabase Realtime subscriptions for live inbox updates. Validate outbound SMS via GHL conversations API. STOP keyword verification.
+      </td>
+      <td>Two-way SMS inbox operational</td>
+    </tr>
+
+    <tr>
+      <td><strong>M4 &mdash; Sequences</strong></td>
+      <td>
+        Build sequences list page (mirrors GHL workflows). Build enrollment trigger route. Configure the Lead Nurture sequence inside GHL with branching on opened/ordered. Document the tag &rarr; workflow mapping. Add per-contact sequence-history tab to the profile page.
+      </td>
+      <td>Sequences triggerable from CC</td>
+    </tr>
+
+    <tr>
+      <td><strong>M5 &mdash; Dashboard + Polish</strong></td>
+      <td>
+        Build dashboard widgets (sent this month, active campaigns, recent campaigns, unread inbox). Build settings page (sender identity edits, GHL connection status, audit log viewer, force re-sync button). Wire RBAC into every route. Error-alert email hook. Full UAT pass with Jonny via screen-share.
+      </td>
+      <td>Production-ready marketing module</td>
+    </tr>
+
+    <tr>
+      <td><strong>M6 &mdash; Go Live</strong> <span class="badge b-new">included</span></td>
+      <td>
+        Deploy to production Vercel. Verify GHL webhook URLs point to production domain. DNS records on cqvs.com.au (SPF / DKIM / DMARC) confirmed green. Supervised first live send (small batch). Monitor for 72 hours. Domain warm-up plan handed over.
+      </td>
+      <td>Live on cqvs.com.au</td>
+    </tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">14.</span> Testing Strategy</h2>
+
+<div class="screen-card">
+  <ul>
+    <li><strong>Connection test</strong> &mdash; <code>npm run ghl:test</code> already in place. Will run in CI as a smoke check.</li>
+    <li><strong>Webhook replay</strong> &mdash; a small <code>scripts/replay-webhook.ts</code> for re-posting captured GHL payloads locally against the dev server during development.</li>
+    <li><strong>Seeded Supabase fixtures</strong> &mdash; a seed file inserts 10 dummy contacts + 2 dummy campaigns so UI work doesn't block on real GHL data.</li>
+    <li><strong>End-to-end test on real sub-account</strong> &mdash; during M2, send a test campaign to a single internal recipient (me, then Jonny) and verify every event flows back and renders correctly.</li>
+    <li><strong>Rate-limit fuzzing</strong> &mdash; intentionally trigger a 429 from GHL to confirm retry + backoff works.</li>
+    <li><strong>Idempotency</strong> &mdash; fire the same webhook twice, confirm second call returns 200 without duplicating rows.</li>
+    <li><strong>UAT with Jonny at M5</strong> &mdash; screen-share, walk every tab, run one live campaign end-to-end before go-live.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">15.</span> Risks &amp; Mitigations</h2>
+
+<div class="screen-card">
+  <table>
+    <tr><th>Risk</th><th>Mitigation</th></tr>
+    <tr>
+      <td>LC Phone activation delays (Stripe connection or support ticket)</td>
+      <td>M3 is sequenced after M2 deliberately. If delay reaches day of M3 kickoff, we start M4 (Sequences) in parallel and circle back.</td>
+    </tr>
+    <tr>
+      <td>GHL API schema change during build</td>
+      <td>All responses validated through Zod schemas at the boundary; schema failures surface clearly rather than corrupting downstream code.</td>
+    </tr>
+    <tr>
+      <td>Webhook delivery lag or loss</td>
+      <td>Reconciliation job + manual "Force re-sync" button in settings. Idempotent handlers mean replays are safe.</td>
+    </tr>
+    <tr>
+      <td>Private Integration token revoked</td>
+      <td>Token stored in <code>ghl_oauth_tokens</code> table, rotation documented. Settings page shows connection health; failed calls alert via the error-alert email.</td>
+    </tr>
+    <tr>
+      <td>Rate limits on 338-contact initial sync</td>
+      <td>Negligible at this volume; even so, batches are 50 with 100ms spacing &mdash; well under documented GHL limits.</td>
+    </tr>
+    <tr>
+      <td>Outbound SMS reply endpoint restricted</td>
+      <td>Validated on day 1 of M3. If restricted, feature-flag off the reply box and show deep-link to GHL instead. All other SMS features still work.</td>
+    </tr>
+    <tr>
+      <td>DNS propagation delays at go-live</td>
+      <td>SPF/DKIM/DMARC likely already green on <code>send.cqvs-chemconnect.com.au</code> because GHL manages it. We verify via mxtoolbox on day of go-live; any issues flagged 24h early.</td>
+    </tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">16.</span> Kickoff Status</h2>
+
+<div class="box-green box">
+  <p><strong>All inputs confirmed. Build can start now on M1.</strong></p>
+  <ul>
+    <li><span class="badge b-done">done</span> Plan tier confirmed (Unlimited)</li>
+    <li><span class="badge b-done">done</span> API token verified working against production sub-account</li>
+    <li><span class="badge b-done">done</span> 338 contacts in place, ready for initial sync</li>
+    <li><span class="badge b-done">done</span> CSV format decided (standard GHL layout)</li>
+    <li><span class="badge b-done">done</span> Sender identity captured (jonny@cqvs.com.au, Jonny Harper, 7/17 Rothcote Court)</li>
+    <li><span class="badge b-done">done</span> Sending domain confirmed (<code>send.cqvs-chemconnect.com.au</code>)</li>
+    <li><span class="badge b-pending">~1hr</span> LC Phone activation (Jonny connecting Stripe &mdash; does not block M1/M2)</li>
+  </ul>
+  <p><strong>Next action:</strong> begin writing migration <code>030_marketing_module.sql</code> and scaffolding <code>lib/ghl/*</code>.</p>
+</div>
+
+<div class="footer">
+  <p>Chem Connect by CQVS &mdash; Marketing Module &mdash; GoHighLevel Development Blueprint</p>
+  <p>Prepared by Sohaib | 17 April 2026</p>
+  <p>Engineering companion to the Final Integration Plan. Translates scope into concrete build decisions.</p>
+</div>
+
+</body>
+</html>

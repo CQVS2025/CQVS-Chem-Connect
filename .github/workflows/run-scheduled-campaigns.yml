@@ -1,0 +1,35 @@
+name: Run scheduled marketing campaigns
+
+on:
+  schedule:
+    # GitHub Actions minimum interval is 5 minutes.
+    # Scheduled triggers only fire on the repo's DEFAULT branch.
+    - cron: "*/5 * * * *"
+  workflow_dispatch: # Allow manual triggers from the Actions tab
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Guard — only run this workflow against the develop branch. For scheduled
+    # triggers this means the repo's default branch must be 'develop' (set
+    # under GitHub Settings → General → Default branch). Manual triggers are
+    # also restricted to the develop branch via this condition.
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Invoke run-scheduled endpoint
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          MARKETING_CRON_SECRET: ${{ secrets.MARKETING_CRON_SECRET }}
+        run: node scripts/run-scheduled-campaigns.mjs

@@ -387,6 +387,24 @@
   </ul>
 </div>
 
+<div class="screen-card">
+  <h4>On the AI skill packs you shared</h4>
+  <p>You sent three open-source repos as inspiration:</p>
+  <ul>
+    <li><strong>coreyhaines31/marketingskills</strong> &mdash; Claude Code markdown &quot;skills&quot; for CRO, copywriting, SEO, ad creative, etc.</li>
+    <li><strong>zubair-trabzada/ai-sales-team-claude</strong> &mdash; CLI-based AI sales agent skills (prospect research, BANT scoring, outreach generation).</li>
+    <li><strong>BusyBee3333/Go-High-Level-MCP-2026-Complete</strong> &mdash; A community MCP server exposing 500+ GHL API tools to an AI agent via Model Context Protocol.</li>
+  </ul>
+  <p>These are <strong>research &amp; development aids for me</strong>, not build items inside ChemConnect. I'll lean on them while implementing &mdash; e.g. the GHL MCP server is useful for exploring the GHL API surface quickly, and the marketing-skill prompts inform how I structure Claude prompts if you ever want AI content suggestions inside CC.</p>
+  <p><strong>Why they're not in the plan:</strong></p>
+  <ul>
+    <li>They're Claude Code / agent skills &mdash; designed to be run from a developer's terminal or a personal AI assistant, not embedded into a production web app like ChemConnect.</li>
+    <li>Most of what they do (copy frameworks, cold-email structures, BANT scoring) is workflow guidance, not a deployable feature.</li>
+    <li>Bolting them directly into ChemConnect would add significant cost and complexity (agent runtime, vector DB, content-approval UX, guardrails) for capability you can already get by using Claude yourself when writing campaigns.</li>
+  </ul>
+  <p>If you later want AI features baked into CC (one-click &quot;generate 3 subject line options&quot;, auto-summarise a campaign result, draft a follow-up SMS) that's a clean separate milestone &mdash; we can scope it once the GHL integration is live and you know which repetitive task actually hurts.</p>
+</div>
+
 <hr class="divider">
 
 <!-- ============================================================ -->
@@ -419,40 +437,73 @@
 <hr class="divider">
 
 <!-- ============================================================ -->
-<h2><span class="section-num">8.</span> Build Plan &amp; Milestones</h2>
+<h2><span class="section-num">8.</span> Build Plan, Timeline &amp; Budget</h2>
 
 <div class="screen-card">
+  <p><strong>Target go-live:</strong> Sunday, 26 April 2026. Seven milestones sequenced back-to-back over the next nine days. Each milestone is priced individually so you see exactly where the effort goes &mdash; total fixed fee <strong>AUD $700</strong>, with M6 (go-live) included at no extra cost.</p>
+
   <table>
-    <tr><th style="width:30%;">Milestone</th><th>Scope</th></tr>
     <tr>
-      <td><strong>M0 &mdash; Prep</strong></td>
-      <td>GHL sub-account access confirmed, API keys provisioned, OAuth app created, existing GHL contacts inventoried, GoDaddy DNS screen-share booked.</td>
+      <th style="width:22%;">Milestone</th>
+      <th>Scope &amp; Engineering Detail</th>
+      <th style="width:18%;">Timeline</th>
+      <th style="width:12%;">Budget</th>
     </tr>
     <tr>
-      <td><strong>M1 &mdash; Foundation</strong></td>
-      <td>GHL OAuth + API client, DB migrations, contact sync engine, CSV/Excel import + contact list UI, existing-GHL-contacts initial sync.</td>
+      <td><strong>M0 &mdash; Prep &amp; Discovery</strong></td>
+      <td>Deep-dive into the GoHighLevel REST API docs, Private Integrations scopes, webhook payload formats, and rate-limit behaviour. Audit the existing GHL sub-account (locations, existing contacts, custom fields, existing workflows). Provision Private Integrations API key with the correct scope set, set up OAuth app, configure the webhook endpoint allow-list, and map every ChemConnect field to its GHL equivalent so nothing drops during import. Book the GoDaddy DNS screen-share and prepare the SPF/DKIM/DMARC record templates.</td>
+      <td>Fri 17 Apr &ndash; Sat 18 Apr</td>
+      <td>$50</td>
     </tr>
     <tr>
-      <td><strong>M2 &mdash; Campaigns (Email)</strong></td>
-      <td>Campaign wizard, HTML paste + preview, send / schedule / recurring via GHL API, campaign list with status + basic stats, webhook events wired.</td>
+      <td><strong>M1 &mdash; Foundation &amp; Contact Sync</strong></td>
+      <td>Build the GHL OAuth client with automatic token refresh, encrypted credential vault, exponential-backoff retry logic, and structured error logging. Design and apply 7 new database migrations (<code>marketing_contacts</code>, <code>marketing_campaigns</code>, <code>marketing_events</code>, <code>sms_conversations</code>, <code>sms_messages</code>, <code>ghl_oauth_tokens</code>, <code>marketing_audit_log</code>) with RLS policies. Implement the two-way contact sync engine with conflict resolution rules, idempotency keys, and a reconciliation job. Build the CSV / Excel import pipeline &mdash; file parser, column-mapping UI, row-level validation, duplicate detection, per-row GHL push with progress indicator. Run the initial backfill sync of your existing GHL contacts into the local cache.</td>
+      <td>Sat 18 Apr &ndash; Mon 20 Apr</td>
+      <td>$180</td>
     </tr>
     <tr>
-      <td><strong>M3 &mdash; SMS + Inbox</strong></td>
-      <td>SMS campaign path, two-way inbox (threads list, conversation view, reply box), unread badges, STOP handling verification.</td>
+      <td><strong>M2 &mdash; Email Campaigns Engine</strong></td>
+      <td>Build the 4-step campaign wizard UI (audience &rarr; HTML &rarr; schedule &rarr; review) with live audience counts, paste-HTML editor with syntax highlighting, multi-client preview (desktop / mobile / dark mode), and validation. Wire the campaign dispatcher to GHL's bulk-action API with per-campaign status tracking (draft / scheduled / sending / sent / failed). Build the scheduler handoff for one-off, scheduled, and recurring sends. Build the webhook receiver with HMAC signature verification for <code>email.delivered</code> / <code>opened</code> / <code>clicked</code> / <code>bounced</code> / <code>unsubscribed</code> events and write them to the local events table. Build the campaign list view, per-campaign detail card, and the "Open in GoHighLevel" deep-link integration.</td>
+      <td>Mon 20 Apr &ndash; Wed 22 Apr</td>
+      <td>$170</td>
+    </tr>
+    <tr>
+      <td><strong>M3 &mdash; SMS + Two-Way Inbox</strong></td>
+      <td>Build the SMS campaign flow (recipient filter + message composer with character counter + schedule). Implement the real-time inbound webhook receiver, phone-number-to-contact matching, and auto-creation of new contact records for unknown inbound numbers. Build the conversation-thread data model, the WhatsApp-style inbox UI (threads list, unread badges, thread-detail view with full history, reply composer). Wire outbound sends through GHL's conversations API with delivery-state updates. Verify STOP / UNSUBSCRIBE keyword handling, opt-out propagation to the local suppression cache, and validate the fallback path if GHL's outbound-reply endpoint is restricted on the current plan.</td>
+      <td>Wed 22 Apr &ndash; Fri 24 Apr</td>
+      <td>$150</td>
     </tr>
     <tr>
       <td><strong>M4 &mdash; Sequences Integration</strong></td>
-      <td>Sequences list mirrored from GHL, enroll-contact trigger, first sequence (Lead Nurture) configured inside GHL by me + handed over to you.</td>
+      <td>Build the sequences list view mirrored from GHL (workflow name, trigger, active enrolments, on/off state, last fired). Implement the enrol-contact trigger API so tagging a contact inside ChemConnect fires the matching GHL workflow via API. Configure the first production sequence (Lead Nurture) inside GHL on your behalf with branching logic tailored to your tags, then document and hand it over so you can duplicate it for future flows. Add per-contact sequence-history visibility on the contact profile page.</td>
+      <td>Fri 24 Apr &ndash; Sat 25 Apr</td>
+      <td>$80</td>
     </tr>
     <tr>
-      <td><strong>M5 &mdash; Mini Dashboard + Polish</strong></td>
-      <td>Summary widgets, deep-links, permissions, audit log, error alerts, customer profile unification, UAT with you.</td>
+      <td><strong>M5 &mdash; Mini Dashboard, Permissions &amp; Polish</strong></td>
+      <td>Build the marketing dashboard with summary widgets (emails sent this month, SMS sent, last 5 campaigns with open/click, new contacts this week, unread inbox count) and deep-links back into GHL for full analytics. Wire the unified contact profile page so each marketing contact shows tags, campaign history, SMS thread, and (if linked) their ChemConnect customer record + order history in one place. Implement the two-role permissions layer (Marketing Admin vs Marketing Editor), the audit-log viewer, and the error-alert system that emails me if GHL API is down or webhooks stop firing. Full UAT pass with you before go-live.</td>
+      <td>Sat 25 Apr &ndash; Sun 26 Apr</td>
+      <td>$70</td>
     </tr>
-    <tr>
-      <td><strong>M6 &mdash; Go Live</strong></td>
-      <td>SPF / DKIM / DMARC on cqvs.com.au via GoDaddy, production deploy, first live campaign supervised together, warm-up plan.</td>
+    <tr style="background:#f0fdf4;">
+      <td><strong>M6 &mdash; Go-Live &amp; Deliverability</strong></td>
+      <td>Joint 5-min GoDaddy screen-share to add the GHL-provided SPF / DKIM / DMARC records to <code>cqvs.com.au</code>. Wait for DNS propagation, verify authentication green on Mailtester + GHL's own domain-verify check. Production deploy against the old CQVS domain, supervised first live campaign together, and a 7-day sender-reputation warm-up plan so early sends don't land in spam.</td>
+      <td>Sun 26 Apr</td>
+      <td><strong>Included &mdash; no charge</strong></td>
+    </tr>
+    <tr style="background:#f5f3ff; font-weight:700;">
+      <td colspan="3" style="text-align:right;">Total fixed fee</td>
+      <td>AUD $700</td>
     </tr>
   </table>
+
+  <div class="box-amber box">
+    <strong>Effort &amp; iteration note:</strong> I haven't worked with GoHighLevel before &mdash; much like MacShip and Xero earlier, there's a real learning curve on the API surface, webhook quirks, and plan-specific behaviour. The scope above should be a bit lighter than either of those two integrations, but based on past milestones I've factored in the near-certain mid-build iterations (copy tweaks, segment logic refinements, UX changes once you see the first live send). The $700 is a fixed fee covering that work.
+  </div>
+
+  <div class="box">
+    <strong>How billing works:</strong> One invoice on sign-off of M5 (before M6 go-live), payable on the same terms as MacShip + Xero. Each milestone closes with a short demo video so you see progress without needing a call. Anything outside the scope above (landing pages, AI content generation, lead-scraping pipelines, funnels, calendars) is a separate milestone we can scope later.
+  </div>
 </div>
 
 <hr class="divider">

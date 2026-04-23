@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Marketing Module - Full Testing Plan (M1-M5)</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #8b5cf6; border-bottom: 3px solid #8b5cf6; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #8b5cf6; margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f5f3ff; color: #6d28d9; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #8b5cf6; background: #f5f3ff; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-green { border-left-color: #16a34a; background: #f0fdf4; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 5px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #8b5cf6; margin: 44px 0; }
+  .section-num { color: #8b5cf6; font-weight: 700; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; }
+  .b-pass { background: #dcfce7; color: #166534; }
+  .b-fail { background: #fee2e2; color: #991b1b; }
+  .b-m1 { background: #dbeafe; color: #1e40af; }
+  .b-m2 { background: #ede9fe; color: #6d28d9; }
+  .b-m3 { background: #fef3c7; color: #92400e; }
+  .b-m4 { background: #fecaca; color: #991b1b; }
+  .b-m5 { background: #d1fae5; color: #065f46; }
+  .b-m6 { background: #ccfbf1; color: #0f766e; }
+  .b-new { background: #fef08a; color: #713f12; }
+  .b-done { background: #dcfce7; color: #166534; }
+  .b-pending { background: #fef3c7; color: #92400e; }
+  .screen-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin: 14px 0; background: #ffffff; border-left: 4px solid #8b5cf6; }
+  .screen-card h3 { margin-top: 0; color: #8b5cf6; }
+  code { background: #f3f4f6; color: #6d28d9; padding: 1px 5px; border-radius: 3px; font-family: 'SF Mono', Consolas, monospace; font-size: 12px; }
+  pre { background: #1f2937; color: #e5e7eb; padding: 14px 18px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.5; overflow-x: auto; }
+  pre.sql { background: #f5f3ff; color: #1a1a2e; border: 1px solid #e5e7eb; }
+  .flow-step { display: flex; gap: 12px; margin: 10px 0; align-items: flex-start; }
+  .flow-n { background: #8b5cf6; color: white; min-width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; flex-shrink: 0; margin-top: 2px; padding: 0 6px; }
+  .flow-c { flex: 1; font-size: 13px; }
+  .expected { background: #f0fdf4; border-left: 3px solid #16a34a; padding: 8px 12px; margin: 6px 0 6px 16px; font-size: 13px; border-radius: 3px; }
+  .expected strong { color: #166534; }
+  .test-block { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .test-block h4 { margin-top: 0; }
+  .check { display: inline-block; width: 14px; height: 14px; border: 2px solid #9ca3af; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+  .kbd { display: inline-block; padding: 1px 6px; border: 1px solid #d1d5db; border-radius: 3px; background: #f9fafb; font-family: monospace; font-size: 11px; color: #374151; }
+  .confirmed-banner { background: linear-gradient(90deg, #8b5cf6, #6d28d9); color: white; padding: 16px 22px; border-radius: 8px; margin: 20px 0; font-size: 14px; }
+  .confirmed-banner strong { font-size: 15px; }
+  .toc { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 20px; margin: 14px 0; }
+  .toc ul { list-style-type: none; padding-left: 0; font-size: 13px; }
+  .toc ul ul { padding-left: 20px; }
+  .toc a { color: #6d28d9; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .highlight { background: #fef3c7; padding: 1px 6px; border-radius: 3px; font-weight: 600; color: #92400e; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Marketing Module &mdash; Full Testing Plan</p>
+  <p style="color: #9ca3af;">M1 &rarr; M5 end-to-end verification &middot; revision 3 (April 2026)</p>
+</div>
+
+<div class="confirmed-banner">
+  <strong>Revision 3 &mdash; production-ready update</strong><br>
+  Adds everything built over the last two days: the <strong>GHL Marketplace App / LCEmailStats</strong> webhook replacing the broken workflow-based attribution, <strong>Compose mode with Quill + branded email shell</strong>, <strong>merge-tag personalization</strong>, the per-campaign <strong>Analytics page with CSV export</strong>, <strong>tag-dropdown suggestions</strong>, <strong>test-send attribution isolation</strong>, <strong>unique-opens / unique-clicks dedup</strong>, and the <strong>MacShip parcel-first fallback</strong> that fixed the 2+ drum checkout bug. Work through sections 1 &rarr; 10 in order. New or changed tests are flagged <span class="badge b-new">NEW</span>.
+</div>
+
+<div class="toc">
+  <strong>Table of contents</strong>
+  <ul>
+    <li><a href="#s1">1. Pre-flight setup &amp; configuration</a></li>
+    <li><a href="#s2">2. M1 tests &mdash; Foundation &amp; Contact Sync</a></li>
+    <li><a href="#s3">3. M2 tests &mdash; Email Campaigns</a></li>
+    <li><a href="#s4">4. M3 tests &mdash; SMS &amp; Two-Way Inbox</a></li>
+    <li><a href="#s5">5. M4 tests &mdash; Sequences</a></li>
+    <li><a href="#s6">6. M5 tests &mdash; Dashboard &amp; Polish</a></li>
+    <li><a href="#s7">7. M6 tests &mdash; Analytics, Compose, Merge tags <span class="badge b-new">NEW</span></a></li>
+    <li><a href="#s8">8. End-to-end scenarios (the golden paths)</a></li>
+    <li><a href="#s9">9. Production go-live checklist</a></li>
+    <li><a href="#s10">10. Troubleshooting</a></li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- =============================================================== -->
+<h2 id="s1"><span class="section-num">1.</span> Pre-flight setup &amp; configuration</h2>
+
+<p>Everything below must be green before running any test. Do this once per environment (dev and prod).</p>
+
+<div class="screen-card">
+  <h3>1.1 &mdash; Environment variables</h3>
+
+  <p>Open <code>.env.local</code> in dev or the Vercel project settings in prod and confirm these are set:</p>
+
+  <pre># Supabase (already present)
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+
+# App URL — used by OAuth callback + install helper + GitHub Actions cron
+NEXT_PUBLIC_APP_URL=https://www.cqvs-chemconnect.com.au        # prod
+# NEXT_PUBLIC_APP_URL=https://&lt;ngrok-subdomain&gt;.ngrok-free.app # dev
+
+# GoHighLevel (private-integration-token path — used for API calls)
+GHL_LOCATION_ID=FQ5OnSrbC8BdZbTnWvp8
+GHL_PRIVATE_INTEGRATION_TOKEN=pit-xxxxxxxx-...
+GHL_API_BASE_URL=https://services.leadconnectorhq.com
+GHL_API_VERSION=2021-07-28
+
+# GHL Marketplace App (NEW — for LCEmailStats webhook + OAuth install)
+GHL_MARKETPLACE_CLIENT_ID=&lt;from marketplace app dashboard&gt;
+GHL_MARKETPLACE_CLIENT_SECRET=&lt;shown once on creation&gt;
+GHL_WEBHOOK_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAi2HR1srL4o18O8BRa7gVJY7G7bupbN3H9AwJrHCDiOg=
+-----END PUBLIC KEY-----"
+
+# Shared secret for the legacy workflow-based webhooks
+# (contacts + conversations only — NOT used for email event attribution)
+GHL_WEBHOOK_SECRET=&lt;64-char hex, self-generated&gt;
+
+# Mailgun (already present — used for error alerts)
+MAILGUN_API_KEY=...
+MAILGUN_DOMAIN=...
+
+# Scheduled campaign worker (GitHub Actions cron uses this)
+MARKETING_CRON_SECRET=&lt;64-char hex, self-generated&gt;</pre>
+
+  <p>Generate 64-char hex secrets with:</p>
+  <pre>node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"</pre>
+
+  <div class="expected"><strong>Expected:</strong> Running <code>npm run ghl:test</code> prints <code>&#10003; GHL connection successful</code> with the CQVS sub-account details.</div>
+
+  <div class="box-amber box">
+    <strong>Two different GHL auth paths now coexist.</strong>
+    <ul>
+      <li><code>GHL_PRIVATE_INTEGRATION_TOKEN</code> &rarr; direct API calls (send emails, sync contacts, enrol sequences). <strong>Unchanged from rev 2.</strong></li>
+      <li><code>GHL_MARKETPLACE_CLIENT_ID/SECRET</code> + <code>GHL_WEBHOOK_PUBLIC_KEY</code> &rarr; the Marketplace App that receives LCEmailStats webhooks (deterministic per-message attribution). <strong>New in rev 3.</strong></li>
+    </ul>
+    The public key is a constant published by GHL &mdash; paste it verbatim, same value in dev and prod.
+  </div>
+</div>
+
+<div class="screen-card">
+  <h3>1.2 &mdash; Apply all migrations</h3>
+
+  <p>In <strong>Supabase SQL Editor</strong>, run each step below in order. There are six marketing-related migration files now: <strong>032, 033, 034, 035, 036, 037</strong>.</p>
+
+  <div class="flow-step"><div class="flow-n">1</div><div class="flow-c">
+    <strong>Extend the user_role enum first</strong> &mdash; run alone, do NOT combine with 032.
+    <pre class="sql">alter type user_role add value if not exists 'marketing_admin';
+alter type user_role add value if not exists 'marketing_editor';</pre>
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">2</div><div class="flow-c">
+    Paste and run <code>supabase/migrations/032_marketing_module.sql</code>.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">3</div><div class="flow-c">
+    Paste and run <code>supabase/migrations/033_marketing_dashboard_views.sql</code>.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">4</div><div class="flow-c">
+    Paste and run <code>supabase/migrations/034_marketing_fixes.sql</code>.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">5</div><div class="flow-c">
+    Paste and run <code>supabase/migrations/035_ghl_oauth_tokens.sql</code>. <span class="badge b-new">NEW</span><br>
+    Supersedes the placeholder table created in 032: drops it and recreates with access/refresh token columns plus a unique <code>(location_id, company_id)</code> index for idempotent Marketplace installs.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">6</div><div class="flow-c">
+    Paste and run <code>supabase/migrations/036_marketing_tag_list.sql</code>. <span class="badge b-new">NEW</span><br>
+    Adds <code>list_marketing_contact_tags()</code> &mdash; powers the tag-dropdown chips in the campaign builder.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">7</div><div class="flow-c">
+    Paste and run <code>supabase/migrations/037_campaign_recipients_analytics.sql</code>. <span class="badge b-new">NEW</span><br>
+    Adds <code>get_campaign_recipients()</code> + <code>get_campaign_metrics()</code> &mdash; powers the per-campaign Analytics page.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">8</div><div class="flow-c">
+    Reload PostgREST cache so the new RPCs are callable immediately:
+    <pre class="sql">notify pgrst, 'reload schema';</pre>
+  </div></div>
+
+  <div class="box-amber box">
+    <strong>Why step 1 has to be separate:</strong> Postgres requires <code>ALTER TYPE ADD VALUE</code> to be committed before the new values can be referenced in policies or constraints. Running it in the same transaction as migration 032 fails with <code>invalid input value for enum user_role</code>.
+  </div>
+
+  <p>Verify success:</p>
+  <pre class="sql">-- Marketing tables (ghl_oauth_tokens now has access_token + refresh_token)
+select column_name, data_type from information_schema.columns
+where table_name = 'ghl_oauth_tokens' order by ordinal_position;
+
+-- RPC functions (should list 5)
+select proname from pg_proc
+where proname in (
+  'bump_campaign_counter',
+  'due_scheduled_campaigns',
+  'list_marketing_contact_tags',
+  'get_campaign_recipients',
+  'get_campaign_metrics'
+) order by proname;</pre>
+
+  <div class="expected"><strong>Expected:</strong> <code>ghl_oauth_tokens</code> has <code>access_token</code>, <code>refresh_token</code>, <code>company_id</code>, <code>expires_at</code>, etc. All 5 RPCs present.</div>
+</div>
+
+<div class="screen-card">
+  <h3>1.3 &mdash; Enable Supabase Realtime on 3 tables</h3>
+
+  <p>Realtime config lives in the <strong>Publications</strong> section of Supabase Database settings, or run SQL:</p>
+
+  <pre class="sql">alter publication supabase_realtime add table sms_messages;
+alter publication supabase_realtime add table sms_conversations;
+alter publication supabase_realtime add table marketing_contacts;</pre>
+
+  <p>Verify:</p>
+  <pre class="sql">select tablename from pg_publication_tables
+where pubname = 'supabase_realtime'
+  and tablename in ('sms_messages', 'sms_conversations', 'marketing_contacts');</pre>
+
+  <div class="expected"><strong>Expected:</strong> 3 rows returned.</div>
+</div>
+
+<div class="screen-card">
+  <h3>1.4 &mdash; Register GHL workflow webhooks (contacts + inbound SMS only)</h3>
+
+  <p>Two workflows now, inside the <strong>CQVS sub-account</strong> &rarr; Automation &rarr; Workflows. The <em>former</em> "Email Events" workflow is <strong>deprecated</strong> &mdash; email attribution moved to the Marketplace App LCEmailStats webhook (next section). If the old <code>CC &mdash; Email Events</code> workflow still exists, keep it in <strong>Draft</strong> so it can't double-count against LCEmailStats.</p>
+
+  <p>Both workflows use the same custom header on their webhook action:</p>
+  <pre>x-ghl-signature: &lt;value of GHL_WEBHOOK_SECRET&gt;</pre>
+
+  <p>Pick your destination URL:</p>
+  <ul>
+    <li><strong>Local</strong>: start ngrok (<code>ngrok http 3000</code>) &rarr; copy the HTTPS URL. Replace <code>&lt;BASE_URL&gt;</code> below with it.</li>
+    <li><strong>Production</strong>: e.g. <code>https://www.cqvs-chemconnect.com.au</code>.</li>
+  </ul>
+
+  <h4>Workflow 1 &mdash; Contact Sync</h4>
+  <ol>
+    <li>+ Create Workflow &rarr; Start from Scratch. Name: <code>CC &mdash; Contact Sync</code>.</li>
+    <li>Add triggers: <strong>Contact Created</strong>, <strong>Contact Changed</strong>, <strong>Contact DND</strong>, <strong>Contact Tag</strong>, <strong>Contact Deleted</strong>.</li>
+    <li>Add action <strong>Webhook</strong>:
+      <ul>
+        <li>Method: <code>POST</code></li>
+        <li>URL: <code>&lt;BASE_URL&gt;/api/webhooks/ghl/contacts</code></li>
+        <li>Custom Headers: <code>x-ghl-signature</code> = your secret</li>
+        <li><strong>Custom Payload (JSON)</strong>:
+          <pre>{
+  "type": "{{trigger.name}}",
+  "contactId": "{{contact.id}}",
+  "locationId": "{{location.id}}",
+  "email": "{{contact.email}}",
+  "phone": "{{contact.phone}}",
+  "firstName": "{{contact.first_name}}",
+  "lastName": "{{contact.last_name}}",
+  "tags": "{{contact.tags}}"
+}</pre>
+        </li>
+      </ul>
+    </li>
+    <li><strong>Publish</strong>.</li>
+  </ol>
+
+  <h4>Workflow 2 &mdash; Inbound SMS</h4>
+  <ol>
+    <li>+ Create Workflow. Name: <code>CC &mdash; Inbound SMS</code>.</li>
+    <li>Trigger: <strong>Customer Replied</strong>. Filter: <strong>Reply Channel = SMS</strong>.</li>
+    <li>Add Webhook action:
+      <ul>
+        <li>URL: <code>&lt;BASE_URL&gt;/api/webhooks/ghl/conversations</code></li>
+        <li>Custom header: <code>x-ghl-signature</code> = your secret</li>
+      </ul>
+    </li>
+    <li>Publish.</li>
+  </ol>
+
+  <div class="box-red box">
+    <strong>Do NOT publish a workflow-based <code>CC &mdash; Email Events</code> webhook in rev 3.</strong><br>
+    The LCEmailStats Marketplace webhook (section 1.5) now handles all opens / clicks / bounces / unsubscribes / complaints with deterministic per-message attribution. Running both paths in parallel causes double-counting on every open and every click.
+  </div>
+</div>
+
+<div class="screen-card">
+  <h3>1.5 &mdash; GHL Marketplace App (LCEmailStats) <span class="badge b-new">NEW</span></h3>
+
+  <p>This is the big change in rev 3 &mdash; it fixes the attribution bug where two campaigns sent seconds apart showed all opens/clicks on only one of them. The workflow-based "Email Events" trigger does not include the per-email message ID, so attribution degraded to "most recent anchor for this recipient." The Marketplace App's <code>LCEmailStats</code> webhook carries <code>lc-operations.email_message_id</code> on every event, which matches exactly what the dispatcher stores at send time.</p>
+
+  <h4>Part A &mdash; create the Marketplace developer account</h4>
+  <ol>
+    <li>Go to <a href="https://marketplace.gohighlevel.com/">https://marketplace.gohighlevel.com/</a>.</li>
+    <li>Click <strong>Sign Up</strong> (not Sign In). The developer portal uses a separate account from the agency login.</li>
+    <li>Verify the email, then sign in.</li>
+  </ol>
+
+  <h4>Part B &mdash; create the app</h4>
+  <ol>
+    <li>Profile menu &rarr; <strong>My Apps</strong> &rarr; <strong>Create App</strong>.</li>
+    <li>Fill:
+      <ul>
+        <li>App Name: <code>ChemConnect Email Events</code></li>
+        <li>App Type: <strong>Private</strong></li>
+        <li>Target User: <strong>Sub-account</strong></li>
+        <li>Who Can Install: <strong>Sub-account</strong></li>
+        <li>Distribution Type: <strong>White-label</strong></li>
+      </ul>
+    </li>
+    <li>Click <strong>Create</strong>.</li>
+    <li>Fill the <strong>Profile</strong> section: any logo, category, company name, one-line description, a placeholder preview image. Saves the app out of draft.</li>
+  </ol>
+
+  <h4>Part C &mdash; Auth (scopes + redirect URL)</h4>
+  <ol>
+    <li>Left pane &rarr; <strong>Advanced Settings &rarr; Auth</strong>.</li>
+    <li><strong>Scopes</strong>: add <code>lc-email.readonly</code>. You can optionally add other readonly scopes shown in the generated Install Link if GHL auto-includes them &mdash; they don't hurt.</li>
+    <li><strong>Redirect URL</strong>: paste (replace <code>&lt;BASE_URL&gt;</code>):
+      <pre>&lt;BASE_URL&gt;/api/oauth/callback</pre>
+      (GHL rejects URLs containing <code>ghl</code>, <code>hl</code>, or <code>highlevel</code> anywhere in the path.)
+    </li>
+    <li>Save.</li>
+  </ol>
+
+  <h4>Part D &mdash; Webhook subscription</h4>
+  <ol>
+    <li>Left pane &rarr; <strong>Advanced Settings &rarr; Webhooks</strong>.</li>
+    <li>Find <strong>LCEmailStats</strong> in the event list. Toggle it <strong>ON</strong>.</li>
+    <li>Paste the webhook URL:
+      <pre>&lt;BASE_URL&gt;/api/webhooks/ghl/lc-email-stats</pre>
+    </li>
+    <li>Save.</li>
+  </ol>
+
+  <h4>Part E &mdash; Client credentials</h4>
+  <ol>
+    <li>Left pane &rarr; <strong>Manage &rarr; Secrets &rarr; Client Keys &rarr; Add</strong>.</li>
+    <li>Name it <code>prod</code> (or <code>dev</code>). Click OK.</li>
+    <li>Copy both values immediately:
+      <ul>
+        <li><strong>Client ID</strong> &rarr; <code>GHL_MARKETPLACE_CLIENT_ID</code></li>
+        <li><strong>Client Secret</strong> &rarr; <code>GHL_MARKETPLACE_CLIENT_SECRET</code> (shown once)</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h4>Part F &mdash; Install on the CQVS sub-account</h4>
+  <ol>
+    <li>Left pane &rarr; <strong>Manage &rarr; Install Link &rarr; Show</strong>.</li>
+    <li>Copy the <strong>Whitelabel</strong> install URL.</li>
+    <li>Paste it into your browser. GHL asks which sub-account to install on &rarr; pick <strong>CQVS</strong>.</li>
+    <li>Approve the scopes.</li>
+    <li>GHL redirects to <code>&lt;BASE_URL&gt;/api/oauth/callback</code>, which exchanges the code for tokens and persists them in <code>ghl_oauth_tokens</code>.</li>
+    <li>Watch dev logs (or Vercel logs in prod) for:
+      <pre>[GHL oauth] ✅ tokens received
+  locationId: FQ5OnSrbC8BdZbTnWvp8   # or null for agency-level install
+  companyId: uky5EY0ED45W2IsIn9SL</pre>
+    </li>
+  </ol>
+
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Log shows <code>✅ tokens received</code> and no <code>token persist skipped</code> warning.</li>
+      <li>Shortly after install, GHL fires an <code>INSTALL</code> event at the LCEmailStats endpoint. The handler acknowledges it with <code>200 { type: "install" }</code> and logs <code>ℹ️ install notification</code>.</li>
+      <li>Sending any email via the marketing dispatcher thereafter produces <code>accepted</code> + <code>delivered</code> LCEmailStats events within a few seconds; opening the email produces <code>opened</code>.</li>
+    </ul>
+  </div>
+
+  <div class="box">
+    <strong>Future re-installs</strong> can skip the Marketplace dashboard entirely &mdash; just open <code>&lt;BASE_URL&gt;/api/oauth/install</code>, which redirects to GHL's chooselocation page. Useful if you rotate Client Secret or reinstall on a new sub-account.
+  </div>
+</div>
+
+<div class="screen-card">
+  <h3>1.6 &mdash; GitHub Actions cron (for scheduled campaigns)</h3>
+
+  <p>Unchanged from rev 2. The workflow file <code>.github/workflows/run-scheduled-campaigns.yml</code> runs every 5 minutes and hits <code>/api/marketing/campaigns/run-scheduled</code>.</p>
+
+  <ol>
+    <li>GitHub repo &rarr; <strong>Settings &rarr; Secrets and variables &rarr; Actions</strong>.</li>
+    <li>Add two repository secrets:
+      <ul>
+        <li><code>APP_URL</code> &mdash; e.g. <code>https://www.cqvs-chemconnect.com.au</code></li>
+        <li><code>MARKETING_CRON_SECRET</code> &mdash; same 64-char hex as in the app env</li>
+      </ul>
+    </li>
+    <li>Scheduled triggers run against the default branch. Ensure the branch is set correctly (GitHub Settings &rarr; General &rarr; Default branch).</li>
+  </ol>
+
+  <div class="box-amber box">
+    <strong>GH Actions minimum interval is 5 minutes.</strong> A scheduled campaign fires within ~5 minutes of <code>scheduled_at</code>, not exactly on the minute.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- =============================================================== -->
+<h2 id="s2"><span class="section-num">2.</span> M1 &mdash; Foundation &amp; Contact Sync <span class="badge b-m1">M1</span></h2>
+
+<div class="test-block">
+  <h4>2.1 &mdash; GHL connection health</h4>
+  <pre>npm run ghl:test</pre>
+  <div class="expected"><strong>Expected:</strong> <code>&#10003; GHL connection successful</code> &mdash; sub-account <code>CQVS</code>, Location ID <code>FQ5OnSrbC8BdZbTnWvp8</code>, timezone <code>Australia/Brisbane</code>.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.2 &mdash; Initial contact backfill (first run)</h4>
+  <pre>npm run ghl:sync</pre>
+  <div class="expected">
+    <strong>Expected:</strong> ~100s runtime. <code>Total processed : 338</code>, <code>Created : 338</code>, <code>Updated : 0</code>, <code>Failed : 0</code>.
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.3 &mdash; Idempotency (second run)</h4>
+  <pre>npm run ghl:sync</pre>
+  <div class="expected"><strong>Expected:</strong> <code>Created: 0 &middot; Updated: 338</code>.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.4 &mdash; Verify data in Supabase</h4>
+  <pre class="sql">select count(*) as total from marketing_contacts;                   -- 338
+select phone from marketing_contacts where phone is not null limit 5;
+select count(*) from marketing_contacts where tags @&gt; array['quarries'];
+select action, meta from marketing_audit_log
+  where action = 'contacts.initial_sync' order by occurred_at desc limit 2;</pre>
+  <div class="expected"><strong>Expected:</strong> 338 rows; phones E.164; quarry tag on majority; two audit rows.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.5 &mdash; Contact list UI</h4>
+  <ol>
+    <li><code>npm run dev</code>.</li>
+    <li><a href="http://localhost:3000/admin/marketing/contacts">http://localhost:3000/admin/marketing/contacts</a>.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>"338 contacts" count at top.</li>
+      <li>Columns: Name, Email, Phone, Company, State, Tags, Status.</li>
+      <li>Tags as pills (e.g. <code>quarries</code> + <code>+4</code>).</li>
+      <li>50 rows / page; Prev/Next work.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.6 &mdash; Search + tag filter (debounced)</h4>
+  <ol>
+    <li>Type <code>smith</code> in search. Wait ~250ms &mdash; list narrows.</li>
+    <li>Clear search, type <code>quarries</code> in tag filter &mdash; narrows again.</li>
+    <li>DevTools Network: at most one request per burst of typing.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Smooth, no flicker.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.7 &mdash; Contact profile page (with paginated events) <span class="badge b-new">UPDATED</span></h4>
+  <ol>
+    <li>Click any contact's name.</li>
+    <li>Scroll to the <strong>Recent activity</strong> card. For a contact that's had many events (your test contact after you've sent a campaign a few times), verify:
+      <ul>
+        <li>"N total" count in the card description.</li>
+        <li>Up to 20 events shown per page.</li>
+        <li>Previous / Next buttons appear when N &gt; 20. Clicking advances the page, spinner shows during fetch.</li>
+      </ul>
+    </li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Email, phone, company, state, tags, source badge (<code>ghl_initial_sync</code>).</li>
+      <li>"Open in GoHighLevel" button opens the GHL contact detail in a new tab.</li>
+      <li>Recent activity paginates smoothly (see bullet above).</li>
+      <li>Sequence history shows any enrolments.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.8 &mdash; Add contact via UI</h4>
+  <ol>
+    <li>Click <strong>+ Add contact</strong>. Fill: First Name <code>Test</code>, Email <code>test-cc-01@example.com</code>, Phone <code>0412345678</code>, Tags <code>test-add</code>.</li>
+    <li>Submit.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong> Toast "Contact created" &rarr; profile page. Phone displayed as <code>+61412345678</code>. Contact appears in GHL with source "ChemConnect Admin".
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.9 &mdash; CSV import</h4>
+  <ol>
+    <li><code>/admin/marketing/contacts/import</code>.</li>
+    <li>Click <strong>Download template</strong>. Add 3 rows with distinct emails. Drop file.</li>
+    <li>Verify auto-mapping. Set default tag <code>import-apr</code> &rarr; Next &rarr; Next &rarr; Import.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> <code>Created 3 / Updated 0 / Failed 0</code>. Rows tagged <code>import-apr</code>. Same contacts in GHL.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.10 &mdash; CSV row cap</h4>
+  <ol>
+    <li>Build a 201-row CSV. Try to import.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Toast error "File has 201 rows &mdash; server limit is 200…". No HTTP request sent.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.11 &mdash; Force re-sync</h4>
+  <ol>
+    <li><code>/admin/marketing/settings</code> &rarr; <strong>Re-sync contacts from GoHighLevel</strong>.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Toast "Synced N contacts (0 new, N updated)" &mdash; ~30s.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.12 &mdash; Webhook replay (local)</h4>
+  <pre>npm run ghl:webhook-replay -- \
+  --path /api/webhooks/ghl/contacts \
+  --file scripts/fixtures/ghl-contact-update.json</pre>
+  <div class="expected"><strong>Expected:</strong> <code>status: 200</code>, <code>{"ok":true,"contactId":"..."}</code>. Audit row <code>contact.created</code> or <code>contact.updated</code>.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>2.13 &mdash; Realtime on contacts (live webhook)</h4>
+  <p><em>Requires GHL Workflow 1 published and webhook URL reachable.</em></p>
+  <ol>
+    <li>Open <code>/admin/marketing/contacts</code> in one tab.</li>
+    <li>Inside GHL, edit any contact's name and save.</li>
+    <li>Watch the ChemConnect tab &mdash; updated name appears within ~2 seconds <strong>without a refresh</strong>.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Live update. Dev log shows <code>POST /api/webhooks/ghl/contacts 200</code>.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<hr class="divider">
+
+<!-- =============================================================== -->
+<h2 id="s3"><span class="section-num">3.</span> M2 &mdash; Email Campaigns <span class="badge b-m2">M2</span></h2>
+
+<p>Event-based tests in this section now exercise the Marketplace App / LCEmailStats path. The old "replay a workflow-event fixture" pattern is retained as a lightweight smoke test &mdash; real live attribution comes from the Marketplace App.</p>
+
+<div class="test-block">
+  <h4>3.1 &mdash; Campaigns list page</h4>
+  <ol><li>Open <code>/admin/marketing/campaigns</code>.</li></ol>
+  <div class="expected"><strong>Expected:</strong> Empty state or existing campaigns. Sent/sending/failed rows have an <strong>Analytics</strong> button in the rightmost column. Draft / scheduled / cancelled rows do not.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>3.2 &mdash; 4-step wizard (email, tag audience, Paste HTML mode)</h4>
+  <ol>
+    <li><strong>+ New campaign</strong>.</li>
+    <li>Step 1 (Who): Channel = Email, Audience = "Filter by tag", tag = <code>test-add</code>. Confirm the "Available tags" chip row shows existing tags with counts (section 7.4 tests this properly).</li>
+    <li>Step 2 (What): Name = <code>Test Email Campaign</code>, Subject = <code>Hello from ChemConnect</code>. Toggle to <strong>Paste HTML</strong> mode. Body:
+      <pre>&lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;Test from ChemConnect.&lt;/p&gt;&lt;p&gt;&lt;a href="https://cqvs.com.au"&gt;Visit CQVS&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</pre>
+      Iframe preview renders within ~300ms of pausing typing.</li>
+    <li>Step 3 (When): keep "Send now".</li>
+    <li>Step 4 (Review) &rarr; <strong>Save as draft</strong>.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Toast "Campaign saved as draft". Redirects to detail page. Status = <code>draft</code>.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>3.3 &mdash; Test-send <span class="badge b-new">UPDATED</span></h4>
+  <ol>
+    <li>Detail page &rarr; contact search &rarr; click your own row.</li>
+    <li>Check email inbox <strong>including Gmail's Promotions tab</strong>.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Response <code>{"ok":true,"messageId":"..."}</code>.</li>
+      <li>Email arrives in your inbox (or Promotions) within ~30s. Subject prefixed <code>[TEST]</code>.</li>
+      <li>DB row in <code>marketing_events</code> with <code>metadata.attribution_anchor = true</code>, <code>metadata.is_test = true</code>, <code>campaign_id</code> = this campaign's id. The <code>is_test</code> flag prevents the test-send's opens/clicks from inflating real campaign counters later.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>3.4 &mdash; Full campaign send</h4>
+  <ol>
+    <li>Detail page &rarr; <strong>Send campaign to N contacts</strong> &rarr; confirm.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Parallel-batch dispatcher completes in ~10s for small audiences.</li>
+      <li>Toast <code>Sent: N &middot; Failed: 0 &middot; Skipped: 0</code>.</li>
+      <li>Status &rarr; <code>sent</code>. <code>delivered_count</code> = number of successful GHL handoffs.</li>
+      <li>Recipients receive the email.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>3.5 &mdash; LCEmailStats event attribution (live) <span class="badge b-new">UPDATED</span></h4>
+  <p>With the Marketplace App installed (section 1.5), every open / click of any email sent through the dispatcher fires an <code>LCEmailStats</code> webhook at <code>/api/webhooks/ghl/lc-email-stats</code>. Attribution is deterministic on <code>lc-operations.email_message_id</code> &mdash; no more guesswork.</p>
+  <ol>
+    <li>Test-send or full-send an email to yourself.</li>
+    <li>Open the email (loads the tracking pixel).</li>
+    <li>Click a link in the email.</li>
+    <li>Watch the dev server log.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected log sequence:</strong>
+    <ul>
+      <li><code>[GHL lc-email-stats] 📨 raw inbound</code> &mdash; delivered event</li>
+      <li><code>[GHL lc-email-stats] ✅ accepted &middot; event_type: delivered &middot; attribution_mode: lc_email_message_id &middot; campaign_id: &lt;this campaign's id&gt;</code></li>
+      <li>Then similar for <code>opened</code> and <code>clicked</code>.</li>
+      <li><code>➕ counter bumped &middot; column: opened_count</code> (and <code>clicked_count</code>) for the FIRST event of each type.</li>
+      <li>Campaign row on the list page reflects incremented <code>opened_count</code> / <code>clicked_count</code> within a few seconds.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>3.6 &mdash; Unique-opens dedup (multi-open of same email) <span class="badge b-new">NEW</span></h4>
+  <ol>
+    <li>Re-open the same email a second and third time (refresh Gmail, reopen, etc.).</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Additional <code>LCEmailStats opened</code> events arrive.</li>
+      <li>Handler logs <code>⏭️ counter skipped — already counted</code> for each.</li>
+      <li><code>opened_count</code> on the campaign <strong>stays at 1</strong> &mdash; not 2 or 3. (Before this fix the dashboard showed 200% / 300% open rates.)</li>
+      <li>Every raw event is still recorded in <code>marketing_events</code> for audit &mdash; dedup is at the counter-bump level, not the event level.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>3.7 &mdash; Concurrent-send attribution (the original bug) <span class="badge b-new">NEW</span></h4>
+  <ol>
+    <li>Create two campaigns (<code>test-A</code> and <code>test-B</code>) targeting the same single-contact audience.</li>
+    <li>Send them back-to-back (within 10 seconds).</li>
+    <li>Open both emails. Click links in both.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Campaigns list shows both with their own <code>opened_count = 1</code> and <code>clicked_count = 1</code>.</li>
+      <li>Before rev 3, one would show 100% and the other 0%. Confirmed fixed.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>3.8 &mdash; Atomic counter under concurrent load</h4>
+  <p>Create 5 distinct LCEmailStats fixtures with different <code>webhookPayload.id</code> + <code>lc-operations.email_message_id</code> values. Replay them in parallel:</p>
+  <pre>for i in $(seq 1 5); do
+  (npm run ghl:webhook-replay -- \
+    --path /api/webhooks/ghl/lc-email-stats \
+    --file scripts/fixtures/lc-opened-$i.json &amp;)
+done
+wait</pre>
+  <div class="expected"><strong>Expected:</strong> <code>opened_count</code> increments by exactly <strong>5</strong>. Atomic <code>bump_campaign_counter</code> RPC prevents lost increments.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>3.9 &mdash; Scheduled campaign</h4>
+  <ol>
+    <li>Wizard &rarr; Step 3 pick <strong>Schedule</strong>, date/time 2 min from now. Save.</li>
+    <li>Invoke the endpoint manually:
+      <pre>curl -X POST http://localhost:3000/api/marketing/campaigns/run-scheduled \
+  -H "x-cron-secret: &lt;your MARKETING_CRON_SECRET&gt;"</pre>
+    </li>
+    <li>In production this fires via GitHub Actions every 5 min.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Before time passes: <code>{"processed":0,"results":[]}</code>.</li>
+      <li>After time passes: <code>{"processed":1,"results":[{...succeeded...}]}</code>.</li>
+      <li>Campaign status &rarr; <code>sent</code>. Audit log <code>campaign.scheduled_fired</code>.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>3.10 &mdash; Cancel campaign</h4>
+  <ol>
+    <li>Create another scheduled campaign 10 min out. Save.</li>
+    <li>Detail page &rarr; <strong>Cancel</strong> button (only on <code>draft</code> / <code>scheduled</code>).</li>
+    <li>Confirm.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Status flips to <code>cancelled</code>. Next cron run ignores it.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>3.11 &mdash; Deep-link to GHL</h4>
+  <ol>
+    <li>Campaign detail page &rarr; <strong>View sent messages in GoHighLevel</strong>.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Opens <code>/v2/location/{locationId}/conversations/conversations</code>. The Conversations inbox loads with real data.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<hr class="divider">
+
+<!-- =============================================================== -->
+<h2 id="s4"><span class="section-num">4.</span> M3 &mdash; SMS &amp; Two-Way Inbox <span class="badge b-m3">M3</span></h2>
+
+<div class="box-amber box">
+  <strong>Prerequisite:</strong> LC Phone enabled + AU number provisioned inside the CQVS sub-account. Set <code>marketing.sms_enabled = 'true'</code> and <code>marketing.sms_from_number = '+614...'</code> in <code>admin_settings</code>.
+</div>
+
+<div class="test-block">
+  <h4>4.1 &mdash; Empty inbox</h4>
+  <ol><li><code>/admin/marketing/inbox</code>.</li></ol>
+  <div class="expected"><strong>Expected:</strong> "No conversations yet".</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>4.2 &mdash; Inbound SMS via webhook replay</h4>
+  <ol>
+    <li>Create <code>scripts/fixtures/sms-inbound.json</code>:
+      <pre>{
+  "type": "InboundMessage",
+  "messageType": "SMS",
+  "locationId": "FQ5OnSrbC8BdZbTnWvp8",
+  "conversationId": "test-convo-001",
+  "contactId": "&lt;any ghl contact id&gt;",
+  "messageId": "msg-inbound-001",
+  "direction": "inbound",
+  "body": "Hi, I'm interested in your products",
+  "from": "+61412000001",
+  "to": "+614XXXXXXXX",
+  "timestamp": "2026-04-20T12:00:00Z"
+}</pre>
+    </li>
+    <li>Replay:
+      <pre>npm run ghl:webhook-replay -- \
+  --path /api/webhooks/ghl/conversations \
+  --file scripts/fixtures/sms-inbound.json</pre>
+    </li>
+    <li>Watch the inbox tab.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Replay returns <code>{"ok":true,"conversationId":"..."}</code>.</li>
+      <li>Thread appears live with unread badge 1.</li>
+      <li>Preview shows "Hi, I'm interested…" prefixed "Them:".</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>4.3 &mdash; Open thread &amp; reply</h4>
+  <ol>
+    <li>Click the thread. Type "Thanks for reaching out!" &rarr; <span class="kbd">Enter</span>.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong> Optimistic message <code>queued</code> &rarr; <code>sent</code>. Unread badge clears.
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>4.4 &mdash; STOP keyword compliance</h4>
+  <ol>
+    <li>Replay an inbound with body <code>STOP</code> (same contact).</li>
+    <li>SQL: <code>select is_opted_out, opted_out_reason from marketing_contacts where ghl_contact_id = '...';</code></li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> <code>is_opted_out = true</code>, <code>opted_out_reason = 'sms_stop'</code>. Reply composer disabled.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>4.5 &mdash; STOP false-positive guard</h4>
+  <p>Replay <code>Please cancel my order number 123</code> for a different contact.</p>
+  <div class="expected"><strong>Expected:</strong> Contact is NOT auto-opted-out.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>4.6 &mdash; Duplicate webhook handling</h4>
+  <p>Replay Test 4.2 again.</p>
+  <div class="expected"><code>select count(*) from sms_messages where ghl_message_id = 'msg-inbound-001'; -- 1</code></div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>4.7 &mdash; Unknown inbound phone</h4>
+  <p>Replay an inbound from a phone not in <code>marketing_contacts</code>, no <code>contactId</code>.</p>
+  <div class="expected"><strong>Expected:</strong> Handler logs a warning and drops the message.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>4.8 &mdash; SMS campaign end-to-end</h4>
+  <ol>
+    <li>Channel = SMS, small tag audience.</li>
+    <li>Body: <code>Test message from ChemConnect</code>. Save &rarr; Send.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Recipient gets the SMS. Status = <code>sent</code>.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>4.9 &mdash; Real SMS reply (end-to-end)</h4>
+  <ol>
+    <li>Text the CQVS business number from your phone.</li>
+    <li>Watch <code>/admin/marketing/inbox</code>.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Thread appears live within ~3s. No refresh.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<hr class="divider">
+
+<!-- =============================================================== -->
+<h2 id="s5"><span class="section-num">5.</span> M4 &mdash; Sequences <span class="badge b-m4">M4</span></h2>
+
+<div class="box">
+  <strong>Prerequisite:</strong> At least one <strong>published workflow</strong> in GHL. Any will do.
+</div>
+
+<div class="test-block">
+  <h4>5.1 &mdash; Workflows list</h4>
+  <ol><li><code>/admin/marketing/sequences</code>.</li></ol>
+  <div class="expected"><strong>Expected:</strong> Every published GHL workflow renders as a card with <strong>Enrol contact</strong> + <strong>Open in GoHighLevel</strong>.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>5.2 &mdash; Enrol contact</h4>
+  <ol>
+    <li>Click <strong>Enrol contact</strong>. Search and click your test contact.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Toast "Contact enrolled". In GHL &rarr; Workflow &rarr; Enrolment History &rarr; contact active.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>5.3 &mdash; Enrol opted-out contact is blocked</h4>
+  <ol>
+    <li>Same dialog, find an opted-out contact.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Row shows "Opted out" badge. Enrol button disabled.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>5.4 &mdash; Per-contact sequence history</h4>
+  <ol>
+    <li>Open profile of contact from 5.2 &rarr; Sequence history card.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> "enrolled" entry with truncated workflow id + timestamp.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<hr class="divider">
+
+<!-- =============================================================== -->
+<h2 id="s6"><span class="section-num">6.</span> M5 &mdash; Dashboard &amp; Polish <span class="badge b-m5">M5</span></h2>
+
+<div class="test-block">
+  <h4>6.1 &mdash; Dashboard loads</h4>
+  <ol><li><code>/admin/marketing/dashboard</code>.</li></ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Row 1: Emails sent this month, SMS sent, Open rate, Unread inbox.</li>
+      <li>Row 2: Total contacts, New this week, Active + scheduled campaigns.</li>
+      <li>Recent campaigns table (up to 8 rows).</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>6.2 &mdash; Settings &mdash; connection &amp; re-sync</h4>
+  <ol><li><code>/admin/marketing/settings</code>.</li></ol>
+  <div class="expected">
+    <strong>Expected:</strong> Connected badge (green), sub-account name, sender identity populated, Re-sync button works.
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>6.3 &mdash; Edit and save settings</h4>
+  <ol>
+    <li>Change "From name" to <code>Jonny H (test)</code>. Save. Refresh.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Change persists. Audit log <code>settings.updated</code>. Revert.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>6.4 &mdash; Audit log viewer</h4>
+  <ol><li>Settings page &rarr; <strong>Audit log</strong> card.</li></ol>
+  <div class="expected"><strong>Expected:</strong> Last 100 actions with timestamp, actor, target.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>6.5 &mdash; Error alerting (throttled)</h4>
+  <ol>
+    <li>Break <code>GHL_PRIVATE_INTEGRATION_TOKEN</code>. Restart server. Open Settings.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong> Badge "Error" (red). Alert email arrives. Further refreshes within 15 min don't re-email.
+  </div>
+  <p><em>After:</em> Restore token.</p>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>6.6 &mdash; RBAC</h4>
+  <ol>
+    <li><code>update profiles set role = 'marketing_editor' where email = 'test@you.com';</code></li>
+    <li>Log in as that user.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong> Can view + create/edit; cannot delete campaigns, change settings, or force-resync (API 403).
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<hr class="divider">
+
+<!-- =============================================================== -->
+<h2 id="s7"><span class="section-num">7.</span> M6 &mdash; Analytics, Compose, Merge tags, Tag picker <span class="badge b-m6">M6</span> <span class="badge b-new">NEW</span></h2>
+
+<p>Everything built over the last two days. Most of these don't need GHL webhooks to pass &mdash; they exercise UI and server logic that's independent of carrier-side configuration.</p>
+
+<div class="test-block">
+  <h4>7.1 &mdash; Compose mode (Quill) renders + writes into branded shell <span class="badge b-new">NEW</span></h4>
+  <ol>
+    <li>Create a new campaign. Step 2 &rarr; default mode should be <strong>Compose</strong>.</li>
+    <li>Type "Hi!" then highlight &rarr; make bold. Add a bullet list. Add a link via the link toolbar.</li>
+    <li>Verify the toolbar is readable in both light AND dark themes (toggle via the theme switcher). Icons should be dark on light background, bright (foreground colour) on dark background. Hover colour = primary teal.</li>
+    <li>Click the link button &mdash; the tooltip should stay inside the editor bounds, not get clipped.</li>
+    <li>Watch the <strong>Live preview</strong> panel: after ~300ms it re-renders into the CQVS branded shell (dark bg, teal accent, logo, footer).</li>
+    <li>Toggle to <strong>Paste HTML</strong>. The existing textarea appears. Toggle back to Compose &mdash; editor content preserved.</li>
+    <li>Save as draft.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Saved <code>body_html</code> is the full branded shell (DOCTYPE, <code>&lt;html&gt;</code>, header with logo, card with body, footer). Not just the editor's bare paragraphs.</li>
+      <li><code>body_text</code> is populated with stripped plain-text version.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>7.2 &mdash; Merge tags panel (click-to-copy + override syntax) <span class="badge b-new">NEW</span></h4>
+  <ol>
+    <li>Campaign wizard Step 2. Find the <strong>Available variables</strong> panel above the Body section.</li>
+    <li>Verify 8 chips: <code>{{first_name}}</code>, <code>{{last_name}}</code>, <code>{{full_name}}</code>, <code>{{email}}</code>, <code>{{phone}}</code>, <code>{{company_name}}</code>, <code>{{state}}</code>, <code>{{country}}</code>.</li>
+    <li>Hover each chip: tooltip shows description + example value + fallback.</li>
+    <li>Click <code>{{first_name}}</code>. Toast "Copied {{first_name}}". Paste into subject.</li>
+    <li>Compose a test email using this subject / body:
+      <ul>
+        <li>Subject: <code>{{first_name}}, quick question about {{company_name}}'s chemical costs</code></li>
+        <li>Body (Compose mode): <code>Hi {{first_name | mate}}, thanks for working with {{company_name | your business}}.</code></li>
+      </ul>
+    </li>
+  </ol>
+  <div class="expected"><strong>Expected (after sending to yourself):</strong> subject + body render with your contact's real first name and company name. For contacts with missing values, smart defaults kick in (<code>there</code>, <code>your business</code>); inline overrides replace them if present.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>7.3 &mdash; Merge tag unit-test suite (already captured) <span class="badge b-new">NEW</span></h4>
+  <p>The smoke script at <code>lib/marketing/merge-tags.ts</code> was verified with 13 assertions during dev:</p>
+  <ul>
+    <li>Happy path: full substitution works.</li>
+    <li>Smart defaults: <code>first_name</code> &rarr; "there", <code>company_name</code> &rarr; "your business".</li>
+    <li>Cascades: <code>{{first_name}}</code> falls back to first token of <code>full_name</code> if first_name is null.</li>
+    <li>Inline override: <code>{{first_name | friend}}</code> wins over smart default when value is missing; ignored when value exists.</li>
+    <li>Explicit empty: <code>{{first_name | }}</code> renders ""</li>
+    <li>HTML escape: a contact with <code>first_name = &lt;script&gt;...&lt;/script&gt;</code> renders as escaped text (no XSS).</li>
+    <li>Unknown tags (<code>{{nonexistent}}</code>) left visible so typos are obvious.</li>
+  </ul>
+  <div class="expected"><strong>Expected:</strong> Re-run the smoke script if merge logic changes. All assertions pass.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>7.4 &mdash; Tag dropdown suggestion chips <span class="badge b-new">NEW</span></h4>
+  <ol>
+    <li>Wizard Step 1 &rarr; Audience = "Filter by tag".</li>
+    <li>Below the input, verify the <strong>Available tags</strong> row shows chips for every existing tag in your DB with counts (e.g. <code>quarries (337)</code>, <code>test-add (3)</code>).</li>
+    <li>Click a chip &mdash; it's added to the selected tags. Chip disappears from the "available" row.</li>
+    <li>Type <code>qu</code> in the input &mdash; chips filter to matches (e.g. only <code>quarries</code> shows).</li>
+    <li>Type an entirely new tag <code>brand-new-tag</code> and press Enter &mdash; still works (not restricted to the dropdown list).</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Smooth. Tag count cached 5 min; invalidates when a contact is created/updated/deleted.</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>7.5 &mdash; Per-campaign analytics page <span class="badge b-new">NEW</span></h4>
+  <ol>
+    <li>From the campaigns list, click the <strong>Analytics</strong> button on any <code>sent</code> campaign.</li>
+    <li>Top: 8 metric cards &mdash; Sent, Delivered, Opened, Clicked, Complained, Bounced, Unsubscribed, Failed &mdash; with counts + percentages.</li>
+    <li>Below: Recipients table with Name / Email / Status / Last Activity columns.</li>
+    <li>One row per contact, not one row per raw event. Status = highest-severity event they reached (unsubscribed &gt; complained &gt; bounced &gt; clicked &gt; opened &gt; delivered).</li>
+    <li>Try the search box &mdash; matches across name + email with 300ms debounce.</li>
+    <li>Try the status filter dropdown &mdash; narrows to just that status.</li>
+    <li>Click <strong>Export CSV</strong> &rarr; downloads <code>&lt;campaign name&gt;-recipients.csv</code> with all visible columns.</li>
+    <li>For campaigns with &gt; 25 recipients, Previous / Next paginate.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Order + labels match GHL's email analytics dashboard (Sent, Delivered, Opened, Clicked, Complained, Bounced, Unsubscribed, Failed).</li>
+      <li>Test-send events are excluded (<code>is_test = true</code> filter in the SQL).</li>
+      <li>Analytics button <strong>only</strong> appears on campaigns with <code>sent</code> / <code>sending</code> / <code>failed</code> status &mdash; not on drafts, scheduled, or cancelled.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>7.6 &mdash; Test-send attribution isolation <span class="badge b-new">NEW</span></h4>
+  <ol>
+    <li>Create <code>campaign-A</code>. Send it to one contact (real send).</li>
+    <li>Create <code>campaign-B</code> (different campaign, same contact). Do NOT send the real campaign yet &mdash; use <strong>test-send</strong> only.</li>
+    <li>Open the test-send email and click a link.</li>
+    <li>Go to <code>campaign-B</code>'s analytics page.</li>
+  </ol>
+  <div class="expected">
+    <strong>Expected:</strong>
+    <ul>
+      <li>Counters on <code>campaign-B</code> stay at 0 (test-send doesn't inflate real metrics).</li>
+      <li>Events appear in the Recent activity / event log attributed to <code>campaign-B</code>, not <code>campaign-A</code>. (Before rev 3 they'd land on <code>campaign-A</code> via the recipient-recent fallback.)</li>
+      <li>Handler log shows <code>⏭️ counter skipped — test send</code> for each event.</li>
+    </ul>
+  </div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<div class="test-block">
+  <h4>7.7 &mdash; Live-preview iframe reliability <span class="badge b-new">NEW</span></h4>
+  <ol>
+    <li>In Compose mode, type rapidly then stop.</li>
+    <li>Verify the Live preview iframe renders the debounced content (~300ms after you stop typing).</li>
+    <li>Toggle to Paste HTML, paste valid HTML. Preview updates.</li>
+    <li>Toggle back to Compose. Preview updates again.</li>
+  </ol>
+  <div class="expected"><strong>Expected:</strong> Never shows a blank white iframe. (Rev 2 had a React srcDoc update bug; rev 3 keys the iframe on the debounced content to force a reliable remount.)</div>
+  <span class="check"></span> <strong>Pass</strong>
+</div>
+
+<hr class="divider">
+
+<!-- =============================================================== -->
+<h2 id="s8"><span class="section-num">8.</span> End-to-end scenarios (golden paths)</h2>
+
+<p>Run only after all per-milestone tests pass.</p>
+
+<div class="screen-card">
+  <h3>8.1 &mdash; Campaign with merge tags + branded Compose + analytics round-trip</h3>
+
+  <div class="flow-step"><div class="flow-n">1</div><div class="flow-c">
+    Upload a CSV of 3 test contacts via <strong>Import CSV</strong>. Apply tag <code>golden-path-test</code>. Ensure each contact has a first_name and company_name.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">2</div><div class="flow-c">
+    Create a new campaign. Step 1: audience = tag <code>golden-path-test</code> (count should be 3).
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">3</div><div class="flow-c">
+    Step 2: Subject = <code>{{first_name}}, welcome to ChemConnect</code>. Compose mode. Body:
+    <pre>Hi {{first_name}},
+
+Great to have {{company_name | your business}} on board.
+
+&lt;a href="https://cqvs.com.au"&gt;Browse our catalogue&lt;/a&gt;</pre>
+    Live preview renders in the branded shell.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">4</div><div class="flow-c">
+    Test-send to yourself first &mdash; verify the preview in your inbox matches the preview on-screen, and the merge tags resolved to your contact's values.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">5</div><div class="flow-c">
+    Full send to all 3 contacts. Each contact gets their own personalised copy (verify by checking GHL's Sent messages in the Conversations inbox).
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">6</div><div class="flow-c">
+    Open one of the test emails. Click the link.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">7</div><div class="flow-c">
+    Go to the campaign's <strong>Analytics</strong> page. Within ~1 minute:
+    <ul>
+      <li>Sent: 3, Delivered: 3.</li>
+      <li>Opened: 1 (the test inbox you opened).</li>
+      <li>Clicked: 1.</li>
+      <li>Recipients table shows all 3 rows; the one you interacted with has Status = <code>clicked</code> (highest severity they reached).</li>
+    </ul>
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">8</div><div class="flow-c">
+    Click <strong>Export CSV</strong>. File opens with all recipient data &mdash; status, timestamps, last click URL.
+  </div></div>
+
+  <div class="expected"><strong>Full path passes if:</strong> CSV import &rarr; merge-tag send &rarr; LCEmailStats attribution &rarr; analytics &rarr; CSV export all work end-to-end.</div>
+</div>
+
+<div class="screen-card">
+  <h3>8.2 &mdash; Weekly newsletter via Scheduled Campaign (GitHub Actions)</h3>
+
+  <div class="flow-step"><div class="flow-n">1</div><div class="flow-c">
+    Create a campaign &rarr; Step 3 Schedule for ~10 minutes from now. Save.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">2</div><div class="flow-c">
+    Within 5-10 minutes of the scheduled time, GH Actions picks it up. Campaign auto-dispatches. Status &rarr; <code>sent</code>. Audit log <code>campaign.scheduled_fired</code>.
+  </div></div>
+
+  <div class="flow-step"><div class="flow-n">3</div><div class="flow-c">
+    (Shortcut) Manually trigger: GitHub repo &rarr; Actions &rarr; "Run scheduled marketing campaigns" &rarr; Run workflow.
+  </div></div>
+
+  <div class="expected"><strong>Expected:</strong> Recipients receive the email within ~5 minutes of the scheduled time. LCEmailStats events flow to the analytics page.</div>
+</div>
+
+<hr class="divider">
+
+<!-- =============================================================== -->
+<h2 id="s9"><span class="section-num">9.</span> Production go-live checklist</h2>
+
+<div class="screen-card">
+  <p>Before flipping <code>marketing.enabled = 'true'</code> in production and handing over to Jonny:</p>
+
+  <h4>Database (production Supabase)</h4>
+  <table>
+    <tr><th style="width:4%;"></th><th>Item</th></tr>
+    <tr><td><span class="check"></span></td><td>Migrations 032 &mdash; 037 applied to production</td></tr>
+    <tr><td><span class="check"></span></td><td><code>notify pgrst, 'reload schema';</code> after 035/036/037 so RPCs are callable</td></tr>
+    <tr><td><span class="check"></span></td><td><code>ghl_oauth_tokens</code> has the new shape (access_token, refresh_token, company_id, expires_at)</td></tr>
+    <tr><td><span class="check"></span></td><td>Realtime enabled on <code>sms_messages</code>, <code>sms_conversations</code>, <code>marketing_contacts</code> (production)</td></tr>
+  </table>
+
+  <h4>Environment (Vercel production project)</h4>
+  <table>
+    <tr><td><span class="check"></span></td><td><code>NEXT_PUBLIC_APP_URL</code> set to production domain (no trailing slash)</td></tr>
+    <tr><td><span class="check"></span></td><td><code>GHL_LOCATION_ID</code>, <code>GHL_PRIVATE_INTEGRATION_TOKEN</code> (prod values)</td></tr>
+    <tr><td><span class="check"></span></td><td><code>GHL_MARKETPLACE_CLIENT_ID</code>, <code>GHL_MARKETPLACE_CLIENT_SECRET</code> (from the <strong>prod</strong> key pair in the Marketplace app)</td></tr>
+    <tr><td><span class="check"></span></td><td><code>GHL_WEBHOOK_PUBLIC_KEY</code> pasted verbatim (same value as dev)</td></tr>
+    <tr><td><span class="check"></span></td><td><code>GHL_WEBHOOK_SECRET</code> (used by contacts + inbound SMS workflows)</td></tr>
+    <tr><td><span class="check"></span></td><td><code>MARKETING_CRON_SECRET</code>, <code>MAILGUN_*</code>, Supabase keys</td></tr>
+  </table>
+
+  <h4>GHL configuration</h4>
+  <table>
+    <tr><td><span class="check"></span></td><td>Initial backfill against production: <code>npm run ghl:sync</code> (one-time, pointing at prod Supabase)</td></tr>
+    <tr><td><span class="check"></span></td><td>Workflow 1 (Contact Sync) &amp; Workflow 2 (Inbound SMS) URLs updated to prod domain, <code>x-ghl-signature</code> header set, <strong>Published</strong></td></tr>
+    <tr><td><span class="check"></span></td><td>Legacy <code>CC &mdash; Email Events</code> workflow &mdash; if it exists, <strong>Draft only</strong> (not published). Deleting it is also fine.</td></tr>
+    <tr><td><span class="check"></span></td><td>Marketplace App &mdash; Redirect URL updated to <code>https://&lt;prod&gt;/api/oauth/callback</code></td></tr>
+    <tr><td><span class="check"></span></td><td>Marketplace App &mdash; LCEmailStats webhook URL updated to <code>https://&lt;prod&gt;/api/webhooks/ghl/lc-email-stats</code></td></tr>
+    <tr><td><span class="check"></span></td><td>Marketplace App installed on the CQVS sub-account via the prod Install Link (OAuth callback hit, tokens persisted)</td></tr>
+    <tr><td><span class="check"></span></td><td>Prod dev logs / Vercel Function logs show <code>✅ tokens received</code>, no <code>token persist skipped</code> warnings</td></tr>
+    <tr><td><span class="check"></span></td><td>SPF/DKIM/DMARC DNS green on <code>cqvs.com.au</code> (GHL Settings &rarr; Email Services confirms authentication)</td></tr>
+    <tr><td><span class="check"></span></td><td>LC Phone number provisioned &amp; A2P registration approved in GHL</td></tr>
+  </table>
+
+  <h4>GitHub Actions</h4>
+  <table>
+    <tr><td><span class="check"></span></td><td><code>APP_URL</code> + <code>MARKETING_CRON_SECRET</code> secrets set on prod default branch</td></tr>
+    <tr><td><span class="check"></span></td><td>Workflow manually triggered once &mdash; completes &lt;5s with <code>processed: 0</code> (shows auth + endpoint are wired)</td></tr>
+  </table>
+
+  <h4>Final smoke test on prod</h4>
+  <table>
+    <tr><td><span class="check"></span></td><td>Small-audience (&le; 5 contacts) test campaign sent from prod. Delivery confirmed in inboxes (incl. Promotions tab).</td></tr>
+    <tr><td><span class="check"></span></td><td>Open + click a test email &rarr; LCEmailStats webhooks visible in Vercel logs, <code>attribution_mode: lc_email_message_id</code>.</td></tr>
+    <tr><td><span class="check"></span></td><td>Analytics page renders correct counts.</td></tr>
+    <tr><td><span class="check"></span></td><td>Send two back-to-back campaigns to the same contact &mdash; each registers independently (rev-3 concurrent-send regression test).</td></tr>
+    <tr><td><span class="check"></span></td><td>7-day sender-reputation warm-up plan agreed with Jonny (start with small lists, grow gradually).</td></tr>
+  </table>
+</div>
+
+<div class="box-amber box">
+  <strong>If the Marketplace App takes time to approve for install:</strong> tracking still works in "degraded" mode via the recent-anchor fallback (the old behaviour). But concurrent-send attribution will be wrong until the app is live. Don't run marketing campaigns at scale until LCEmailStats is confirmed flowing.
+</div>
+
+<hr class="divider">
+
+<!-- =============================================================== -->
+<h2 id="s10"><span class="section-num">10.</span> Troubleshooting</h2>
+
+<div class="screen-card">
+  <h3>GHL connection test fails</h3>
+  <table>
+    <tr><th>Symptom</th><th>Fix</th></tr>
+    <tr><td>401 Unauthorized</td><td>Private Integration token invalid. Regenerate in GHL Settings &rarr; Private Integrations.</td></tr>
+    <tr><td>404 on <code>/locations/{id}</code></td><td>Location ID wrong. Copy from the URL when inside the CQVS sub-account.</td></tr>
+    <tr><td><code>GHL_LOCATION_ID is not set</code></td><td>dotenv didn't load. Ensure <code>.env.local</code> is in the project root. Restart command.</td></tr>
+  </table>
+</div>
+
+<div class="screen-card">
+  <h3>Marketplace App install fails <span class="badge b-new">NEW</span></h3>
+  <table>
+    <tr><th>Symptom</th><th>Fix</th></tr>
+    <tr><td>GHL says "No integration found with the id: &lt;24-char-prefix&gt;"</td><td>Client ID in env is missing the suffix (e.g. <code>-mo95jlz0</code>). Paste the full value including the dash-suffix.</td></tr>
+    <tr><td>Marketplace UI rejects redirect URL &mdash; "contains a Highlevel reference"</td><td>URL path contains <code>ghl</code>, <code>hl</code>, or <code>highlevel</code>. Use <code>/api/oauth/callback</code> (not <code>/api/ghl/oauth/callback</code>).</td></tr>
+    <tr><td>Install page redirects to the app's Website URL instead of our callback</td><td>You used the <strong>Whitelabel</strong> install link, which skips OAuth. Use the <strong>Standard</strong> link to trigger the OAuth code exchange. (Whitelabel install still subscribes to webhooks &mdash; just no token storage.)</td></tr>
+    <tr><td>Pricing step blocks publication ("3/4 mandatory steps")</td><td>For private white-label apps you don't need pricing. Use the <strong>Testing</strong> section of the marketplace dashboard to install directly on a test sub-account, OR explicitly select "Your app is free" and save.</td></tr>
+    <tr><td>Install succeeds but no LCEmailStats events arrive</td><td>Check the sub-account's Integrations page shows the app as installed. If not, re-run install and pick the specific sub-account (not "Install on Agency"). Confirm LCEmailStats toggle is ON in Advanced Settings &rarr; Webhooks.</td></tr>
+  </table>
+</div>
+
+<div class="screen-card">
+  <h3>Token persist warning <span class="badge b-new">NEW</span></h3>
+  <table>
+    <tr><th>Symptom</th><th>Fix</th></tr>
+    <tr><td><code>Could not find the 'access_token' column of 'ghl_oauth_tokens' in the schema cache</code></td><td>Migration 035 not applied OR PostgREST cache stale. Apply the SQL, then <code>notify pgrst, 'reload schema';</code>. Re-install to capture tokens.</td></tr>
+    <tr><td><code>duplicate key value violates unique constraint "uq_ghl_oauth_tokens_install"</code></td><td>Harmless &mdash; two OAuth callbacks fired close together during a reinstall. The handler now retries with an UPDATE on conflict.</td></tr>
+  </table>
+</div>
+
+<div class="screen-card">
+  <h3>Attribution looks wrong <span class="badge b-new">NEW</span></h3>
+  <table>
+    <tr><th>Symptom</th><th>Fix</th></tr>
+    <tr><td>Opens / clicks attribute to a completely different recent campaign</td><td>Marketplace App not installed on the sending sub-account, so we fall back to the recent-anchor heuristic. Install the app (section 1.5).</td></tr>
+    <tr><td>Both LCEmailStats and the old workflow webhook fire &mdash; counters double</td><td>The legacy <code>CC &mdash; Email Events</code> workflow is still published. Toggle it back to Draft.</td></tr>
+    <tr><td>A test-send's opens show up on the campaign counters</td><td>Ensure the test-send wrote an anchor with <code>is_test: true</code>. Check <code>marketing_events</code> &mdash; if older test anchors don't have the flag, they'll bump counters. New test-sends from rev 3 onwards are flagged.</td></tr>
+    <tr><td>A recipient opens the email twice and the counter jumps to 2</td><td>Shouldn't happen in rev 3 &mdash; the unique-open dedup check skips subsequent events for the same (<code>event_type</code>, <code>lc_email_message_id</code>). If it does, check the handler log for <code>⏭️ counter skipped — already counted</code> &mdash; if missing, something's rebuilt the dedup index wrong.</td></tr>
+  </table>
+</div>
+
+<div class="screen-card">
+  <h3>Compose mode / Quill issues <span class="badge b-new">NEW</span></h3>
+  <table>
+    <tr><th>Symptom</th><th>Fix</th></tr>
+    <tr><td>Toolbar icons invisible in dark mode</td><td>CSS-variable double-wrap bug &mdash; use <code>var(--foreground)</code> not <code>hsl(var(--foreground))</code> since <code>globals.css</code> already wraps with <code>hsl()</code>. Already fixed in rev 3.</td></tr>
+    <tr><td>Link popup gets clipped by card edge</td><td>Tooltip is pinned inside the editor wrapper with <code>left: 12px</code>/<code>right: 12px</code>. If recurring, check the <code>.cc-quill-wrap</code> container isn't overriding <code>overflow: visible</code>.</td></tr>
+    <tr><td>Live preview iframe shows blank white</td><td>React iframe srcDoc update bug. Rev 3 re-keys the iframe on debounced content. Hard refresh with <span class="kbd">Cmd+Shift+R</span> if still shown with stale code.</td></tr>
+    <tr><td>Quill editor doesn't load at all</td><td>Check <code>"use client"</code> directive at the top of <code>components/marketing/quill-editor.tsx</code>. Quill is client-side only; dynamic import kicks in after mount.</td></tr>
+  </table>
+</div>
+
+<div class="screen-card">
+  <h3>Merge tag didn't substitute <span class="badge b-new">NEW</span></h3>
+  <table>
+    <tr><th>Symptom</th><th>Fix</th></tr>
+    <tr><td>Email arrived with literal <code>{{first_name}}</code> in it</td><td>Most likely the contact row is missing that field AND the tag name is wrong (e.g. <code>{{firstName}}</code> &mdash; not supported; use snake_case). Unknown tags are intentionally left visible so typos don't silently produce empty strings.</td></tr>
+    <tr><td>All substitutions empty &mdash; even for populated contacts</td><td><code>resolveAudience</code> not pulling the extra columns. Check <code>lib/marketing/audience.ts</code> select clause includes <code>first_name, last_name, company_name, state, country</code>.</td></tr>
+    <tr><td>Test-send uses literal tags but real send resolves them</td><td>The test-send route must also call <code>substituteMergeTags</code>. Verify <code>app/api/marketing/campaigns/[id]/test-send/route.ts</code> passes the contact's fields through.</td></tr>
+  </table>
+</div>
+
+<div class="screen-card">
+  <h3>Email landed in Promotions / Spam</h3>
+  <p>Expected for branded marketing email with logos and dark backgrounds &mdash; that's Gmail's Promotions classifier doing its job. To improve inbox placement over time:</p>
+  <ul>
+    <li>Manually drag one test email from Promotions &rarr; Primary. Gmail adapts for the same <code>From</code> address.</li>
+    <li>Keep subject lines plain (no ALL CAPS, excess punctuation, emojis).</li>
+    <li>Warm up the sending domain: start with small lists, grow over a week.</li>
+  </ul>
+</div>
+
+<div class="screen-card">
+  <h3>Migration fails</h3>
+  <table>
+    <tr><th>Error</th><th>Fix</th></tr>
+    <tr><td><code>invalid input value for enum user_role: "marketing_admin"</code></td><td>Run the two <code>ALTER TYPE</code> lines alone first, then the rest of migration 032.</td></tr>
+    <tr><td><code>type "..." already exists</code></td><td>Migrations 032&ndash;037 are idempotent-guarded. Re-run should succeed.</td></tr>
+    <tr><td><code>relation "admin_settings" does not exist</code></td><td>Earlier migration (006) not applied. Apply all project migrations in order.</td></tr>
+    <tr><td>037 says <code>function get_campaign_recipients already exists with different signature</code></td><td>Drop it first: <code>drop function if exists get_campaign_recipients(uuid, text, text, int, int);</code></td></tr>
+  </table>
+</div>
+
+<div class="screen-card">
+  <h3>Scheduled campaign never fires</h3>
+  <table>
+    <tr><th>Symptom</th><th>Fix</th></tr>
+    <tr><td>Stays <code>scheduled</code> past its time</td><td>GH Actions workflow not on default branch, or <code>MARKETING_CRON_SECRET</code> doesn't match between Vercel env and GH Secrets.</td></tr>
+    <tr><td>Endpoint returns 401</td><td><code>x-cron-secret</code> header mismatch.</td></tr>
+    <tr><td>Run logs show "branch guard failed"</td><td>Scheduled triggers only run on the default branch.</td></tr>
+  </table>
+</div>
+
+<div class="screen-card">
+  <h3>Webhook signature rejected</h3>
+  <table>
+    <tr><th>Symptom</th><th>Fix</th></tr>
+    <tr><td>Log: <code>[GHL webhook ...] invalid signature</code> (contacts / conversations route)</td><td>The <code>x-ghl-signature</code> header in the GHL workflow doesn't match <code>GHL_WEBHOOK_SECRET</code>. Re-paste exactly.</td></tr>
+    <tr><td>Log: <code>[GHL lc-email-stats] signature verify failed</code></td><td>Ed25519 verification against <code>GHL_WEBHOOK_PUBLIC_KEY</code>. Paste the public key verbatim, keep the BEGIN/END PUBLIC KEY lines, preserve the line break in the middle.</td></tr>
+  </table>
+</div>
+
+<div class="screen-card">
+  <h3>MacShip shipping quote says "not serviceable" for 2+ drums <span class="badge b-new">NEW</span></h3>
+  <p>Fixed in rev 3. The quote route now tries a parcel-first quote (multiple Aramex cartons) when the cart is parcel-eligible, falling back to pallet consolidation only if parcel returns zero routes. If you still see "not serviceable" after the fix:</p>
+  <ul>
+    <li>Check Vercel logs &mdash; the response should include <code>quote_shape: "parcel"</code> or <code>"pallet"</code>.</li>
+    <li>If pure pallet on a quantity that should be parcel-eligible (≤ 10 × 20L), verify <code>lib/macship/pallet-consolidation.ts</code> has the <code>buildParcelCart</code> export and the route imports it.</li>
+    <li>If no routes at all for a legitimate AU lane, verify MacShip credentials and sub-account status.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<div class="box-green box">
+  <strong>When everything passes:</strong> the Marketing Module (M1-M6) is production-ready. Jonny can run real campaigns to the full contact list. Analytics will populate in real time as LCEmailStats events flow in. Merge tags will personalise every send per recipient. Concurrent campaigns no longer fight for attribution. Unique opens are deduped. Test sends stay out of the real counters.
+</div>
+
+<div class="footer">
+  <p>Chem Connect by CQVS &mdash; Marketing Module Testing Plan (M1-M6)</p>
+  <p>Prepared by Sohaib &middot; Revision 3 &middot; April 2026</p>
+  <p>Rev 3 changes: GHL Marketplace App &amp; LCEmailStats webhook replacing workflow-based email attribution, OAuth install flow, Ed25519 signature verification, Compose mode with Quill + branded email shell, merge-tag personalization with smart defaults and inline overrides, per-campaign Analytics page with CSV export, tag dropdown suggestions, test-send attribution isolation (<code>is_test</code>), unique-opens / unique-clicks counter dedup, contact detail event pagination, MacShip parcel-first quote with pallet fallback.</p>
+</div>
+
+</body>
+</html>

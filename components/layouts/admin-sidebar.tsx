@@ -12,6 +12,7 @@ import {
   Home,
   Layout,
   Link as LinkIcon,
+  Megaphone,
   Users,
   Package,
   ShoppingCart,
@@ -42,7 +43,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-const navItems = [
+interface NavItem {
+  label: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  subItems?: Array<{ label: string; href: string }>
+}
+
+const navItems: NavItem[] = [
   { label: "Home", href: "/", icon: Home },
   { label: "Overview", href: "/admin", icon: BarChart3 },
   { label: "Users", href: "/admin/users", icon: Users },
@@ -50,6 +58,19 @@ const navItems = [
   { label: "Landing Page", href: "/admin/landing", icon: Layout },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Quotes", href: "/admin/quotes", icon: FileText },
+  {
+    label: "Marketing",
+    href: "/admin/marketing",
+    icon: Megaphone,
+    subItems: [
+      { label: "Dashboard", href: "/admin/marketing/dashboard" },
+      { label: "Contacts", href: "/admin/marketing/contacts" },
+      { label: "Campaigns", href: "/admin/marketing/campaigns" },
+      { label: "Sequences", href: "/admin/marketing/sequences" },
+      { label: "Inbox", href: "/admin/marketing/inbox" },
+      { label: "Settings", href: "/admin/marketing/settings" },
+    ],
+  },
   { label: "Rewards", href: "/admin/rewards", icon: Gift },
   { label: "Analytics", href: "/admin/analytics", icon: TrendingUp },
   { label: "Warehouses", href: "/admin/warehouses", icon: Warehouse },
@@ -139,7 +160,6 @@ function SidebarContent({
 
             const link = (
               <Link
-                key={item.href}
                 href={item.href}
                 onClick={onNavClick}
                 className={cn(
@@ -175,7 +195,38 @@ function SidebarContent({
               )
             }
 
-            return link
+            // Expand sub-items when the parent section is active.
+            const subItemsVisible =
+              !collapsed && item.subItems && isActive && item.subItems.length > 0
+
+            return (
+              <div key={item.href}>
+                {link}
+                {subItemsVisible && (
+                  <div className="ml-7 mt-1 flex flex-col space-y-0.5 border-l border-border/60 pl-3">
+                    {item.subItems!.map((sub) => {
+                      const subActive =
+                        pathname === sub.href || pathname.startsWith(sub.href + "/")
+                      return (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          onClick={onNavClick}
+                          className={cn(
+                            "rounded-md px-2 py-1.5 text-xs transition-colors",
+                            subActive
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                          )}
+                        >
+                          {sub.label}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
           })}
         </nav>
 

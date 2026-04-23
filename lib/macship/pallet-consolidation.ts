@@ -333,3 +333,66 @@ export function isSingle20LCart(
     is20LContainer(cartItems[0].packaging_size_name)
   )
 }
+
+// ============================================================
+// Parcel-first attempt — Option 2 (approved April 2026)
+// ============================================================
+
+/**
+ * Upper bound on total parcels for the parcel-first attempt. Above this,
+ * per-carton Aramex pricing usually exceeds a single pallet rate, so we
+ * skip parcel and go straight to pallet consolidation. Acts as a safety
+ * net — without it, a 20-drum cart could quote at 20× parcel rate.
+ */
+const MAX_PARCELS_FOR_ATTEMPT = 10
+
+/**
+ * Build a cart as a list of Carton (parcel) items, or return null if the
+ * cart is not parcel-eligible.
+ *
+ * Parcel-eligible = every line is a container that fits Aramex's per-piece
+ * weight range (5L / 10L / 20L — all under 30 kg per piece) AND the total
+ * parcel count is at most MAX_PARCELS_FOR_ATTEMPT.
+ *
+ * Caller pattern (see /api/macship/quote):
+ *   1. Try this first. If non-null, quote MacShip with these items.
+ *   2. If MacShip returns zero routes → fall back to buildConsolidatedCart.
+ *   3. If this returns null → skip the parcel attempt, go straight to pallet.
+ *
+ * Fixes the prod bug where 2 × 20L drums to Sydney (postcode 2000) were
+ * returned as "not serviceable" because the single-pallet attempt found no
+ * pallet carriers on that lane, while Aramex parcels covered it fine.
+ */
+export function buildParcelCart(
+  cartItems: ConsolidationInput[],
+  overrides?: PackagingCapacityMap,
+): MachshipItem[] | null {
+  const items: MachshipItem[] = []
+  let totalParcels = 0
+
+  for (const line of cartItems) {
+    const resolved = resolveCapacity(line, overrides)
+    const key = resolved?.key
+    // Only small containers fit as parcels. Heavier (200L / 1000L) or
+    // unknown packaging goes straight to pallet.
+    if (!key || (key !== "5l" && key !== "10l" && key !== "20l")) {
+      return null
+    }
+
+    totalParcels += line.quantity
+    if (totalParcels > MAX_PARCELS_FOR_ATTEMPT) return null
+
+    items.push({
+      itemType: MachshipItemType.Carton,
+      name: line.product_name,
+      sku: line.packaging_size_id ?? undefined,
+      quantity: line.quantity,
+      weight: resolved.unitWeight,
+      length: 30,
+      width: 30,
+      height: 40,
+    })
+  }
+
+  return items.length > 0 ? items : null
+}

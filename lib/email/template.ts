@@ -180,7 +180,7 @@ export function buildEmailHtml(options: EmailTemplateOptions): string {
                   <td style="padding: 16px 0 0 0; font-size: 12px; color: ${COLORS.mutedText}; font-family: Arial, Helvetica, sans-serif; line-height: 1.5; text-align: center;">
                     Chem Connect by CQVS<br />
                     Premium Chemical Supply Solutions<br />
-                    ${options.supportEmail ? `<a href="mailto:${options.supportEmail}" style="color: ${COLORS.primary}; text-decoration: none;">${options.supportEmail}</a> | ` : ""}<span style="color: ${COLORS.primary};">www.chemconnect.com.au</span>
+                    ${options.supportEmail ? `<a href="mailto:${options.supportEmail}" style="color: ${COLORS.primary}; text-decoration: none;">${options.supportEmail}</a> | ` : ""}<span style="color: ${COLORS.primary};">https://www.cqvs-chemconnect.com.au</span>
                   </td>
                 </tr>
                 <tr>

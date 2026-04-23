@@ -1,0 +1,22 @@
+{
+  "type": "ContactUpdate",
+  "locationId": "FQ5OnSrbC8BdZbTnWvp8",
+  "contactId": "fixture-contact-001",
+  "contact": {
+    "id": "fixture-contact-001",
+    "locationId": "FQ5OnSrbC8BdZbTnWvp8",
+    "email": "fixture@example.com",
+    "phone": "+61412000001",
+    "firstName": "Fixture",
+    "lastName": "One",
+    "contactName": "Fixture One",
+    "companyName": "Test Quarry Co",
+    "state": "QLD",
+    "country": "AU",
+    "tags": ["quarries", "fixture"],
+    "dnd": false,
+    "dateAdded": "2026-04-17T00:00:00Z",
+    "dateUpdated": "2026-04-17T00:00:00Z",
+    "customFields": []
+  }
+}

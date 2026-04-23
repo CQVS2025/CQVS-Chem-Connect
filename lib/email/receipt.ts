@@ -195,7 +195,7 @@ export function buildReceiptHtml(data: ReceiptData): string {
                 Chem Connect by CQVS - Premium Chemical Supply Solutions
               </p>
               <p style="margin: 0; font-size: 11px; color: #64748B; font-family: Arial, Helvetica, sans-serif;">
-                ${data.supportEmail ? `<a href="mailto:${data.supportEmail}" style="color: #64748B; text-decoration: none;">${data.supportEmail}</a> | ` : ""}www.chemconnect.com.au
+                ${data.supportEmail ? `<a href="mailto:${data.supportEmail}" style="color: #64748B; text-decoration: none;">${data.supportEmail}</a> | ` : ""}https://www.cqvs-chemconnect.com.au
               </p>
             </td>
           </tr>
