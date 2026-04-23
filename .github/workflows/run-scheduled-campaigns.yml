@@ -3,25 +3,29 @@ name: Run scheduled marketing campaigns
 on:
   schedule:
     # GitHub Actions minimum interval is 5 minutes.
-    # Scheduled triggers only fire on the repo's DEFAULT branch.
+    # Scheduled triggers only fire on the repo's DEFAULT branch — whatever
+    # is set under GitHub Settings → General → Default branch. For prod
+    # that should be `master`; `develop` keeps working for staging via
+    # workflow_dispatch (manual runs).
     - cron: "*/5 * * * *"
-  workflow_dispatch: # Allow manual triggers from the Actions tab
+  workflow_dispatch: # Allow manual triggers from the Actions tab on any branch
 
 jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    # Guard — only run this workflow against the develop branch. For scheduled
-    # triggers this means the repo's default branch must be 'develop' (set
-    # under GitHub Settings → General → Default branch). Manual triggers are
-    # also restricted to the develop branch via this condition.
-    if: github.ref == 'refs/heads/develop'
+    # Guard — accept runs on either `master` (production) or `develop`
+    # (staging). Scheduled triggers only fire on the default branch, so
+    # this effectively means the default branch is the one that auto-runs;
+    # the other is reachable via workflow_dispatch.
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
 
     steps:
-      - name: Checkout develop
+      # No hardcoded ref — checks out whichever branch fired the workflow
+      # (the default branch on scheduled runs, or the picked branch on
+      # manual runs via workflow_dispatch).
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: develop
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,6 +34,10 @@ jobs:
 
       - name: Invoke run-scheduled endpoint
         env:
-          APP_URL: ${{ secrets.APP_URL }}
+          # APP_URL is per-branch:
+          #   master  → secrets.APP_URL    (prod domain, held as a secret)
+          #   develop → vars.APP_URL_DEV   (staging domain, plain repo variable)
+          # MARKETING_CRON_SECRET is the SAME 64-char hex for both branches.
+          APP_URL: ${{ github.ref == 'refs/heads/master' && secrets.APP_URL || vars.APP_URL_DEV }}
           MARKETING_CRON_SECRET: ${{ secrets.MARKETING_CRON_SECRET }}
         run: node scripts/run-scheduled-campaigns.mjs

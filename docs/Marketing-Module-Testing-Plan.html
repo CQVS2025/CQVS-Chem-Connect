@@ -386,21 +386,36 @@ where pubname = 'supabase_realtime'
 <div class="screen-card">
   <h3>1.6 &mdash; GitHub Actions cron (for scheduled campaigns)</h3>
 
-  <p>Unchanged from rev 2. The workflow file <code>.github/workflows/run-scheduled-campaigns.yml</code> runs every 5 minutes and hits <code>/api/marketing/campaigns/run-scheduled</code>.</p>
+  <p>The workflow file <code>.github/workflows/run-scheduled-campaigns.yml</code> runs every 5 minutes and hits <code>/api/marketing/campaigns/run-scheduled</code>. In rev 3 the guard accepts <strong>both <code>master</code> and <code>develop</code></strong>, and the checkout step uses whichever branch fired the workflow (no hardcoded ref).</p>
 
   <ol>
     <li>GitHub repo &rarr; <strong>Settings &rarr; Secrets and variables &rarr; Actions</strong>.</li>
-    <li>Add two repository secrets:
+    <li>Configure repository <strong>secrets</strong> (Settings &rarr; Secrets and variables &rarr; Actions &rarr; <strong>Secrets</strong> tab):
       <ul>
-        <li><code>APP_URL</code> &mdash; e.g. <code>https://www.cqvs-chemconnect.com.au</code></li>
-        <li><code>MARKETING_CRON_SECRET</code> &mdash; same 64-char hex as in the app env</li>
+        <li><code>APP_URL</code> &mdash; <strong>production</strong> deploy URL, e.g. <code>https://www.cqvs-chemconnect.com.au</code>. Used when the workflow runs on <code>master</code>.</li>
+        <li><code>MARKETING_CRON_SECRET</code> &mdash; 64-char hex, <strong>shared by both environments</strong>. Must match the <code>MARKETING_CRON_SECRET</code> env var on both the Vercel prod project and the dev/staging project.</li>
       </ul>
     </li>
-    <li>Scheduled triggers run against the default branch. Ensure the branch is set correctly (GitHub Settings &rarr; General &rarr; Default branch).</li>
+    <li>Configure repository <strong>variables</strong> (same screen &rarr; <strong>Variables</strong> tab):
+      <ul>
+        <li><code>APP_URL_DEV</code> &mdash; <strong>staging/dev</strong> deploy URL, e.g. <code>https://chem-connect-git-develop.vercel.app</code>. Used when the workflow runs on <code>develop</code>. Plain variable (not a secret) because the staging URL isn't sensitive.</li>
+      </ul>
+    </li>
+    <li><strong>Scheduled triggers only fire on the default branch.</strong> Set the default branch to whichever environment you want the auto-run to hit:
+      <ul>
+        <li>Production schedule: default branch = <code>master</code> (recommended for go-live).</li>
+        <li>Staging schedule: default branch = <code>develop</code>.</li>
+      </ul>
+      Either way, <strong>workflow_dispatch</strong> (manual runs) work for both branches &mdash; the <code>if</code> guard accepts both.
+    </li>
   </ol>
 
   <div class="box-amber box">
     <strong>GH Actions minimum interval is 5 minutes.</strong> A scheduled campaign fires within ~5 minutes of <code>scheduled_at</code>, not exactly on the minute.
+  </div>
+
+  <div class="box">
+    <strong>Running the cron on both master AND develop simultaneously</strong> would require two workflow files (or a matrix). At current scale you typically want one of them on schedule (whichever maps to prod) and the other available via manual dispatch for ad-hoc testing.
   </div>
 </div>
 
@@ -1202,8 +1217,12 @@ Great to have {{company_name | your business}} on board.
 
   <h4>GitHub Actions</h4>
   <table>
-    <tr><td><span class="check"></span></td><td><code>APP_URL</code> + <code>MARKETING_CRON_SECRET</code> secrets set on prod default branch</td></tr>
-    <tr><td><span class="check"></span></td><td>Workflow manually triggered once &mdash; completes &lt;5s with <code>processed: 0</code> (shows auth + endpoint are wired)</td></tr>
+    <tr><td><span class="check"></span></td><td>Default branch set to <code>master</code> in GitHub repo Settings &rarr; General (so scheduled triggers auto-fire against production)</td></tr>
+    <tr><td><span class="check"></span></td><td>Repo secrets: <code>APP_URL</code> = prod domain, <code>MARKETING_CRON_SECRET</code> = 64-char hex (shared between prod + dev Vercel envs)</td></tr>
+    <tr><td><span class="check"></span></td><td>Repo variable: <code>APP_URL_DEV</code> = staging domain (set under the Variables tab, not Secrets)</td></tr>
+    <tr><td><span class="check"></span></td><td>Workflow file <code>.github/workflows/run-scheduled-campaigns.yml</code> has the rev-3 guard <code>if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'</code></td></tr>
+    <tr><td><span class="check"></span></td><td>Manually run "Run scheduled marketing campaigns" from the Actions tab pointing at <code>master</code> &mdash; completes &lt;5s with <code>processed: 0</code></td></tr>
+    <tr><td><span class="check"></span></td><td>Scheduled run fires automatically within 5 min of setting master as default (check Actions tab)</td></tr>
   </table>
 
   <h4>Final smoke test on prod</h4>
@@ -1315,7 +1334,8 @@ Great to have {{company_name | your business}} on board.
     <tr><th>Symptom</th><th>Fix</th></tr>
     <tr><td>Stays <code>scheduled</code> past its time</td><td>GH Actions workflow not on default branch, or <code>MARKETING_CRON_SECRET</code> doesn't match between Vercel env and GH Secrets.</td></tr>
     <tr><td>Endpoint returns 401</td><td><code>x-cron-secret</code> header mismatch.</td></tr>
-    <tr><td>Run logs show "branch guard failed"</td><td>Scheduled triggers only run on the default branch.</td></tr>
+    <tr><td>Run logs show the job was skipped by the <code>if</code> guard</td><td>The branch isn't <code>master</code> or <code>develop</code>. The rev-3 guard is: <code>if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'</code>. If you need another branch, extend the condition.</td></tr>
+    <tr><td>Scheduled run never fires on master even though it's the default branch</td><td>GitHub disables scheduled workflows after 60 days of repo inactivity &mdash; trigger any commit or manual run to reactivate. Also confirm the workflow file exists on <code>master</code> (GitHub only sees it there for scheduling purposes).</td></tr>
   </table>
 </div>
 
