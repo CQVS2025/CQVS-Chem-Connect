@@ -60,8 +60,9 @@ import {
 } from "@/lib/utils/promotion-detection"
 import {
   useCreateOrder,
-  useConfirmPayment,
+  useFinalizeOrder,
   type Order,
+  type StripeCheckoutSession,
 } from "@/lib/hooks/use-orders"
 import { useProfile } from "@/lib/hooks/use-profile"
 import { useOrders } from "@/lib/hooks/use-orders"
@@ -218,7 +219,9 @@ interface CheckoutFormProps {
   qualifiedBundles: QualifiedBundle[]
   clientSecret: string | null
   orderId: string | null
-  onOrderCreated: (order: Order) => void
+  checkoutSessionId: string | null
+  paymentIntentId: string | null
+  onOrderCreated: (result: Order | StripeCheckoutSession) => void
   onDeliveryStateChange: (state: string) => void
   macshipQuote: MacshipQuoteResult | null
   quoteLoading: boolean
@@ -255,6 +258,8 @@ function CheckoutForm({
   qualifiedBundles,
   clientSecret,
   orderId,
+  checkoutSessionId,
+  paymentIntentId,
   onOrderCreated,
   onDeliveryStateChange,
   macshipQuote,
@@ -267,7 +272,7 @@ function CheckoutForm({
   const stripe = useStripe()
   const elements = useElements()
   const createOrder = useCreateOrder()
-  const confirmPayment = useConfirmPayment()
+  const finalizeOrder = useFinalizeOrder()
 
   const { data: profile } = useProfile()
 
@@ -459,6 +464,13 @@ function CheckoutForm({
           macship_eta_business_days: macshipQuote?.eta_business_days ?? null,
         })
 
+        // PO path always returns a full Order row; narrow the union.
+        if ("checkout_session_id" in poOrder) {
+          toast.error("Unexpected response shape for PO order.")
+          setIsSubmitting(false)
+          return
+        }
+
         // Upload PO documents if any (non-blocking)
         if (poDocuments.length > 0 && poOrder.id) {
           uploadOrderDocuments(poOrder.id, poDocuments).catch(() => {
@@ -472,14 +484,18 @@ function CheckoutForm({
         return
       }
 
-      // Stripe flow - create order first, then confirm payment
+      // Stripe flow:
+      //   1. create checkout_session + PaymentIntent  (no order row yet)
+      //   2. stripe.confirmPayment                     (charges the card)
+      //   3. POST /api/orders/finalize                 (inserts order + side effects)
+      // If the card is declined at step 2, no order or MacShip/Xero
+      // side effects were fired - the session just sits until it expires.
       if (!stripe || !elements) {
         toast.error("Payment not ready. Please try again.")
         setIsSubmitting(false)
         return
       }
 
-      // Step 1: Submit elements to validate card details
       const { error: submitError } = await elements.submit()
       if (submitError) {
         toast.error("Please check your card details and try again.")
@@ -487,11 +503,21 @@ function CheckoutForm({
         return
       }
 
-      // Step 2: Create order to get client_secret
-      let orderResult = orderId ? { id: orderId, client_secret: clientSecret } : null
+      // Reuse an existing session on retry (e.g. after a card decline) so
+      // we don't pile up orphan PaymentIntents on the Stripe account.
+      let session:
+        | { checkout_session_id: string; payment_intent_id: string; client_secret: string }
+        | null =
+        checkoutSessionId && paymentIntentId && clientSecret
+          ? {
+              checkout_session_id: checkoutSessionId,
+              payment_intent_id: paymentIntentId,
+              client_secret: clientSecret,
+            }
+          : null
 
-      if (!orderResult) {
-        const order = await createOrder.mutateAsync({
+      if (!session) {
+        const created = await createOrder.mutateAsync({
           payment_method: "stripe",
           invoice_email: invoiceEmail,
           forklift_available: address.forkliftAvailable === "yes",
@@ -516,20 +542,25 @@ function CheckoutForm({
           macship_eta_date: macshipQuote?.eta_date ?? null,
           macship_eta_business_days: macshipQuote?.eta_business_days ?? null,
         })
-        orderResult = { id: order.id, client_secret: order.client_secret ?? null }
-        onOrderCreated(order)
+
+        // The Stripe path returns a StripeCheckoutSession, not a full Order.
+        if (!("checkout_session_id" in created) || !created.client_secret) {
+          toast.error("Failed to initialize payment. Please try again.")
+          setIsSubmitting(false)
+          return
+        }
+
+        session = {
+          checkout_session_id: created.checkout_session_id,
+          payment_intent_id: created.payment_intent_id,
+          client_secret: created.client_secret,
+        }
+        onOrderCreated(created)
       }
 
-      if (!orderResult.client_secret) {
-        toast.error("Failed to initialize payment. Please try again.")
-        setIsSubmitting(false)
-        return
-      }
-
-      // Step 3: Confirm payment with Stripe
       const result = await stripe.confirmPayment({
         elements,
-        clientSecret: orderResult.client_secret,
+        clientSecret: session.client_secret,
         confirmParams: {
           return_url: `${window.location.origin}/dashboard/orders`,
         },
@@ -540,16 +571,19 @@ function CheckoutForm({
       const paymentIntent = "paymentIntent" in result ? result.paymentIntent : undefined
 
       if (error) {
-        toast.error("Payment could not be processed. Please check your card details or try a different payment method.")
+        toast.error(
+          "Payment could not be processed. Please check your card details or try a different payment method.",
+        )
         setIsSubmitting(false)
         return
       }
 
       if (paymentIntent && paymentIntent.status === "succeeded") {
-        // Step 4: Confirm on backend
-        await confirmPayment.mutateAsync({
-          id: orderResult.id,
+        // Finalize: inserts the real order from the saved session and
+        // fires MacShip/Xero/emails. Idempotent with the webhook safety net.
+        await finalizeOrder.mutateAsync({
           payment_intent_id: paymentIntent.id,
+          checkout_session_id: session.checkout_session_id,
         })
         onOrderSuccess()
         toast.success("Payment confirmed - order placed successfully!")
@@ -565,13 +599,23 @@ function CheckoutForm({
   }, [
     paymentMethod,
     poNumber,
+    poDocuments,
+    invoiceEmail,
+    firstOrderChoice,
+    selectedTruckWash,
+    cartItems,
+    macshipQuote,
     address,
     stripe,
     elements,
     clientSecret,
     orderId,
+    checkoutSessionId,
+    paymentIntentId,
     createOrder,
-    confirmPayment,
+    finalizeOrder,
+    onOrderCreated,
+    onOrderSuccess,
     router,
   ])
 
@@ -1466,6 +1510,8 @@ export default function CheckoutPage() {
   const { data: containerCosts = [] } = useContainerCosts()
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null)
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null)
   const [deliveryState, setDeliveryState] = useState<string>("")
   const [macshipQuote, setMacshipQuote] = useState<MacshipQuoteResult | null>(null)
   const [quoteLoading, setQuoteLoading] = useState(false)
@@ -1685,16 +1731,21 @@ export default function CheckoutPage() {
     setMacshipQuote(null)
   }, [])
 
-  const handleOrderCreated = useCallback((order: Order) => {
-    if (order.id) {
-      setOrderId(order.id)
-    }
-    // The API returns client_secret for stripe orders
-    const secret = (order as Order & { client_secret?: string }).client_secret
-    if (secret) {
-      setClientSecret(secret)
-    }
-  }, [])
+  // PO orders return a full Order row; card orders return a
+  // StripeCheckoutSession (no order exists yet - it's created by
+  // finalize after the PaymentIntent succeeds).
+  const handleOrderCreated = useCallback(
+    (result: Order | StripeCheckoutSession) => {
+      if ("checkout_session_id" in result) {
+        setCheckoutSessionId(result.checkout_session_id)
+        setPaymentIntentId(result.payment_intent_id)
+        setClientSecret(result.client_secret)
+      } else {
+        setOrderId(result.id)
+      }
+    },
+    [],
+  )
 
   const stripeOptions = useMemo(() => {
     if (!clientSecret) return undefined
@@ -1799,6 +1850,8 @@ export default function CheckoutPage() {
             qualifiedBundles={qualifiedBundles}
             clientSecret={clientSecret}
             orderId={orderId}
+            checkoutSessionId={checkoutSessionId}
+            paymentIntentId={paymentIntentId}
             onOrderCreated={handleOrderCreated}
             onDeliveryStateChange={handleDeliveryStateChange}
             macshipQuote={macshipQuote}

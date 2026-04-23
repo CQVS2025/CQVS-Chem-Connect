@@ -40,9 +40,19 @@ interface CreateOrderInput {
   macship_eta_business_days?: number | null
 }
 
-interface ConfirmPaymentInput {
-  id: string
+interface FinalizeOrderInput {
   payment_intent_id: string
+  checkout_session_id?: string
+}
+
+// Shape returned by POST /api/orders for the Stripe path. The order row
+// doesn't exist yet - it's created by finalize after the PaymentIntent
+// succeeds. PO orders still return a full Order.
+export interface StripeCheckoutSession {
+  checkout_session_id: string
+  payment_intent_id: string
+  client_secret: string
+  amount_total: number
 }
 
 interface UpdateOrderStatusInput {
@@ -69,10 +79,14 @@ export function useOrder(id: string) {
   })
 }
 
+// Creates a PO order (returns the real Order row) OR starts a Stripe
+// checkout session (returns a StripeCheckoutSession with a client_secret
+// but no order row yet). Callers must discriminate on `payment_method`.
 export function useCreateOrder() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: CreateOrderInput) => post<Order>("/orders", data),
+    mutationFn: (data: CreateOrderInput) =>
+      post<Order | StripeCheckoutSession>("/orders", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] })
       queryClient.invalidateQueries({ queryKey: ["cart"] })
@@ -81,13 +95,20 @@ export function useCreateOrder() {
   })
 }
 
-export function useConfirmPayment() {
+// Called after stripe.confirmPayment() succeeds on the client. Hits
+// /api/orders/finalize which inserts the real order from the stored
+// checkout_session and runs MacShip/Xero/email side effects.
+export function useFinalizeOrder() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payment_intent_id }: ConfirmPaymentInput) =>
-      post<Order>(`/orders/${id}/confirm`, { payment_intent_id }),
-    onSuccess: (_data, variables) => {
+    mutationFn: (input: FinalizeOrderInput) =>
+      post<{ success: boolean; alreadyFinalized: boolean; order: Order }>(
+        "/orders/finalize",
+        input,
+      ),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] })
+      queryClient.invalidateQueries({ queryKey: ["cart"] })
       queryClient.invalidateQueries({ queryKey: ["analytics"] })
     },
   })
