@@ -58,6 +58,9 @@ export default function MarketingContactsPage() {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
 
   async function handleForceSync() {
+    // Sync is chunked (Vercel Hobby's 10s cap), so the toast starts as
+    // "Re-syncing…" and the button itself shows live progress from
+    // forceSync.progress while the hook iterates.
     const promise = forceSync.mutateAsync().then(async (res) => {
       await refetch()
       return res
@@ -107,7 +110,13 @@ export default function MarketingContactsPage() {
           ) : (
             <RefreshCw className="mr-2 h-4 w-4" />
           )}
-          Re-sync from GHL
+          {forceSync.isPending && forceSync.progress
+            ? `Syncing ${forceSync.progress.totals.total}${
+                forceSync.progress.ghlTotal !== null
+                  ? `/${forceSync.progress.ghlTotal}`
+                  : ""
+              } contacts…`
+            : "Re-sync from GHL"}
         </Button>
         <Button asChild variant="outline">
           <Link href="/admin/marketing/contacts/import">

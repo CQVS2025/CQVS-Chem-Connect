@@ -93,6 +93,8 @@ export default function MarketingSettingsPage() {
   }
 
   async function handleForceSync() {
+    // Sync is chunked client-side (Vercel Hobby's 10s cap per request);
+    // the button text below reflects live progress from forceSync.progress.
     const promise = forceSync.mutateAsync()
     toast.promise(promise, {
       loading: "Re-syncing from GoHighLevel…",
@@ -147,7 +149,13 @@ export default function MarketingSettingsPage() {
             ) : (
               <RefreshCw className="mr-2 h-4 w-4" />
             )}
-            Re-sync contacts from GoHighLevel
+            {forceSync.isPending && forceSync.progress
+              ? `Syncing ${forceSync.progress.totals.total}${
+                  forceSync.progress.ghlTotal !== null
+                    ? `/${forceSync.progress.ghlTotal}`
+                    : ""
+                } contacts…`
+              : "Re-sync contacts from GoHighLevel"}
           </Button>
         </CardContent>
       </Card>

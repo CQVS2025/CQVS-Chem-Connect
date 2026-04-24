@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import {
   keepPreviousData,
   useMutation,
@@ -270,21 +270,87 @@ export function useMarketingContactTags() {
   })
 }
 
+// Sync runs in chunks on Vercel Hobby (10s cap per request), so the hook
+// loops client-side, posting a cursor to /sync until `done: true`.
+// Exposes `progress` so the UI can show "Synced 240/340" mid-run.
+export interface SyncTotals {
+  total: number
+  created: number
+  updated: number
+  failed: number
+}
+
+interface SyncChunkResponse {
+  done: boolean
+  startAfter?: number
+  startAfterId?: string
+  totals: SyncTotals
+  ghlTotal?: number
+  chunkDurationMs: number
+}
+
+export interface SyncProgress {
+  totals: SyncTotals
+  // GHL's meta.total from the first chunk response. Null until the first
+  // request returns. Lets the UI show "240/340" instead of just "240".
+  ghlTotal: number | null
+}
+
 export function useForceSyncMarketingContacts() {
   const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () =>
-      post<{
-        ok: true
-        total: number
-        created: number
-        updated: number
-        failed: number
-        durationMs: number
-      }>("/marketing/contacts/sync"),
+  const [progress, setProgress] = useState<SyncProgress | null>(null)
+
+  const mutation = useMutation({
+    mutationFn: async (): Promise<SyncTotals> => {
+      const initialTotals: SyncTotals = {
+        total: 0,
+        created: 0,
+        updated: 0,
+        failed: 0,
+      }
+      setProgress({ totals: initialTotals, ghlTotal: null })
+      const sessionStartedAt = Date.now()
+      let startAfter: number | undefined
+      let startAfterId: string | undefined
+      let totals: SyncTotals = initialTotals
+      let ghlTotal: number | null = null
+
+      // Safety cap on chunk count - 100 chunks * 100 contacts/page = 10k contacts.
+      // Well beyond current usage; protects against runaway loops if GHL's
+      // cursor ever misbehaves.
+      for (let i = 0; i < 100; i++) {
+        const res = await post<SyncChunkResponse>(
+          "/marketing/contacts/sync",
+          {
+            startAfter,
+            startAfterId,
+            totals,
+            session_started_at: sessionStartedAt,
+          },
+        )
+        totals = res.totals
+        // Capture GHL's total from the first response that reports one.
+        if (ghlTotal === null && typeof res.ghlTotal === "number") {
+          ghlTotal = res.ghlTotal
+        }
+        setProgress({ totals, ghlTotal })
+        if (res.done) return totals
+        startAfter = res.startAfter
+        startAfterId = res.startAfterId
+        if (startAfter === undefined || !startAfterId) return totals
+      }
+      throw new Error("Sync exceeded chunk limit — aborting to avoid runaway loop")
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["marketing-contacts"] })
       queryClient.invalidateQueries({ queryKey: ["marketing-contact-tags"] })
     },
+    onSettled: () => {
+      // Clear progress a moment after completion so the button returns to
+      // its resting state.
+      setTimeout(() => setProgress(null), 1500)
+    },
   })
+
+  return Object.assign(mutation, { progress })
 }
