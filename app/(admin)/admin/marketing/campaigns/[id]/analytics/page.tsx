@@ -162,7 +162,7 @@ export default function CampaignAnalyticsPage() {
         </Button>
       </div>
 
-      <MetricsGrid metrics={metrics} />
+      <MetricsGrid metrics={metrics} campaignType={campaign.type} />
 
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -279,6 +279,7 @@ export default function CampaignAnalyticsPage() {
 
 function MetricsGrid({
   metrics,
+  campaignType,
 }: {
   metrics: {
     audience: number
@@ -290,6 +291,7 @@ function MetricsGrid({
     unsubscribed: number
     failed: number
   }
+  campaignType: "email" | "sms"
 }) {
   const pct = (n: number) =>
     metrics.delivered > 0
@@ -297,10 +299,12 @@ function MetricsGrid({
       : metrics.audience > 0
         ? `${Math.round((n / metrics.audience) * 100)}%`
         : "—"
-  // Order and labels match GHL's Email Analytics dashboard so users
-  // comparing the two see the same columns in the same order.
-  const cards = useMemo(
-    () => [
+  // For SMS we only show Sent / Delivered / Failed — the other metrics
+  // (Opened, Clicked, Bounced, Complained, Unsubscribed) don't exist or
+  // aren't reliably surfaced by SMS carriers, so showing "0" would mislead.
+  // Email keeps the full 8-card layout to match GHL's dashboard.
+  const cards = useMemo(() => {
+    const base = [
       { label: "Sent", value: metrics.audience, pct: null },
       {
         label: "Delivered",
@@ -310,6 +314,15 @@ function MetricsGrid({
             ? `${Math.round((metrics.delivered / metrics.audience) * 100)}%`
             : null,
       },
+    ]
+    if (campaignType === "sms") {
+      return [
+        ...base,
+        { label: "Failed", value: metrics.failed, pct: pct(metrics.failed) },
+      ]
+    }
+    return [
+      ...base,
       { label: "Opened", value: metrics.opened, pct: pct(metrics.opened) },
       { label: "Clicked", value: metrics.clicked, pct: pct(metrics.clicked) },
       {
@@ -324,11 +337,10 @@ function MetricsGrid({
         pct: pct(metrics.unsubscribed),
       },
       { label: "Failed", value: metrics.failed, pct: pct(metrics.failed) },
-    ],
+    ]
     // pct depends only on metrics; recomputing is cheap
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [metrics],
-  )
+  }, [metrics, campaignType])
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

@@ -156,14 +156,23 @@ export default function CampaignDetailPage() {
             <span>{displayAudienceCount} recipients</span>
           </div>
         </div>
+        {/* Deep-link to GHL. Email → Conversations inbox (see individual sent
+            emails). SMS → Messaging Analytics dashboard (real-time delivery
+            metrics that SMS protocols can't expose to us directly). */}
         <Button variant="outline" size="sm" asChild>
           <a
-            href={`https://app.gohighlevel.com/v2/location/${GHL_LOCATION_ID}/conversations/conversations`}
+            href={
+              campaign.type === "sms"
+                ? `https://app.gohighlevel.com/v2/location/${GHL_LOCATION_ID}/settings/phone_system?tab=messaging&childtab=messaging-analytics`
+                : `https://app.gohighlevel.com/v2/location/${GHL_LOCATION_ID}/conversations/conversations`
+            }
             target="_blank"
             rel="noreferrer"
           >
             <ExternalLink className="mr-2 h-4 w-4" />
-            View sent messages in GoHighLevel
+            {campaign.type === "sms"
+              ? "View SMS analytics in GoHighLevel"
+              : "View sent messages in GoHighLevel"}
           </a>
         </Button>
         {isSendable && (
@@ -205,11 +214,36 @@ export default function CampaignDetailPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Opened/Clicked intentionally hidden for SMS — the SMS protocol
+          doesn't provide read receipts or click data, so showing "0" would
+          be misleading. Email campaigns show the full 4-stat grid. */}
+      <div
+        className={`grid gap-4 ${
+          campaign.type === "sms"
+            ? "sm:grid-cols-2"
+            : "sm:grid-cols-2 lg:grid-cols-4"
+        }`}
+      >
         <Stat label="Audience" value={displayAudienceCount} />
-        <Stat label="Delivered" value={campaign.delivered_count} suffix={deliveredRate ? `(${deliveredRate}%)` : ""} />
-        <Stat label="Opened" value={campaign.opened_count} suffix={openRate ? `(${openRate}%)` : ""} />
-        <Stat label="Clicked" value={campaign.clicked_count} suffix={clickRate ? `(${clickRate}%)` : ""} />
+        <Stat
+          label="Delivered"
+          value={campaign.delivered_count}
+          suffix={deliveredRate ? `(${deliveredRate}%)` : ""}
+        />
+        {campaign.type === "email" && (
+          <>
+            <Stat
+              label="Opened"
+              value={campaign.opened_count}
+              suffix={openRate ? `(${openRate}%)` : ""}
+            />
+            <Stat
+              label="Clicked"
+              value={campaign.clicked_count}
+              suffix={clickRate ? `(${clickRate}%)` : ""}
+            />
+          </>
+        )}
       </div>
 
       {isSendable && (

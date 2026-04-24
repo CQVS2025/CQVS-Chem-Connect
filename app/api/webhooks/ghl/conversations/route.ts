@@ -22,7 +22,21 @@ import { mirrorGhlContact } from "@/lib/ghl/mirror"
 import { normaliseAuPhone } from "@/lib/ghl/phone"
 import { logWebhook } from "@/lib/ghl/webhook-log"
 
+/**
+ * Two payload shapes we accept:
+ *
+ * A. Our custom JSON (from CC-Inbound SMS workflow when the admin
+ *    configures it explicitly): camelCase keys, flat.
+ *
+ * B. GHL's default "Customer Replied" payload: snake_case with a nested
+ *    `message: { type, body }` block. `phone` instead of `from`, no
+ *    `conversationId` / `messageId` / `direction` fields.
+ *
+ * The handler normalises both into the same internal shape via
+ * `normalizePayload()` before running the business logic.
+ */
 interface MessageWebhookPayload {
+  // Our custom-payload shape (camelCase)
   type?: string
   eventType?: string
   locationId?: string
@@ -37,6 +51,67 @@ interface MessageWebhookPayload {
   status?: string
   dateAdded?: string
   timestamp?: string
+
+  // GHL default "Customer Replied" shape (snake_case + nested).
+  // NOTE: GHL also sends `date_created` here — it's the CONTACT's creation
+  // date, not the message date, so we deliberately don't read it. Server
+  // receipt time is the authoritative fallback.
+  contact_id?: string
+  phone?: string
+  message?: {
+    type?: number | string
+    body?: string
+  }
+}
+
+interface NormalizedMessage {
+  ghlContactId: string | null
+  ghlConversationId: string | null
+  ghlMessageId: string | null
+  direction: "inbound" | "outbound"
+  messageType: string
+  body: string
+  from: string | null
+  occurredAt: string
+}
+
+function normalizePayload(p: MessageWebhookPayload): NormalizedMessage {
+  // GHL's "message.type" is numeric: SMS = 2, most other types are not SMS.
+  // When the raw workflow trigger is filtered to SMS channel, we trust it;
+  // otherwise we inspect the top-level string field.
+  const messageType =
+    typeof p.messageType === "string"
+      ? p.messageType
+      : typeof p.message?.type === "number"
+        ? // Numeric codes: 2 = SMS (default for Customer Replied on SMS channel)
+          p.message.type === 2
+          ? "SMS"
+          : String(p.message.type)
+        : "SMS"
+
+  return {
+    ghlContactId: p.contactId ?? p.contact_id ?? null,
+    // GHL's default payload doesn't include conversationId. Fall back to a
+    // stable per-contact key so the unique-index upsert groups messages
+    // onto one thread instead of creating a new conversation per inbound.
+    ghlConversationId:
+      p.conversationId ??
+      (p.contactId || p.contact_id
+        ? `contact:${p.contactId ?? p.contact_id}`
+        : null),
+    ghlMessageId: p.messageId ?? null,
+    direction: p.direction ?? "inbound",
+    messageType,
+    body: p.body ?? p.message?.body ?? "",
+    from: p.from ?? p.phone ?? null,
+    // Server receipt time is the safest fallback. Do NOT use
+    // `date_created` — GHL's default "Customer Replied" payload surfaces
+    // that as the *contact's* creation date, so every inbound from the
+    // same contact would collapse onto identical timestamps (and then
+    // sort in undefined order in the inbox).
+    occurredAt:
+      p.dateAdded ?? p.timestamp ?? new Date().toISOString(),
+  }
 }
 
 /**
@@ -75,8 +150,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
 
+  const normalised = normalizePayload(payload)
+  const {
+    ghlContactId,
+    ghlConversationId,
+    ghlMessageId,
+    direction,
+    body,
+    occurredAt,
+  } = normalised
+
   // Only SMS messages go to the inbox. Email events go through /events route.
-  const messageType = (payload.messageType ?? "SMS").toUpperCase()
+  const messageType = normalised.messageType.toUpperCase()
   if (messageType !== "SMS") {
     logWebhook("conversations", `⏭️ skipped non-SMS (${messageType})`, {
       received_keys: Object.keys(payload),
@@ -88,7 +173,6 @@ export async function POST(request: Request) {
 
   // 1. Resolve contact. If GHL didn't give us a contactId, look up by phone;
   //    if still not found, auto-create so we never lose an inbound lead.
-  const ghlContactId = payload.contactId ?? null
   let localContactId: string | null = null
   if (ghlContactId) {
     const { data } = await supabase
@@ -100,7 +184,7 @@ export async function POST(request: Request) {
   }
 
   if (!localContactId) {
-    const phone = normaliseAuPhone(payload.from)
+    const phone = normaliseAuPhone(normalised.from ?? undefined)
     if (phone) {
       const { data } = await supabase
         .from("marketing_contacts")
@@ -127,36 +211,50 @@ export async function POST(request: Request) {
     }
   }
 
+  // Last resort: if we still don't have a local contact but GHL did give us
+  // a contactId, hydrate it from GHL (covers the "SMS from a number that
+  // isn't in our local mirror yet" case where phone lookup fails because
+  // the raw phone doesn't exactly match what we've stored).
+  if (!localContactId && ghlContactId) {
+    try {
+      const full = await GhlContacts.getContact(ghlContactId)
+      const result = await mirrorGhlContact(supabase, full, {
+        source: "sms_auto_create",
+      })
+      localContactId = result.contactId
+    } catch (err) {
+      console.error(
+        "[GHL webhook conversations] final-hydrate fallback failed",
+        err,
+      )
+    }
+  }
+
   if (!localContactId) {
     logWebhook("conversations", "⏭️ dropped — unresolved contact", {
       ghl_contact_id: ghlContactId,
-      from: payload.from,
+      from: normalised.from,
       received_keys: Object.keys(payload),
       full_payload: payload,
       hint:
-        "Payload arrived without a contactId we could match locally. If your workflow sends a custom payload, include {{contact.id}} as `contactId`.",
+        "Couldn't match or hydrate a contact from this payload. Check GHL permissions / contact API access.",
     })
     return NextResponse.json({ ok: true, ignored: "unknown contact" })
   }
 
-  logWebhook("conversations", `✅ accepted (${payload.direction ?? "inbound"})`, {
-    conversation_id: payload.conversationId,
-    message_id: payload.messageId,
-    body_preview: payload.body?.slice(0, 80),
-    from: payload.from,
+  logWebhook("conversations", `✅ accepted (${direction})`, {
+    conversation_id: ghlConversationId,
+    message_id: ghlMessageId,
+    body_preview: body.slice(0, 80),
+    from: normalised.from,
   })
 
   // 2. Upsert conversation + append message.
-  const direction = payload.direction ?? "inbound"
-  const body = payload.body ?? ""
-  const occurredAt =
-    payload.dateAdded ?? payload.timestamp ?? new Date().toISOString()
-
   const { data: convo } = await supabase
     .from("sms_conversations")
     .upsert(
       {
-        ghl_conversation_id: payload.conversationId ?? null,
+        ghl_conversation_id: ghlConversationId,
         contact_id: localContactId,
         last_message_at: occurredAt,
         last_message_preview: body.slice(0, 160),
@@ -187,17 +285,17 @@ export async function POST(request: Request) {
   // (conversation_id, direction, body, occurred_at) added in migration 034.
   // Either way, a replay of the same webhook doesn't create duplicates.
   const messageRow = {
-    ghl_message_id: payload.messageId ?? null,
+    ghl_message_id: ghlMessageId,
     conversation_id: convo.id,
     direction,
     body,
-    from_number: payload.from ?? null,
+    from_number: normalised.from,
     to_number: payload.to ?? null,
     status: mapStatus(direction, payload.status),
     occurred_at: occurredAt,
   }
 
-  if (payload.messageId) {
+  if (ghlMessageId) {
     const { error: msgError } = await supabase
       .from("sms_messages")
       .upsert(messageRow, {
@@ -241,11 +339,11 @@ export async function POST(request: Request) {
   if (direction === "inbound") {
     await supabase.from("marketing_events").upsert(
       {
-        ghl_event_id: payload.messageId ?? `sms-received-${Date.now()}`,
+        ghl_event_id: ghlMessageId ?? `sms-received-${Date.now()}`,
         event_type: "sms_received",
         contact_id: localContactId,
         ghl_contact_id: ghlContactId,
-        metadata: { body: body.slice(0, 200), from: payload.from },
+        metadata: { body: body.slice(0, 200), from: normalised.from },
         occurred_at: occurredAt,
       },
       { onConflict: "ghl_event_id", ignoreDuplicates: true },
