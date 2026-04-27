@@ -1,9 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
-import { MapPin, Mail } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { getActiveWarehouses } from "@/lib/seo/warehouses"
 
 const footerSections = [
   {
@@ -13,7 +11,6 @@ const footerSections = [
       { label: "Industries we supply", href: "/industries" },
       { label: "Custom Orders", href: "/custom-orders" },
       { label: "Safety Data Sheets", href: "/sds" },
-      { label: "Locations", href: "/locations" },
     ],
   },
   {
@@ -44,10 +41,6 @@ const footerSections = [
 ]
 
 export function MarketplaceFooter() {
-  // Pulled from the source-of-truth warehouse data so the footer stays in
-  // sync as warehouses are added / removed (no separate hand-coded list).
-  const warehouses = getActiveWarehouses()
-
   return (
     <footer
       className={cn("border-t border-border bg-card text-card-foreground")}
@@ -94,48 +87,6 @@ export function MarketplaceFooter() {
               </ul>
             </div>
           ))}
-        </div>
-
-        {/* NAP - name, address, phone block. Required for local SEO
-            consistency (matches the LocalBusiness schemas + GBP listings).
-            Lists every active warehouse in compact form. */}
-        <div className="mt-12 grid gap-6 border-t border-border pt-8 lg:grid-cols-[1fr_2fr]">
-          <div>
-            <p className="flex items-center gap-2 text-sm font-semibold tracking-wide text-foreground">
-              <MapPin className="size-4 text-primary" /> Australian dispatch hubs
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Seven active warehouses across five states. Pick the one
-              closest to your site for fastest lead times.
-            </p>
-            <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Mail className="size-3.5" />
-              <a
-                href="mailto:support@chemconnect.com.au"
-                className="hover:text-foreground"
-              >
-                support@chemconnect.com.au
-              </a>
-            </p>
-          </div>
-          <ul className="grid grid-cols-1 gap-x-6 gap-y-2 text-xs text-muted-foreground sm:grid-cols-2">
-            {warehouses.map((w) => (
-              <li key={w.slug}>
-                <Link
-                  href={`/chemical-supplier/${w.slug}`}
-                  className="group inline-flex flex-col leading-tight hover:text-foreground"
-                >
-                  <span className="font-medium text-foreground/90 group-hover:text-primary">
-                    {w.city} · {w.state}
-                  </span>
-                  <span>
-                    {w.name ? `${w.name} · ` : ""}
-                    {w.street}, {w.suburb} {w.postcode}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
         </div>
 
         {/* Bottom Bar */}

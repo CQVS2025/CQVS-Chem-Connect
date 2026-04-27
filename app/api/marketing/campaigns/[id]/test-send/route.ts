@@ -13,6 +13,7 @@ import { requireMarketingRole } from "@/lib/supabase/marketing-role-check"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { GhlCampaigns, GhlConversations, GhlWorkflows } from "@/lib/ghl"
 import { GHLApiError } from "@/lib/ghl/errors"
+import { forceLeftAlignDocument } from "@/lib/marketing/email-template"
 import { substituteMergeTags } from "@/lib/marketing/merge-tags"
 
 export const maxDuration = 30
@@ -84,12 +85,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           { status: 400 },
         )
       }
+      const rawHtml = substituteMergeTags(campaign.body_html, mergeCtx, {
+        escapeHtml: true,
+      })
+      const html =
+        campaign.template_mode === "plain"
+          ? forceLeftAlignDocument(rawHtml)
+          : rawHtml
       const res = await GhlCampaigns.sendEmailMessage({
         contactId: contact.ghl_contact_id,
         subject: `[TEST] ${substituteMergeTags(campaign.subject, mergeCtx)}`,
-        html: substituteMergeTags(campaign.body_html, mergeCtx, {
-          escapeHtml: true,
-        }),
+        html,
         fromEmail: campaign.from_email ?? undefined,
         fromName: campaign.from_name ?? undefined,
         replyTo: campaign.reply_to ?? undefined,

@@ -88,7 +88,10 @@ const createContactSchema = z.object({
   first_name: z.string().optional().nullable(),
   last_name: z.string().optional().nullable(),
   company_name: z.string().optional().nullable(),
+  address1: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
   state: z.string().optional().nullable(),
+  postal_code: z.string().optional().nullable(),
   tags: z.array(z.string()).optional(),
 })
 
@@ -130,7 +133,10 @@ export async function POST(request: NextRequest) {
       firstName: input.first_name ?? undefined,
       lastName: input.last_name ?? undefined,
       companyName: input.company_name ?? undefined,
+      address1: input.address1 ?? undefined,
+      city: input.city ?? undefined,
       state: input.state ?? undefined,
+      postalCode: input.postal_code ?? undefined,
       tags: input.tags ?? undefined,
       source: "ChemConnect Admin",
     })

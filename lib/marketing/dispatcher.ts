@@ -20,6 +20,7 @@ import {
   type AudienceFilter,
   type AudienceMember,
 } from "./audience"
+import { forceLeftAlignDocument } from "./email-template"
 import { substituteMergeTags, type MergeTagContext } from "./merge-tags"
 
 export interface CampaignRow {
@@ -31,6 +32,7 @@ export interface CampaignRow {
   subject: string | null
   body_html: string | null
   body_text: string | null
+  template_mode: "plain" | "branded" | "custom_html" | null
   from_email: string | null
   from_name: string | null
   reply_to: string | null
@@ -208,12 +210,21 @@ async function sendOne(
     let messageId: string
     let emailMessageId: string | undefined
     if (campaign.type === "email") {
+      // For plain-mode emails, retrofit a left-align override onto whatever
+      // is stored. New campaigns already have it baked in by the wrapper;
+      // older drafts saved before that fix get patched here so they don't
+      // need to be manually re-saved.
+      const rawHtml = substituteMergeTags(campaign.body_html as string, ctx, {
+        escapeHtml: true,
+      })
+      const html =
+        campaign.template_mode === "plain"
+          ? forceLeftAlignDocument(rawHtml)
+          : rawHtml
       const res = await GhlCampaigns.sendEmailMessage({
         contactId: member.ghl_contact_id,
         subject: substituteMergeTags(campaign.subject as string, ctx),
-        html: substituteMergeTags(campaign.body_html as string, ctx, {
-          escapeHtml: true,
-        }),
+        html,
         fromEmail: campaign.from_email ?? undefined,
         fromName: campaign.from_name ?? undefined,
         replyTo: campaign.reply_to ?? undefined,

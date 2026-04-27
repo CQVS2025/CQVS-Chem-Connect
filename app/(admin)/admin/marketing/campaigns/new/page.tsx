@@ -51,6 +51,7 @@ import {
   buildMarketingEmailHtml,
   buildPlainEmailHtml,
   htmlToPlainText,
+  wrapPlainEmailHtmlForAdminPreview,
 } from "@/lib/marketing/email-template"
 import { MERGE_TAGS } from "@/lib/marketing/merge-tags"
 import { useDebounce } from "@/lib/hooks/use-debounce"
@@ -546,7 +547,7 @@ export default function NewCampaignPage() {
                     contentMode === "branded"
                       ? brandedEmailHtml
                       : contentMode === "plain"
-                        ? plainEmailHtml
+                        ? wrapPlainEmailHtmlForAdminPreview(plainEmailHtml)
                         : bodyHtml
                   }
                 />

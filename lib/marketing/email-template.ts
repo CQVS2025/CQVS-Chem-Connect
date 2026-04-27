@@ -162,13 +162,16 @@ export function buildMarketingEmailHtml(
  * Minimal HTML wrapper for "plain mode" campaigns.
  *
  * Goal: render the user's body content as a normal-looking email - no CQVS
- * header, no navy colors, no footer card. Just the typed/pasted content
- * with a sensible system font and standard inbox-friendly typography.
+ * header, no navy colors, no footer card, no centered "card" container.
+ * Just left-aligned content with a sensible system font, the way a real
+ * personal email reads in an inbox.
  *
  * Why we still wrap at all: GHL's send pipeline and most inbox clients
- * render bare fragments inconsistently (centered, oversized, etc.). A
- * minimal `<html><body>` shell with neutral defaults is the smallest
- * change that produces predictable rendering everywhere.
+ * render bare fragments inconsistently (Outlook in particular default-
+ * centers tables and can pick up unexpected alignment). A minimal
+ * `<html><body>` shell with explicit `text-align: left` and Quill's
+ * `ql-align-*` classes neutralised gives predictable left-aligned
+ * rendering everywhere.
  *
  * Compliance footer + unsubscribe link are injected by GHL itself on the
  * outbound side, so we don't add anything here.
@@ -182,19 +185,145 @@ export function buildPlainEmailHtml(options: {
     ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:0;line-height:0;color:transparent;">${escapeHtml(preheader)}${"&zwnj;&nbsp;".repeat(30)}</div>`
     : ""
 
+  // GHL re-wraps our HTML before sending (their outer shell adds the
+  // unsubscribe footer + branding container). Anything in <style> blocks
+  // tends to get stripped, and inherited `text-align: center` from their
+  // outer table cascades into our <p>/<h*>/<li> tags unless those tags
+  // carry their own inline style. So: walk the body HTML and inject
+  // inline `text-align:left` (plus normalised margins/padding) onto each
+  // block element. This is the only thing that reliably survives.
+  const inlinedBody = inlinePlainBlockStyles(bodyHtml)
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+/* Defence in depth — these rules are the first thing that defeats any
+   centered outer wrapper (GHL's send shell, Outlook's default-centered
+   tables, etc.). They use !important so even an !important rule injected
+   by a downstream wrapper can't beat them. */
+html, body { margin:0 !important; padding:0 !important; text-align:left !important; }
+body, body * { text-align:left !important; }
+body table, body td { text-align:left !important; }
+.cc-plain-wrap, .cc-plain-wrap * { text-align:left !important; }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#ffffff;color:#111111;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;">
+<body style="margin:0 !important;padding:0 !important;background:#ffffff;color:#111111;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;text-align:left !important;">
 ${preheaderHtml}
-<div style="max-width:640px;margin:0 auto;padding:16px;">
-${bodyHtml}
+<div class="cc-plain-wrap" style="text-align:left !important;color:#111111;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;" align="left">
+${inlinedBody}
 </div>
 </body>
 </html>`
+}
+
+/**
+ * Admin UI only: wraps everything inside `<body>` in a padded div so the
+ * live iframe preview does not sit flush against the iframe chrome. Outbound
+ * sends and stored `body_html` must use the unwrapped document from
+ * {@link buildPlainEmailHtml} — never persist this output.
+ */
+export function wrapPlainEmailHtmlForAdminPreview(html: string): string {
+  if (!html.trim() || !/<body\b/i.test(html)) return html
+  const inset =
+    '<div style="padding:14px 16px 16px 16px;box-sizing:border-box;">'
+  const opened = html.replace(/<body(\b[^>]*)>/i, `<body$1>${inset}`)
+  const closeIdx = opened.lastIndexOf("</body>")
+  if (closeIdx === -1) return html
+  return `${opened.slice(0, closeIdx)}</div>${opened.slice(closeIdx)}`
+}
+
+/**
+ * Add inline `text-align:left` (and sane margins) to every block tag in the
+ * body HTML so the alignment can't be overridden by an outer wrapper that
+ * GHL or the inbox client adds. We also strip Quill's `ql-align-*` classes
+ * since their effect can't be relied on once the <style> block is gone.
+ */
+function inlinePlainBlockStyles(html: string): string {
+  if (!html) return ""
+
+  // 1. Drop Quill alignment classes — they only work with their stylesheet.
+  let out = html.replace(/\sclass="ql-align-(?:center|right|justify)"/g, "")
+
+  // 2. Inject text-align:left + margin into the open tag of each common
+  //    block element. Match the opening tag with optional attributes so we
+  //    can append a style attribute (or merge into an existing one).
+  const styleByTag: Record<string, string> = {
+    p:          "text-align:left !important;margin:0 0 12px 0;",
+    h1:         "text-align:left !important;margin:0 0 12px 0;",
+    h2:         "text-align:left !important;margin:0 0 12px 0;",
+    h3:         "text-align:left !important;margin:0 0 12px 0;",
+    ul:         "text-align:left !important;margin:0 0 12px 0;padding-left:22px;",
+    ol:         "text-align:left !important;margin:0 0 12px 0;padding-left:22px;",
+    li:         "text-align:left !important;margin:0 0 4px 0;",
+    blockquote: "text-align:left !important;margin:0 0 12px 0;",
+    div:        "text-align:left !important;",
+  }
+
+  for (const [tag, declarations] of Object.entries(styleByTag)) {
+    const openRe = new RegExp(`<${tag}\\b([^>]*)>`, "gi")
+    out = out.replace(openRe, (_match, attrs: string) => {
+      const styleMatch = attrs.match(/\sstyle="([^"]*)"/i)
+      if (styleMatch) {
+        // Idempotent — skip if our override declarations are already present.
+        if (styleMatch[1].includes("text-align:left !important")) {
+          return `<${tag}${attrs}>`
+        }
+        const merged = `${declarations}${styleMatch[1]}`
+        const newAttrs = attrs.replace(styleMatch[0], ` style="${merged}"`)
+        return `<${tag}${newAttrs}>`
+      }
+      return `<${tag}${attrs} style="${declarations}">`
+    })
+  }
+
+  return out
+}
+
+/**
+ * Patch a stored plain-mode email HTML doc so it renders left-aligned
+ * regardless of what wrapper it was saved with. Two complementary fixes:
+ *   1. Insert a `<style>` block with !important left-align rules just
+ *      before `</head>` (works in any browser preview / inbox client that
+ *      doesn't strip <style>).
+ *   2. Inline `text-align:left !important` onto every block element in the
+ *      body (works even when <style> blocks are stripped by an outer
+ *      wrapper like GHL's send shell).
+ *
+ * Idempotent — safe to call on HTML that already includes the override.
+ */
+export function forceLeftAlignDocument(html: string): string {
+  if (!html) return ""
+
+  let out = html
+
+  // 1. Inject override stylesheet if not already present.
+  const overrideMarker = "/* cc-plain-leftalign-override */"
+  if (!out.includes(overrideMarker)) {
+    const overrideStyle = `<style>${overrideMarker}
+html, body { margin:0 !important; padding:0 !important; text-align:left !important; }
+body, body * { text-align:left !important; }
+body table, body td { text-align:left !important; }
+body p, body h1, body h2, body h3, body h4, body h5, body h6,
+body li, body blockquote, body div { text-align:left !important; }
+</style>`
+
+    if (out.includes("</head>")) {
+      out = out.replace("</head>", `${overrideStyle}</head>`)
+    } else if (out.includes("<body")) {
+      // No <head> — drop the style at the top of <body>.
+      out = out.replace(/(<body\b[^>]*>)/i, `$1${overrideStyle}`)
+    } else {
+      out = `${overrideStyle}${out}`
+    }
+  }
+
+  // 2. Inline-style every block tag for clients that strip <style>.
+  out = inlinePlainBlockStyles(out)
+
+  return out
 }
 
 /** Extract a readable plain-text version for the text/plain MIME alternative. */

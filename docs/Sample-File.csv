@@ -1,0 +1,6 @@
+Phone,Email,First Name,Last Name,Business Name,Source,Additional Emails,Additional Phones,Notes,Tags
+17877123456,john.doe@example.com,John,Doe,Example,Referral,"test-additional-email-165000@gmail.com, test-additional-email-2-165000@gmail.com","+1 7877123460,+1 7877123461",Follow up required,"Important, Urgent"
+17877123457,jane.smith@example.com,Jane,Smith,Jane's Office,Website,"test-additional-email-164999@gmail.com, test-additional-email-2-164999@gmail.com","+1 7877123462, +1 7877123463",Meeting scheduled,"New, High Priority"
+17877123458,bob.johnson@example.com,Bob,Johnson,Example,Email,"test-additional-email-164998@gmail.com, test-additional-email-2-164998@gmail.com","+1 7877123464, +1 7877123465",Call back requested,"New Lead, Follow Up"
+17877123459,alice.davis@example.com,Alice,Davis,Davis Corporation,Phone,"test-additional-email-164997@gmail.com, test-additional-email-2-164997@gmail.com","+1 7877123466,+1 7877123467",Proposal sent,"Prospect, Warm"
+17877123460,charlie.wilson@example.com,Charlie,Wilson,Wilson Inc,Referral,"test-additional-email-164996@gmail.com, test-additional-email-2-164996@gmail.com","+1 7877123468,+1 7877123469",Waiting for response,"Cold, Follow Up"

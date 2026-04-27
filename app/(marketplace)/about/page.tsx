@@ -3,7 +3,6 @@ import Link from "next/link"
 import {
   ArrowRight,
   Factory,
-  MapPin,
   ShieldCheck,
   Truck,
   Users,
@@ -13,7 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { JsonLd } from "@/components/seo/json-ld"
 import { breadcrumbSchema } from "@/lib/seo/schema"
-import { getActiveWarehouses } from "@/lib/seo/warehouses"
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.cqvs-chemconnect.com.au"
@@ -50,8 +48,6 @@ export const metadata: Metadata = {
 }
 
 export default function AboutPage() {
-  const warehouses = getActiveWarehouses()
-
   return (
     <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
       <JsonLd
@@ -119,37 +115,6 @@ export default function AboutPage() {
             </CardContent>
           </Card>
         ))}
-      </section>
-
-      {/* Locations */}
-      <section className="mb-14">
-        <h2 className="mb-2 flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <MapPin className="size-5 text-primary" />
-          Where we dispatch from
-        </h2>
-        <p className="mb-6 max-w-2xl text-muted-foreground">
-          Seven active dispatch hubs across Australia. Pick the one closest
-          to your operation for fastest lead times.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {warehouses.map((w) => (
-            <Link
-              key={w.slug}
-              href={`/chemical-supplier/${w.slug}`}
-              className="group rounded-lg border border-border/60 bg-card p-4 transition-colors hover:border-primary/40 hover:bg-card/80"
-            >
-              <p className="text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
-                {w.city}{" "}
-                <span className="text-xs text-muted-foreground">
-                  · {w.state}
-                </span>
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {w.suburb} {w.postcode}
-              </p>
-            </Link>
-          ))}
-        </div>
       </section>
 
       {/* CTA */}

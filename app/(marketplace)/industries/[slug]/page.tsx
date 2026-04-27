@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowRight, ChevronRight, MapPin } from "lucide-react"
+import { ArrowRight, ChevronRight } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -197,10 +197,7 @@ export default async function IndustryPage({ params }: RouteParams) {
             </Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/locations">
-              <MapPin className="mr-2 size-4" />
-              See dispatch hubs
-            </Link>
+            <Link href="/custom-orders">Need a custom order?</Link>
           </Button>
         </div>
       </section>

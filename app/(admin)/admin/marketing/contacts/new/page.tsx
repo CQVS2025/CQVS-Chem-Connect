@@ -28,7 +28,10 @@ export default function NewContactPage() {
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
   const [companyName, setCompanyName] = useState("")
+  const [address1, setAddress1] = useState("")
+  const [city, setCity] = useState("")
   const [state, setState] = useState("")
+  const [postalCode, setPostalCode] = useState("")
   const [tagsRaw, setTagsRaw] = useState("")
 
   async function handleSubmit(e: React.FormEvent) {
@@ -44,7 +47,10 @@ export default function NewContactPage() {
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
         company_name: companyName.trim() || undefined,
+        address1: address1.trim() || undefined,
+        city: city.trim() || undefined,
         state: state.trim() || undefined,
+        postal_code: postalCode.trim() || undefined,
         tags: tagsRaw
           .split(/[,;]/)
           .map((t) => t.trim())
@@ -98,7 +104,17 @@ export default function NewContactPage() {
               value={companyName}
               onChange={setCompanyName}
             />
+            <Field label="City" value={city} onChange={setCity} />
             <Field label="State" value={state} onChange={setState} />
+            <Field label="Postal code" value={postalCode} onChange={setPostalCode} />
+            <div className="sm:col-span-2">
+              <Label className="mb-1.5">Address</Label>
+              <Input
+                value={address1}
+                onChange={(e) => setAddress1(e.target.value)}
+                placeholder="Street address"
+              />
+            </div>
             <div className="sm:col-span-2">
               <Label className="mb-1.5">Tags</Label>
               <Input

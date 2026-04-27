@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowRight, Home, Mail, MapPin, Search } from "lucide-react"
+import { ArrowRight, Home, Mail, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -12,7 +12,7 @@ const SITE_URL =
 export const metadata: Metadata = {
   title: "Page not found",
   description:
-    "The page you're looking for has moved or doesn't exist. Browse the Chem Connect catalogue, our seven Australian dispatch hubs, or get in touch with support.",
+    "The page you're looking for has moved or doesn't exist. Browse the Chem Connect catalogue or get in touch with support.",
   alternates: { canonical: `${SITE_URL}/404` },
   // Don't index 404 pages - they're not content, they're errors. The
   // helpful navigation below lives here purely as a UX cushion so the
@@ -107,20 +107,6 @@ export default function NotFoundPage() {
                 <Home className="size-4" />
               </span>
               Home
-              <ArrowRight className="ml-auto size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          </CardContent>
-        </Card>
-        <Card className="border-border/60">
-          <CardContent className="p-4">
-            <Link
-              href="/locations"
-              className="group flex items-center gap-3 text-sm font-semibold"
-            >
-              <span className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
-                <MapPin className="size-4" />
-              </span>
-              Locations
               <ArrowRight className="ml-auto size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </Link>
           </CardContent>

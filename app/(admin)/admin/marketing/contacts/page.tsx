@@ -160,6 +160,7 @@ export default function MarketingContactsPage() {
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Company</TableHead>
+              <TableHead>City</TableHead>
               <TableHead>State</TableHead>
               <TableHead>Tags</TableHead>
               <TableHead>Status</TableHead>
@@ -171,7 +172,7 @@ export default function MarketingContactsPage() {
             ))}
             {data && data.contacts.length === 0 && !isLoading && (
               <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
                   No contacts match your filters. Try clearing the search, or{" "}
                   <Link href="/admin/marketing/contacts/import" className="text-primary hover:underline">
                     import a CSV
@@ -237,6 +238,7 @@ function ContactRow({ contact }: { contact: MarketingContact }) {
       <TableCell className="text-sm">{contact.email ?? "—"}</TableCell>
       <TableCell className="text-sm">{contact.phone ?? "—"}</TableCell>
       <TableCell className="text-sm">{contact.company_name ?? "—"}</TableCell>
+      <TableCell className="text-sm">{contact.city ?? "—"}</TableCell>
       <TableCell className="text-sm">{contact.state ?? "—"}</TableCell>
       <TableCell>
         <div className="flex flex-wrap gap-1">

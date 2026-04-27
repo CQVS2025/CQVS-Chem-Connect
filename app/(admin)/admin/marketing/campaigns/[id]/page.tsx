@@ -27,6 +27,10 @@ import {
 } from "@/lib/hooks/use-marketing-campaigns"
 import { useMarketingContacts } from "@/lib/hooks/use-marketing-contacts"
 import { post } from "@/lib/api/client"
+import {
+  forceLeftAlignDocument,
+  wrapPlainEmailHtmlForAdminPreview,
+} from "@/lib/marketing/email-template"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -412,7 +416,13 @@ export default function CampaignDetailPage() {
           <CardContent>
             <iframe
               className="h-96 w-full rounded-md border bg-white"
-              srcDoc={campaign.body_html}
+              srcDoc={
+                campaign.template_mode === "plain"
+                  ? wrapPlainEmailHtmlForAdminPreview(
+                      forceLeftAlignDocument(campaign.body_html),
+                    )
+                  : campaign.body_html
+              }
               sandbox=""
               title="Email preview"
             />

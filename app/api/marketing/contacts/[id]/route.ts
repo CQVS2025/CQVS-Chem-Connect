@@ -82,7 +82,10 @@ const patchSchema = z.object({
   first_name: z.string().optional().nullable(),
   last_name: z.string().optional().nullable(),
   company_name: z.string().optional().nullable(),
+  address1: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
   state: z.string().optional().nullable(),
+  postal_code: z.string().optional().nullable(),
   tags: z.array(z.string()).optional(),
 })
 
@@ -126,7 +129,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       firstName: parsed.data.first_name ?? undefined,
       lastName: parsed.data.last_name ?? undefined,
       companyName: parsed.data.company_name ?? undefined,
+      address1: parsed.data.address1 ?? undefined,
+      city: parsed.data.city ?? undefined,
       state: parsed.data.state ?? undefined,
+      postalCode: parsed.data.postal_code ?? undefined,
       tags: parsed.data.tags ?? undefined,
     })
     const { contactId } = await mirrorGhlContact(supabase, updated, {

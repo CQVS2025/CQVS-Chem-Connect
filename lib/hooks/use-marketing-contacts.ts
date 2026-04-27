@@ -27,7 +27,10 @@ export interface MarketingContact {
   last_name: string | null
   full_name: string | null
   company_name: string | null
+  address1: string | null
+  city: string | null
   state: string | null
+  postal_code: string | null
   country: string | null
   tags: string[]
   custom_fields: Record<string, unknown>
@@ -135,7 +138,10 @@ export interface CreateContactInput {
   first_name?: string
   last_name?: string
   company_name?: string
+  address1?: string
+  city?: string
   state?: string
+  postal_code?: string
   tags?: string[]
 }
 
