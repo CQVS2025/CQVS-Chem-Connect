@@ -49,6 +49,7 @@ interface SyncTotals {
   created: number
   updated: number
   failed: number
+  purged: number
 }
 
 interface SyncBody {
@@ -76,6 +77,7 @@ export async function POST(request: NextRequest) {
     created: 0,
     updated: 0,
     failed: 0,
+    purged: 0,
   }
   const sessionStartedAt = body.session_started_at ?? Date.now()
   const chunkStartedAt = Date.now()
@@ -132,6 +134,32 @@ export async function POST(request: NextRequest) {
         chunkDurationMs: Date.now() - chunkStartedAt,
         warning: "no cursor on last contact; stopping early",
       })
+    }
+  }
+
+  // Final-chunk orphan purge: soft-delete any non-deleted contact whose
+  // last_synced_at predates this session (or is null). Every contact mirrored
+  // during the run gets last_synced_at = now() in mirrorGhlContact, so this
+  // catches local rows that GHL no longer has.
+  //
+  // Guarded by `failed === 0` so a partial run (e.g. transient GHL errors on
+  // some pages) doesn't wipe contacts that were simply skipped this round.
+  if (done && totals.failed === 0) {
+    try {
+      const cutoffIso = new Date(sessionStartedAt).toISOString()
+      const { data: purged, error: purgeError } = await supabase
+        .from("marketing_contacts")
+        .update({ deleted_at: new Date().toISOString() })
+        .is("deleted_at", null)
+        .or(`last_synced_at.is.null,last_synced_at.lt.${cutoffIso}`)
+        .select("id")
+      if (purgeError) {
+        console.error("[contacts/sync] orphan purge failed:", purgeError)
+      } else {
+        totals.purged = purged?.length ?? 0
+      }
+    } catch (err) {
+      console.error("[contacts/sync] orphan purge threw:", err)
     }
   }
 

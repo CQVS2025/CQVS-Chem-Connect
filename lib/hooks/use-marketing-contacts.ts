@@ -284,6 +284,7 @@ export interface SyncTotals {
   created: number
   updated: number
   failed: number
+  purged: number
 }
 
 interface SyncChunkResponse {
@@ -313,6 +314,7 @@ export function useForceSyncMarketingContacts() {
         created: 0,
         updated: 0,
         failed: 0,
+        purged: 0,
       }
       setProgress({ totals: initialTotals, ghlTotal: null })
       const sessionStartedAt = Date.now()

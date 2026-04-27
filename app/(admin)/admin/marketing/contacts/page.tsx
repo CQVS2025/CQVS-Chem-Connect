@@ -68,7 +68,7 @@ export default function MarketingContactsPage() {
     toast.promise(promise, {
       loading: "Re-syncing from GoHighLevel…",
       success: (res) =>
-        `Synced ${res.total} contacts (${res.created} new, ${res.updated} updated${res.failed ? `, ${res.failed} failed` : ""}).`,
+        `Synced ${res.total} contacts (${res.created} new, ${res.updated} updated${res.purged ? `, ${res.purged} removed` : ""}${res.failed ? `, ${res.failed} failed` : ""}).`,
       error: "Sync failed",
     })
   }
