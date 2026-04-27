@@ -32,11 +32,14 @@
  */
 
 import { NextResponse, type NextRequest } from "next/server"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { requireMarketingRole } from "@/lib/supabase/marketing-role-check"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { GhlContacts } from "@/lib/ghl"
 import { mirrorGhlContact } from "@/lib/ghl/mirror"
+import { normaliseAuPhone, normaliseEmail } from "@/lib/ghl/phone"
+import type { GhlContact } from "@/lib/ghl/types"
 
 // Hobby plan caps at 10s; we deliberately stay well under it per chunk.
 export const maxDuration = 10
@@ -91,6 +94,14 @@ export async function POST(request: NextRequest) {
     startAfterId: body.startAfterId,
   })
   const contacts = page.contacts ?? []
+
+  // Batch legacy-claim: stamp any local row that has a matching email/phone
+  // but NULL ghl_contact_id (typically CSV-imported or signup-created before
+  // GHL was wired up) with the GHL id from this page. Without this, the
+  // upsert below would insert a fresh row and we'd end up with a duplicate.
+  // After the first run no NULL-id rows match, so this becomes two cheap
+  // bulk SELECTs and short-circuits.
+  await claimLegacyRows(supabase, contacts)
 
   // Process in parallel batches. mirrorGhlContact is mostly I/O (Supabase
   // upserts + a few reads), so the concurrency buys most of the speedup.
@@ -191,4 +202,111 @@ export async function POST(request: NextRequest) {
     ghlTotal: page.meta?.total,
     chunkDurationMs: Date.now() - chunkStartedAt,
   })
+}
+
+/**
+ * For each GHL contact in this chunk, find any local row with NULL
+ * ghl_contact_id whose email/phone matches and stamp it with the GHL id
+ * so the subsequent upsert updates that row instead of inserting a duplicate.
+ *
+ * Two bulk SELECTs (already-mirrored set, then legacy-row candidates) plus a
+ * fanned-out parallel UPDATE per match. After the first successful sync, the
+ * legacy SELECT returns nothing and the function short-circuits.
+ */
+async function claimLegacyRows(
+  supabase: SupabaseClient,
+  contacts: GhlContact[],
+): Promise<void> {
+  if (contacts.length === 0) return
+
+  const chunkIds = contacts.map((c) => c.id).filter(Boolean)
+  if (chunkIds.length === 0) return
+
+  // Which of these GHL ids are already mirrored locally? Skip those —
+  // re-stamping a legacy row to an id that's already taken would violate
+  // the unique constraint.
+  const { data: mirrored } = await supabase
+    .from("marketing_contacts")
+    .select("ghl_contact_id")
+    .in("ghl_contact_id", chunkIds)
+  const mirroredSet = new Set(
+    (mirrored ?? [])
+      .map((r) => r.ghl_contact_id as string | null)
+      .filter((v): v is string => !!v),
+  )
+
+  const unmirrored = contacts.filter((c) => c.id && !mirroredSet.has(c.id))
+  if (unmirrored.length === 0) return
+
+  const emails = Array.from(
+    new Set(
+      unmirrored
+        .map((c) => normaliseEmail(c.email))
+        .filter((e): e is string => !!e),
+    ),
+  )
+  const phones = Array.from(
+    new Set(
+      unmirrored
+        .map((c) => normaliseAuPhone(c.phone))
+        .filter((p): p is string => !!p),
+    ),
+  )
+  if (emails.length === 0 && phones.length === 0) return
+
+  // Pull every NULL-id row that matches by email or phone in one query each.
+  const [{ data: byEmail }, { data: byPhone }] = await Promise.all([
+    emails.length > 0
+      ? supabase
+          .from("marketing_contacts")
+          .select("id, email, phone")
+          .is("ghl_contact_id", null)
+          .in("email", emails)
+      : Promise.resolve({ data: [] as { id: string; email: string | null; phone: string | null }[] }),
+    phones.length > 0
+      ? supabase
+          .from("marketing_contacts")
+          .select("id, email, phone")
+          .is("ghl_contact_id", null)
+          .in("phone", phones)
+      : Promise.resolve({ data: [] as { id: string; email: string | null; phone: string | null }[] }),
+  ])
+
+  const legacyById = new Map<string, { id: string; email: string | null; phone: string | null }>()
+  for (const row of [...(byEmail ?? []), ...(byPhone ?? [])]) {
+    legacyById.set(row.id, row)
+  }
+  if (legacyById.size === 0) return
+
+  const emailIndex = new Map<string, string>() // email -> legacy id
+  const phoneIndex = new Map<string, string>() // phone -> legacy id
+  for (const row of legacyById.values()) {
+    if (row.email) emailIndex.set(row.email.toLowerCase(), row.id)
+    if (row.phone) phoneIndex.set(row.phone, row.id)
+  }
+
+  // Match each unmirrored GHL contact to one legacy row, ensuring no legacy
+  // row is claimed twice in this chunk.
+  const claims: Array<{ legacyId: string; ghlId: string }> = []
+  const claimed = new Set<string>()
+  for (const c of unmirrored) {
+    const email = normaliseEmail(c.email)
+    const phone = normaliseAuPhone(c.phone)
+    let legacyId: string | undefined
+    if (email) legacyId = emailIndex.get(email.toLowerCase())
+    if (!legacyId && phone) legacyId = phoneIndex.get(phone)
+    if (!legacyId || claimed.has(legacyId)) continue
+    claims.push({ legacyId, ghlId: c.id })
+    claimed.add(legacyId)
+  }
+  if (claims.length === 0) return
+
+  await Promise.all(
+    claims.map((c) =>
+      supabase
+        .from("marketing_contacts")
+        .update({ ghl_contact_id: c.ghlId })
+        .eq("id", c.legacyId),
+    ),
+  )
 }

@@ -77,49 +77,6 @@ export async function mirrorGhlContact(
     Object.entries(payload).filter(([, v]) => v !== undefined),
   )
 
-  // Pre-claim step: if a legacy row exists with NULL ghl_contact_id but the
-  // same email/phone (CSV import / signup created before the GHL link),
-  // stamp it with this contact's id so the upsert below updates that row
-  // instead of creating a duplicate. Skip if a row already carries this
-  // ghl_contact_id — claiming would violate the unique constraint.
-  if (payload.email || payload.phone) {
-    const { data: alreadyMirrored } = await supabase
-      .from("marketing_contacts")
-      .select("id")
-      .eq("ghl_contact_id", contact.id)
-      .maybeSingle()
-
-    if (!alreadyMirrored) {
-      let legacyId: string | undefined
-      if (payload.email) {
-        const { data } = await supabase
-          .from("marketing_contacts")
-          .select("id")
-          .is("ghl_contact_id", null)
-          .ilike("email", payload.email as string)
-          .limit(1)
-          .maybeSingle()
-        legacyId = data?.id
-      }
-      if (!legacyId && payload.phone) {
-        const { data } = await supabase
-          .from("marketing_contacts")
-          .select("id")
-          .is("ghl_contact_id", null)
-          .eq("phone", payload.phone as string)
-          .limit(1)
-          .maybeSingle()
-        legacyId = data?.id
-      }
-      if (legacyId) {
-        await supabase
-          .from("marketing_contacts")
-          .update({ ghl_contact_id: contact.id })
-          .eq("id", legacyId)
-      }
-    }
-  }
-
   const { data, error } = await supabase
     .from("marketing_contacts")
     .upsert(cleaned, {
