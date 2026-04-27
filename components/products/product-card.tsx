@@ -36,7 +36,14 @@ export function ProductCard({
         <div className="relative aspect-[5/4] overflow-hidden bg-white">
           <Image
             src={image || "/images/cqvs-logo.png"}
-            alt={name}
+            // Keyword-rich alt: product + manufacturer + locale. Stays
+            // human-readable (passes a11y) while giving Google Images the
+            // keywords B2B buyers actually search for.
+            alt={
+              manufacturer
+                ? `${name} - ${manufacturer} · Chem Connect Australia`
+                : `${name} · Chem Connect Australia`
+            }
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"

@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Calendar,
   Eye,
+  GitBranch,
   Loader2,
   Mail,
   MessageCircle,
@@ -24,6 +25,7 @@ import {
   useMarketingContacts,
   useMarketingContactTags,
 } from "@/lib/hooks/use-marketing-contacts"
+import { useSequences } from "@/lib/hooks/use-marketing-sequences"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -47,6 +49,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { QuillEditor } from "@/components/marketing/quill-editor"
 import {
   buildMarketingEmailHtml,
+  buildPlainEmailHtml,
   htmlToPlainText,
 } from "@/lib/marketing/email-template"
 import { MERGE_TAGS } from "@/lib/marketing/merge-tags"
@@ -95,11 +98,19 @@ export default function NewCampaignPage() {
   const [preheader, setPreheader] = useState("")
   const [bodyHtml, setBodyHtml] = useState("")
   const [bodyText, setBodyText] = useState("")
-  // Compose mode — rich text via Quill, wrapped in the branded shell on save.
-  // The existing HTML-paste mode is kept for Claude-generated templates.
-  const [contentMode, setContentMode] = useState<"compose" | "html">("compose")
+  // Three compose modes:
+  //   "plain"   - rich text → minimal HTML wrapper (no CQVS header/colors).
+  //               Default per client preference: looks like a personal email.
+  //   "branded" - rich text → full CQVS template (header, navy, footer card).
+  //   "html"    - paste raw HTML untouched (for Claude-generated templates).
+  // Plain and branded share the same Quill editor + composedHtml buffer; only
+  // the wrapper applied at save time differs.
+  const [contentMode, setContentMode] = useState<"plain" | "branded" | "html">(
+    "plain",
+  )
   const [composedHtml, setComposedHtml] = useState("")
-  const composedEmailHtml = useMemo(
+
+  const brandedEmailHtml = useMemo(
     () =>
       composedHtml.trim()
         ? buildMarketingEmailHtml({
@@ -110,6 +121,31 @@ export default function NewCampaignPage() {
         : "",
     [composedHtml, subject, preheader],
   )
+  const plainEmailHtml = useMemo(
+    () =>
+      composedHtml.trim()
+        ? buildPlainEmailHtml({
+            bodyHtml: composedHtml,
+            preheader: preheader.trim() || undefined,
+          })
+        : "",
+    [composedHtml, preheader],
+  )
+
+  // GHL workflow selection (only used when type === "ghl_workflow").
+  // We load from /api/marketing/sequences which mirrors GHL's list.
+  const [workflowId, setWorkflowId] = useState<string>("")
+  const { data: workflowsData, isLoading: isLoadingWorkflows } = useSequences()
+  // Only published workflows can be enrolled into. Draft workflows exist in
+  // GHL but won't process contacts - surfacing them would silently fail.
+  const publishedWorkflows = useMemo(
+    () =>
+      (workflowsData?.workflows ?? []).filter(
+        (w) => (w.status ?? "published") === "published",
+      ),
+    [workflowsData?.workflows],
+  )
+  const selectedWorkflow = publishedWorkflows.find((w) => w.id === workflowId)
 
   // Schedule
   const [mode, setMode] = useState<"now" | "schedule">("now")
@@ -137,9 +173,12 @@ export default function NewCampaignPage() {
       if (!name.trim()) return false
       if (type === "email") {
         if (!subject.trim()) return false
-        return contentMode === "compose"
-          ? !!composedHtml.replace(/<[^>]+>/g, "").trim()
-          : !!bodyHtml.trim()
+        if (contentMode === "html") return !!bodyHtml.trim()
+        // plain + branded share the rich-text editor.
+        return !!composedHtml.replace(/<[^>]+>/g, "").trim()
+      }
+      if (type === "ghl_workflow") {
+        return !!workflowId
       }
       return !!bodyText.trim()
     }
@@ -151,28 +190,49 @@ export default function NewCampaignPage() {
     try {
       const finalBodyHtml =
         type === "email"
-          ? contentMode === "compose"
-            ? composedEmailHtml
-            : bodyHtml
+          ? contentMode === "branded"
+            ? brandedEmailHtml
+            : contentMode === "plain"
+              ? plainEmailHtml
+              : bodyHtml
           : undefined
       const finalBodyText =
-        type === "email" && contentMode === "compose"
+        type === "email" && contentMode !== "html"
           ? htmlToPlainText(composedHtml)
           : bodyText
-      const input = {
+      const templateMode =
+        type === "email"
+          ? contentMode === "html"
+            ? ("custom_html" as const)
+            : (contentMode as "plain" | "branded")
+          : undefined
+      const baseInput = {
         name: name.trim(),
         type,
         audience_filter: audienceFilter,
-        ...(type === "email"
+        scheduled_at:
+          mode === "schedule" ? new Date(scheduledAt).toISOString() : undefined,
+      }
+      // Per-channel content payload. For ghl_workflow the actual email copy
+      // lives inside GHL - we only persist which workflow to enrol contacts
+      // into (plus a cached name so we can render the list without re-hitting
+      // GHL for every row).
+      const channelInput =
+        type === "email"
           ? {
               subject: subject.trim(),
               preheader: preheader.trim() || undefined,
               body_html: finalBodyHtml,
               body_text: finalBodyText || undefined,
+              template_mode: templateMode,
             }
-          : { body_text: bodyText }),
-        scheduled_at: mode === "schedule" ? new Date(scheduledAt).toISOString() : undefined,
-      }
+          : type === "sms"
+            ? { body_text: bodyText }
+            : {
+                ghl_workflow_id: workflowId,
+                ghl_workflow_name: selectedWorkflow?.name,
+              }
+      const input = { ...baseInput, ...channelInput }
       const result = await createCampaign.mutateAsync(input)
       toast.success("Campaign saved as draft")
       router.push(`/admin/marketing/campaigns/${result.id}`)
@@ -205,7 +265,7 @@ export default function NewCampaignPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
-              <Users className="h-4 w-4" /> Step 1 — Audience
+              <Users className="h-4 w-4" /> Step 1 - Audience
             </CardTitle>
             <CardDescription>
               Who should receive this campaign?
@@ -214,7 +274,7 @@ export default function NewCampaignPage() {
           <CardContent className="flex flex-col gap-4">
             <div>
               <Label className="mb-1.5">Channel</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
                   variant={type === "email" ? "default" : "outline"}
@@ -231,7 +291,22 @@ export default function NewCampaignPage() {
                   <MessageCircle className="mr-2 h-4 w-4" />
                   SMS
                 </Button>
+                <Button
+                  type="button"
+                  variant={type === "ghl_workflow" ? "default" : "outline"}
+                  onClick={() => setType("ghl_workflow")}
+                >
+                  <GitBranch className="mr-2 h-4 w-4" />
+                  GHL Workflow
+                </Button>
               </div>
+              {type === "ghl_workflow" && (
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Enrol selected contacts into a drip sequence published in
+                  GoHighLevel. GHL handles the branching (opened / clicked /
+                  waits) and sends the actual emails.
+                </p>
+              )}
             </div>
             <div>
               <Label className="mb-1.5">Audience</Label>
@@ -357,11 +432,13 @@ export default function NewCampaignPage() {
       {step === "what" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Step 2 — Content</CardTitle>
+            <CardTitle className="text-sm">Step 2 - Content</CardTitle>
             <CardDescription>
               {type === "email"
-                ? "Compose the body using the editor, or paste full HTML for Claude-generated templates."
-                : "SMS body — keep under 160 chars for single-part delivery."}
+                ? "Choose Plain for a normal-looking email, Branded template for the CQVS-styled shell, or Paste HTML for full custom markup."
+                : type === "sms"
+                  ? "SMS body - keep under 160 chars for single-part delivery."
+                  : "Pick the GoHighLevel workflow that selected contacts will be enrolled into."}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
@@ -370,10 +447,18 @@ export default function NewCampaignPage() {
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Eco Wash Launch — QLD"
+                placeholder="e.g. Eco Wash Launch - QLD"
               />
             </div>
-            {type === "email" ? (
+            {type === "ghl_workflow" ? (
+              <WorkflowPicker
+                workflows={publishedWorkflows}
+                isLoading={isLoadingWorkflows}
+                value={workflowId}
+                onChange={setWorkflowId}
+                totalCount={workflowsData?.workflows.length ?? 0}
+              />
+            ) : type === "email" ? (
               <>
                 <div>
                   <Label className="mb-1.5">Subject</Label>
@@ -396,14 +481,25 @@ export default function NewCampaignPage() {
                   <div className="mb-2 inline-flex rounded-md border p-0.5 text-xs">
                     <button
                       type="button"
-                      onClick={() => setContentMode("compose")}
+                      onClick={() => setContentMode("plain")}
                       className={`rounded px-3 py-1 transition ${
-                        contentMode === "compose"
+                        contentMode === "plain"
                           ? "bg-primary text-primary-foreground"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      Compose
+                      Plain
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setContentMode("branded")}
+                      className={`rounded px-3 py-1 transition ${
+                        contentMode === "branded"
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Branded template
                     </button>
                     <button
                       type="button"
@@ -418,19 +514,7 @@ export default function NewCampaignPage() {
                     </button>
                   </div>
 
-                  {contentMode === "compose" ? (
-                    <>
-                      <QuillEditor
-                        value={composedHtml}
-                        onChange={setComposedHtml}
-                        placeholder="Write the message body. Formatting and links are supported. The CQVS branded header and footer are added automatically."
-                      />
-                      <p className="mt-1.5 text-xs text-muted-foreground">
-                        Only the body is editable — the CQVS header, colors,
-                        and footer are applied on send.
-                      </p>
-                    </>
-                  ) : (
+                  {contentMode === "html" ? (
                     <Textarea
                       value={bodyHtml}
                       onChange={(e) => setBodyHtml(e.target.value)}
@@ -438,11 +522,32 @@ export default function NewCampaignPage() {
                       className="font-mono text-xs"
                       placeholder="<html>…</html>"
                     />
+                  ) : (
+                    <>
+                      <QuillEditor
+                        value={composedHtml}
+                        onChange={setComposedHtml}
+                        placeholder={
+                          contentMode === "plain"
+                            ? "Write the message body. Looks like a normal email - no CQVS template, no branded styling."
+                            : "Write the message body. Formatting and links are supported. The CQVS branded header and footer are added automatically."
+                        }
+                      />
+                      <p className="mt-1.5 text-xs text-muted-foreground">
+                        {contentMode === "plain"
+                          ? "Sent as a plain email - no CQVS header, colors, or footer card. GHL still appends the unsubscribe link."
+                          : "Only the body is editable - the CQVS header, colors, and footer are applied on send."}
+                      </p>
+                    </>
                   )}
                 </div>
                 <EmailPreviewIframe
                   srcDoc={
-                    contentMode === "compose" ? composedEmailHtml : bodyHtml
+                    contentMode === "branded"
+                      ? brandedEmailHtml
+                      : contentMode === "plain"
+                        ? plainEmailHtml
+                        : bodyHtml
                   }
                 />
               </>
@@ -468,7 +573,7 @@ export default function NewCampaignPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4" /> Step 3 — When
+              <Calendar className="h-4 w-4" /> Step 3 - When
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
@@ -509,7 +614,7 @@ export default function NewCampaignPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
-              <Eye className="h-4 w-4" /> Step 4 — Review
+              <Eye className="h-4 w-4" /> Step 4 - Review
             </CardTitle>
             <CardDescription>
               Last chance to sanity-check before saving as a draft.
@@ -521,10 +626,12 @@ export default function NewCampaignPage() {
               <Badge variant="secondary" className="gap-1">
                 {type === "email" ? (
                   <Mail className="h-3 w-3" />
-                ) : (
+                ) : type === "sms" ? (
                   <MessageCircle className="h-3 w-3" />
+                ) : (
+                  <GitBranch className="h-3 w-3" />
                 )}
-                {type.toUpperCase()}
+                {type === "ghl_workflow" ? "GHL WORKFLOW" : type.toUpperCase()}
               </Badge>
             </KV>
             <KV label="Audience">
@@ -534,6 +641,20 @@ export default function NewCampaignPage() {
             </KV>
             <KV label="Audience size">~{audienceCount}</KV>
             {type === "email" && <KV label="Subject">{subject}</KV>}
+            {type === "email" && (
+              <KV label="Style">
+                {contentMode === "plain"
+                  ? "Plain email (no CQVS template)"
+                  : contentMode === "branded"
+                    ? "Branded CQVS template"
+                    : "Custom HTML"}
+              </KV>
+            )}
+            {type === "ghl_workflow" && (
+              <KV label="Workflow">
+                {selectedWorkflow?.name ?? "(none selected)"}
+              </KV>
+            )}
             <KV label="Timing">
               {mode === "now" ? "Manual send from the detail page" : `Scheduled for ${scheduledAt}`}
             </KV>
@@ -654,7 +775,7 @@ function MergeTagsPanel() {
       toast.success(`Copied ${tag}`)
       setTimeout(() => setCopied((v) => (v === tag ? null : v)), 1500)
     } catch {
-      toast.error("Copy failed — copy manually")
+      toast.error("Copy failed - copy manually")
     }
   }
 
@@ -688,7 +809,7 @@ function MergeTagsPanel() {
       </div>
       <div className="mt-2 space-y-1 text-[11px] text-muted-foreground">
         <p>
-          If a contact is missing the field, smart defaults kick in —
+          If a contact is missing the field, smart defaults kick in -
           e.g. <span className="font-mono">{"{{first_name}}"}</span> becomes{" "}
           <span className="font-mono">&quot;there&quot;</span>.
         </p>
@@ -705,9 +826,78 @@ function MergeTagsPanel() {
 }
 
 /**
+ * Workflow picker - lists the published GHL workflows and lets the admin
+ * pick which one each enrolled contact should enter. Drafts are filtered
+ * out upstream; if the whole list is empty we guide the admin to GHL.
+ *
+ * The workflow body (emails, waits, branches) is authored and edited in
+ * GHL itself - we only store the ID here.
+ */
+function WorkflowPicker({
+  workflows,
+  isLoading,
+  value,
+  onChange,
+  totalCount,
+}: {
+  workflows: Array<{ id: string; name: string; status?: string; updatedAt?: string }>
+  isLoading: boolean
+  value: string
+  onChange: (id: string) => void
+  totalCount: number
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Loading published workflows from GoHighLevel…
+      </div>
+    )
+  }
+
+  const draftOnlyCount = totalCount - workflows.length
+
+  if (workflows.length === 0) {
+    return (
+      <div className="rounded-md border bg-muted/30 p-4 text-sm">
+        <p className="font-medium">No published workflows found.</p>
+        <p className="mt-1 text-muted-foreground">
+          {draftOnlyCount > 0
+            ? `You have ${draftOnlyCount} draft workflow(s) in GHL. Publish one before it can be used here - drafts won't process enrolments.`
+            : "Create and publish a workflow inside GoHighLevel, then come back here to pick it."}
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <Label className="mb-1.5">Workflow</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Choose a workflow from GoHighLevel" />
+        </SelectTrigger>
+        <SelectContent>
+          {workflows.map((w) => (
+            <SelectItem key={w.id} value={w.id}>
+              {w.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <p className="mt-1.5 text-xs text-muted-foreground">
+        Showing {workflows.length} published workflow(s).
+        {draftOnlyCount > 0 && ` ${draftOnlyCount} draft(s) hidden.`} Email
+        copy, waits, and branches are edited inside GHL.
+      </p>
+    </div>
+  )
+}
+
+/**
  * Email preview iframe with reliable srcdoc updates.
  *
- * React's iframe `srcDoc` prop is flaky — Chrome sometimes doesn't reload
+ * React's iframe `srcDoc` prop is flaky - Chrome sometimes doesn't reload
  * when the string changes, which shows up as a blank white preview on
  * first paint. Mounting/unmounting the iframe always works, so we key it
  * on a debounced copy of srcDoc. That keeps updates smooth while typing

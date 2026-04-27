@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect — Customer Reviews Feature</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 920px; margin: 40px auto; padding: 0 20px; color: #1a1a2e; line-height: 1.65; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 50px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #16a34a; margin-top: 18px; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 12px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  ul, ol { font-size: 13px; }
+  li { margin: 4px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; text-align: center; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 40px 0; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 16px; background: #fff; }
+  .card h4 { margin-top: 0; }
+  .benefit { border-left: 4px solid #0ea5e9; background: #f0f9ff; padding: 10px 14px; margin: 14px 0 6px; border-radius: 4px; font-size: 12.5px; }
+  .benefit .label { display: inline-block; background: #0ea5e9; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; margin-right: 8px; vertical-align: middle; }
+  .benefit ul { margin: 6px 0 0 0; padding-left: 20px; font-size: 12.5px; }
+  .benefit li { margin: 2px 0; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 11.5px; color: #b91c1c; font-family: 'Courier New', monospace; }
+  .pill { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; vertical-align: middle; margin-right: 4px; }
+  .pill-good { background: #dcfce7; color: #166534; }
+  .pill-bad { background: #fee2e2; color: #991b1b; }
+  .stars { color: #f59e0b; letter-spacing: 1px; font-size: 14px; }
+  .serp-mock { border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; background: #fff; margin: 8px 0; font-family: arial, sans-serif; }
+  .serp-url { color: #006621; font-size: 12px; }
+  .serp-title { color: #1a0dab; font-size: 16px; font-weight: 500; margin: 4px 0; }
+  .serp-rating { color: #4d5156; font-size: 12px; margin: 3px 0; }
+  .serp-desc { color: #4d5156; font-size: 13px; line-height: 1.45; }
+  .flow { background: #0f172a; color: #e2e8f0; padding: 16px 18px; border-radius: 6px; font-size: 12px; line-height: 1.7; font-family: 'Courier New', monospace; overflow-x: auto; }
+  @media print { body { margin: 20px; font-size: 12px; } .two-col, .three-col { grid-template-columns: 1fr; } .flow { white-space: pre-wrap; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Customer Reviews &mdash; SEO Feature Recommendation</p>
+  <p style="color: #9ca3af;">A companion proposal to the Chem Connect SEO Optimisation Plan</p>
+</div>
+
+<div class="box">
+  <strong>About this document:</strong> This is a focused proposal for one specific feature &mdash; collecting and displaying genuine customer reviews on Chem Connect product pages. It&rsquo;s a strong addition to the broader SEO plan, and it sits at the intersection of <strong>SEO</strong>, <strong>conversion</strong>, and <strong>buyer trust</strong>. Treat this as a recommendation, not a commitment &mdash; it can ship alongside, after, or independently of the rest of the SEO work.
+</div>
+
+<hr class="divider">
+
+<!-- ========== 1. WHAT IT IS ========== -->
+<h2><span class="section-num">1.</span> What this is, in one sentence</h2>
+
+<p style="font-size: 13.5px;">A built-in flow that asks every customer to rate the product they bought after it&rsquo;s delivered, captures the response with a one-click magic link, runs it through a quick admin moderation step, and publishes approved reviews on the product page &mdash; where they immediately feed Chem Connect&rsquo;s SEO and conversion engines.</p>
+
+<p style="font-size: 13px;">The infrastructure (the schema, the UI block, the rich-result markup) is already in the codebase from the SEO Optimisation Plan implementation. The piece this proposal adds is the <strong>collection mechanism</strong> &mdash; the bit that turns the empty &ldquo;No reviews yet&rdquo; placeholder into a stream of genuine, verified buyer feedback.</p>
+
+<hr class="divider">
+
+<!-- ========== 2. WHY IT MATTERS ========== -->
+<h2><span class="section-num">2.</span> Why this matters for Chem Connect&rsquo;s SEO</h2>
+
+<p style="font-size: 13.5px;">Reviews aren&rsquo;t a vanity feature. On a B2B catalogue site they touch four distinct levers at once.</p>
+
+<h3>Lever 1 &mdash; Star ratings in Google search results (rich results)</h3>
+
+<p style="font-size: 13px;">Google rewards pages that have the right structured data <em>and</em> real reviews to back it. Without reviews, the product page renders as a plain blue link. With reviews, it renders with star ratings, review count, and price &mdash; taking up roughly twice the screen space of a plain result.</p>
+
+<div class="two-col">
+  <div>
+    <p style="font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Without reviews</p>
+    <div class="serp-mock">
+      <div class="serp-url">www.cqvs-chemconnect.com.au &rsaquo; products &rsaquo; ...</div>
+      <div class="serp-title">Green Acid Replacement &middot; Chem Connect</div>
+      <div class="serp-desc">Manufacturer-direct industrial-grade acid replacement. Bulk pricing in AUD, GST-inclusive, fast freight from VIC, NSW...</div>
+    </div>
+  </div>
+  <div>
+    <p style="font-size: 12px; color: #166534; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">With reviews</p>
+    <div class="serp-mock" style="border-color: #16a34a;">
+      <div class="serp-url">www.cqvs-chemconnect.com.au &rsaquo; products &rsaquo; ...</div>
+      <div class="serp-title">Green Acid Replacement &middot; Chem Connect</div>
+      <div class="serp-rating"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> Rating: 4.6 &middot; 23 reviews &middot; AUD $X &middot; In stock</div>
+      <div class="serp-desc">Manufacturer-direct industrial-grade acid replacement. Bulk pricing in AUD, GST-inclusive, fast freight from VIC, NSW...</div>
+    </div>
+  </div>
+</div>
+
+<div class="benefit">
+  <span class="label">Why this lever matters</span>
+  <ul>
+    <li>Industry data shows pages with rich star results get <strong>20&ndash;35% more clicks</strong> at the same Google ranking position.</li>
+    <li>Same SEO position, more clicks &mdash; equivalent to ranking 1&ndash;2 spots higher without doing extra ranking work.</li>
+    <li>Visual differentiation against competitors who haven&rsquo;t built this.</li>
+  </ul>
+</div>
+
+<h3>Lever 2 &mdash; Citations from AI search engines</h3>
+
+<p style="font-size: 13px;">ChatGPT, Perplexity, Microsoft Copilot, Claude, and Google AI Overviews all increasingly answer commercial queries (&ldquo;where can I buy {chemical} in Australia?&rdquo;) by surfacing and citing trusted product pages. These systems disproportionately favour pages with <strong>real reviews</strong> &mdash; reviews are a strong &ldquo;this is a real, used product, not just a brochure&rdquo; signal.</p>
+
+<p style="font-size: 13px;">Building this gives Chem Connect a meaningful edge in the channel that&rsquo;s growing fastest in B2B research.</p>
+
+<h3>Lever 3 &mdash; Closing the trust gap on first-time visits</h3>
+
+<p style="font-size: 13px;">B2B chemical buyers are sceptical by trade. A first-time visitor lands on the site with three open questions in their head:</p>
+
+<ul>
+  <li>&ldquo;Is this an actual marketplace or a thin reseller?&rdquo;</li>
+  <li>&ldquo;Why is the pricing this much sharper than my current supplier?&rdquo;</li>
+  <li>&ldquo;Will the freight actually arrive when they say it will?&rdquo;</li>
+</ul>
+
+<p style="font-size: 13px;">A handful of named verified-buyer reviews from their own state &mdash; <em>&ldquo;Marcus T., Brisbane &mdash; verified buyer&rdquo;</em> &mdash; closes all three before they have to pick up the phone. It&rsquo;s the on-page social proof that turns a curious visitor into an enquiry.</p>
+
+<h3>Lever 4 &mdash; A defensible moat against new entrants</h3>
+
+<p style="font-size: 13px;">Reviews accumulate on Chem Connect&rsquo;s domain over time. A competitor entering the market in 12 or 24 months can copy the catalogue, the pricing, the design &mdash; but can&rsquo;t copy the existing review base. Every month of real reviews collected widens the gap.</p>
+
+<div class="box box-blue">
+  <strong>The combined effect:</strong> reviews don&rsquo;t just help one ranking factor &mdash; they reinforce four at once. Star ratings lift CTR, AI search engines cite the page, first-time visitors convert at higher rates, and the moat compounds. There&rsquo;s no single bigger return for the engineering effort involved.
+</div>
+
+<hr class="divider">
+
+<!-- ========== 3. HOW IT WILL WORK ========== -->
+<h2><span class="section-num">3.</span> How the collection flow will work</h2>
+
+<p style="font-size: 13.5px;">Three components, each chosen to keep friction off the buyer&rsquo;s path while keeping the data clean and policy-compliant.</p>
+
+<h3>The flow at a glance</h3>
+
+<div class="flow">Customer places<br>
+&nbsp;&nbsp;&nbsp;and receives<br>
+&nbsp;&nbsp;&nbsp;an order<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|  (waits ~7 days &mdash; long enough for them to actually use it)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v<br>
+Mailgun sends a personalised &ldquo;How was the {product}?&rdquo; email<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|  (one-click magic link &mdash; no login needed)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v<br>
+&hellip;/reviews/submit?token=XYZ &mdash; review form, prefilled<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|  (status: pending)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v<br>
+Admin moderation queue at /admin/marketing/reviews<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|  Approve  &rarr;  publishes on product page<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|  Reject  &rarr;  stays in DB for audit, no display<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v<br>
+Star rating + review block live on the product page<br>
+&nbsp;&nbsp;&nbsp;&nbsp;+ AggregateRating fed into Google rich result schema</div>
+
+<h3>Component A &mdash; The trigger fires after delivery, not at checkout</h3>
+
+<p style="font-size: 13px;">Asking for a review the moment someone places an order is annoying and pointless &mdash; they haven&rsquo;t used the product yet. The review request fires when the order is marked <strong>delivered</strong>, with a deliberate delay so the buyer&rsquo;s actually had time to put the product to work.</p>
+
+<p style="font-size: 13px;">The trigger plugs into the existing GHL workflow / scheduled-campaign system already built for Chem Connect &mdash; same plumbing as the rest of the marketing module. No new infrastructure needed.</p>
+
+<h3>Component B &mdash; One-click magic links remove all friction</h3>
+
+<p style="font-size: 13px;">The email contains a personalised link with a cryptographically signed token. When the buyer clicks, they land on a pre-filled review form &mdash; their name, the product they bought, and the order ID are already populated. They write a star rating, a short review, hit submit. <strong>No login required.</strong></p>
+
+<p style="font-size: 13px;">B2B procurement people will not create an account just to leave a review. Magic links are how every modern B2B platform solves this exact problem &mdash; Stripe, Linear, Notion, etc. all use the same pattern.</p>
+
+<p style="font-size: 13px;">Each token is one-use and expires after a fixed window, which prevents abuse if the email is forwarded or leaks.</p>
+
+<h3>Component C &mdash; Moderation before publication</h3>
+
+<p style="font-size: 13px;">Submitted reviews land in a <strong>pending</strong> queue inside the admin dashboard. Admin sees:</p>
+
+<ul>
+  <li>The reviewer&rsquo;s name + verified-buyer badge</li>
+  <li>Their rating and review text</li>
+  <li>Which product / order it&rsquo;s tied to</li>
+  <li>A clear Approve / Reject action</li>
+</ul>
+
+<p style="font-size: 13px;">Approved reviews go live on the product page within seconds. Rejected reviews stay in the database for audit purposes (with a rejection reason recorded) but never display to shoppers.</p>
+
+<hr class="divider">
+
+<!-- ========== 4. WHAT THE BUYER SEES ========== -->
+<h2><span class="section-num">4.</span> What the buyer sees on the product page</h2>
+
+<p style="font-size: 13px;">Once approved reviews exist, the product page picks them up automatically. Three things appear:</p>
+
+<div class="three-col">
+  <div class="card">
+    <h4>Aggregate rating</h4>
+    <p style="font-size: 12.5px; margin: 0;">Star average and total review count beside the product title. Visible on the page <em>and</em> in Google&rsquo;s search results via the existing AggregateRating schema.</p>
+  </div>
+  <div class="card">
+    <h4>Individual review cards</h4>
+    <p style="font-size: 12.5px; margin: 0;">Each approved review with star rating, headline, body, reviewer name + city + state, date, and a &ldquo;Verified buyer&rdquo; badge.</p>
+  </div>
+  <div class="card">
+    <h4>Empty-state graceful fallback</h4>
+    <p style="font-size: 12.5px; margin: 0;">If a product has no reviews yet, the section says <em>&ldquo;No reviews yet &mdash; be the first&rdquo;</em>. No broken UI, no fake placeholder.</p>
+  </div>
+</div>
+
+<h3>Verified-buyer badging</h3>
+
+<p style="font-size: 13px;">Because the magic link includes the order ID, every review is automatically tagged as <strong>Verified buyer</strong> on submission. That&rsquo;s a meaningful trust signal &mdash; a lot of review platforms (e.g. ProductReview.com.au) require manual verification, which most reviewers can&rsquo;t be bothered with. Doing it through the email loop makes verification automatic.</p>
+
+<hr class="divider">
+
+<!-- ========== 5. COMPLIANCE ========== -->
+<h2><span class="section-num">5.</span> The compliance approach</h2>
+
+<p style="font-size: 13.5px;">Reviews are a regulated area in Australia. The flow is designed to comply with both Google&rsquo;s policy and the Australian Consumer Law from day one.</p>
+
+<table>
+  <thead>
+    <tr><th style="width:200px;">Rule</th><th>How this implementation handles it</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Reviews must be from genuine buyers</strong> (Google policy + AU Consumer Law)</td>
+      <td>Magic-link tokens are tied to real order IDs. A review can&rsquo;t be submitted without a valid token, and tokens can&rsquo;t be forged.</td>
+    </tr>
+    <tr>
+      <td><strong>No editing reviews to make them more positive</strong> (s18, AU Consumer Law)</td>
+      <td>Admin can only approve or reject &mdash; no edit capability in the moderation UI. What the buyer wrote is what gets published.</td>
+    </tr>
+    <tr>
+      <td><strong>No &ldquo;review gating&rdquo;</strong> (asking only happy customers)</td>
+      <td>Every delivered order triggers a review request. We don&rsquo;t pre-screen for satisfaction.</td>
+    </tr>
+    <tr>
+      <td><strong>Negative reviews must not be hidden</strong></td>
+      <td>Rejection is allowed only for clear policy violations (PII, libel, off-topic, obvious fakes), not for low ratings.</td>
+    </tr>
+    <tr>
+      <td><strong>Audit trail for moderation decisions</strong></td>
+      <td>Every approve / reject action records the moderator, timestamp, and (for rejections) reason &mdash; queryable if ever needed.</td>
+    </tr>
+    <tr>
+      <td><strong>Reply to reviews publicly</strong></td>
+      <td>Admin can post a reply to any approved review &mdash; same way professional shops handle Google reviews. Builds trust further.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="box box-amber">
+  <strong>What this implementation will not do:</strong>
+  <ul>
+    <li><span class="pill pill-bad">No</span> Display fake / seed reviews to real shoppers (that&rsquo;s a Google penalty trigger and an ACCC misleading-conduct risk).</li>
+    <li><span class="pill pill-bad">No</span> Edit review text to soften criticism.</li>
+    <li><span class="pill pill-bad">No</span> Hide low-rating reviews from the page or the schema.</li>
+    <li><span class="pill pill-bad">No</span> Solicit reviews in exchange for discounts (incentivised reviews must be disclosed under AU law &mdash; cleaner to skip the practice entirely).</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ========== 6. SCHEMA ========== -->
+<h2><span class="section-num">6.</span> The Schema.org wiring (already in place)</h2>
+
+<p style="font-size: 13px;">The product detail page already emits a Schema.org <code>Product</code> JSON-LD block. Once reviews exist for a product, the implementation splices two extra fields into that block:</p>
+
+<div class="two-col">
+  <div class="card">
+    <h4>AggregateRating</h4>
+    <p style="font-size: 12.5px; margin: 0;">Drives the <strong>star result</strong> in Google search. Includes the average rating, review count, and best/worst rating bounds.</p>
+  </div>
+  <div class="card">
+    <h4>Review[] array</h4>
+    <p style="font-size: 12.5px; margin: 0;">Up to ten individual reviews per product, each with author name, rating, date, and review body. Rounds out the rich-result eligibility.</p>
+  </div>
+</div>
+
+<p style="font-size: 13px;">Both schemas validate against Google&rsquo;s Rich Results Test and the Schema.org validator. They&rsquo;re also picked up by ChatGPT, Perplexity, and Google AI Overviews when those systems crawl the page.</p>
+
+<hr class="divider">
+
+<!-- ========== 7. SUMMARY OF VALUE ========== -->
+<h2><span class="section-num">7.</span> What this delivers, in one table</h2>
+
+<table>
+  <thead>
+    <tr><th style="width: 240px;">Area</th><th>What you get</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>SEO &mdash; rich results</strong></td>
+      <td>Star ratings + review counts in Google search listings, on every product with at least a small number of approved reviews. Direct CTR uplift.</td>
+    </tr>
+    <tr>
+      <td><strong>SEO &mdash; AI search</strong></td>
+      <td>Real reviews are a strong citation signal for ChatGPT / Perplexity / AI Overviews. Pages get cited in answers about &ldquo;where to buy&rdquo; queries.</td>
+    </tr>
+    <tr>
+      <td><strong>Conversion</strong></td>
+      <td>Verified-buyer reviews close the trust gap that hesitates first-time B2B buyers, particularly when freight, GST, or product unfamiliarity is in play.</td>
+    </tr>
+    <tr>
+      <td><strong>Brand</strong></td>
+      <td>Visible social proof that Chem Connect is an actual marketplace with real customers &mdash; especially valuable while the brand is still being established.</td>
+    </tr>
+    <tr>
+      <td><strong>Competitive moat</strong></td>
+      <td>The accumulated review base is the one thing a future competitor genuinely can&rsquo;t replicate quickly. Compounds with every approved review.</td>
+    </tr>
+    <tr>
+      <td><strong>Compliance</strong></td>
+      <td>Built to pass both Google&rsquo;s review policy and the Australian Consumer Law from day one &mdash; verified buyers, no editing, no review gating, full audit trail.</td>
+    </tr>
+    <tr>
+      <td><strong>Operational load</strong></td>
+      <td>Self-running. Email triggers automatically off the existing scheduled-campaign system. Moderation is a single Approve / Reject click per review.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ========== 8. RECOMMENDATION ========== -->
+<h2><span class="section-num">8.</span> Recommendation</h2>
+
+<p style="font-size: 14px;">Build it &mdash; alongside the rest of the SEO Optimisation Plan. It&rsquo;s the single highest-leverage SEO addition that isn&rsquo;t already in scope, and the existing infrastructure (schema, UI block, AggregateRating wiring) means most of the work is glue rather than greenfield.</p>
+
+<p style="font-size: 13px;">There&rsquo;s no version of Chem Connect at scale where customer reviews aren&rsquo;t one of the most-touched parts of the platform &mdash; SEO, conversion, AI search, brand, all reinforce each other through this one feature. The longer the collection flow runs, the larger the moat becomes.</p>
+
+<div class="box">
+  <strong>Default position if not built:</strong> the existing &ldquo;No reviews yet &mdash; be the first&rdquo; placeholder remains visible, the AggregateRating schema stays disabled, and the product pages render as plain blue links in search results. Nothing breaks &mdash; but the rich-result, AI-citation, and trust upsides described above don&rsquo;t materialise.
+</div>
+
+<div class="footer">
+  Companion to the Chem Connect SEO Optimisation Plan &middot; Reviews are a single-feature enhancement, scoped independently of the broader plan and ready to ship into the existing infrastructure.
+</div>
+
+</body>
+</html>

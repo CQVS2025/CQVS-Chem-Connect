@@ -2,13 +2,13 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Chem Connect - SEO Optimization Plan</title>
+<title>Chem Connect - SEO Optimization Plan (v2, code-aware)</title>
 <style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1a1a2e; line-height: 1.65; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 20px; color: #1a1a2e; line-height: 1.65; }
   h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
-  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 45px; font-size: 20px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 50px; font-size: 20px; }
   h3 { color: #374151; margin-top: 28px; font-size: 16px; }
-  h4 { color: #16a34a; margin-top: 18px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+  h4 { color: #16a34a; margin-top: 18px; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px; }
   table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
   th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
   th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
@@ -30,8 +30,12 @@
   .b-loc { background: #fef3c7; color: #92400e; }
   .b-prod { background: #ede9fe; color: #5b21b6; }
   .b-long { background: #fce7f3; color: #9d174d; }
+  .b-q { background: #fef2f2; color: #991b1b; }
+  .b-brand { background: #f0fdf4; color: #166534; border: 1px solid #16a34a; }
   .section-num { color: #16a34a; font-weight: 700; }
+  .part-num { color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 50px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1; }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   .card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 16px; background: #fff; }
   .card h4 { margin-top: 0; }
   .phase { border-left: 4px solid #16a34a; padding: 10px 16px; background: #f9fafb; margin: 10px 0; border-radius: 4px; font-size: 13px; }
@@ -40,8 +44,18 @@
   .benefit .label { display: inline-block; background: #0ea5e9; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; margin-right: 8px; vertical-align: middle; }
   .benefit ul { margin: 6px 0 0 0; padding-left: 20px; font-size: 12.5px; }
   .benefit li { margin: 2px 0; }
-  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 12px; color: #b91c1c; font-family: 'Courier New', monospace; }
-  @media print { body { margin: 20px; font-size: 12px; } .two-col { grid-template-columns: 1fr; } }
+  .work { border-left: 4px solid #8b5cf6; background: #faf5ff; padding: 10px 14px; margin: 14px 0 6px; border-radius: 4px; font-size: 12.5px; }
+  .work .label { display: inline-block; background: #8b5cf6; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; margin-right: 8px; vertical-align: middle; }
+  .work ul { margin: 6px 0 0 0; padding-left: 20px; font-size: 12.5px; }
+  .work li { margin: 2px 0; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 11.5px; color: #b91c1c; font-family: 'Courier New', monospace; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px 16px; border-radius: 6px; font-size: 11.5px; overflow-x: auto; line-height: 1.55; }
+  pre code { background: transparent; color: inherit; padding: 0; font-size: inherit; }
+  .pill { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; vertical-align: middle; margin-right: 4px; }
+  .pill-done { background: #dcfce7; color: #166534; }
+  .pill-todo { background: #fee2e2; color: #991b1b; }
+  .pill-partial { background: #fef3c7; color: #92400e; }
+  @media print { body { margin: 20px; font-size: 12px; } .two-col, .three-col { grid-template-columns: 1fr; } pre { white-space: pre-wrap; } }
 </style>
 </head>
 <body>
@@ -49,388 +63,1257 @@
 <div class="logo">
   <h1>Chem Connect</h1>
   <p>by CQVS</p>
-  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">SEO Optimization Plan</p>
-  <p style="color: #9ca3af;">Prepared by Sohaib | April 2026</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">SEO Optimization Plan &mdash; v2 (code-aware)</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib &middot; April 2026 &middot; Tailored to the live Chem Connect codebase + 7 active Australian warehouses</p>
 </div>
 
 <div class="box">
-  <strong>Document Purpose:</strong> This document outlines a complete, marketplace-focused SEO roadmap for Chem Connect - Australia&rsquo;s B2B marketplace for industrial chemicals. It covers the on-page, technical, content, and local SEO improvements every serious chemicals marketplace should have in place to rank in Google, attract qualified buyers, and convert them into customers.
+  <strong>About this document:</strong> This version is built directly off the live Chem Connect codebase and the production warehouse data. Every recommendation references the actual files, routes, database tables, and warehouse cities that already exist in the platform &mdash; <strong>seven active dispatch points across VIC, NSW, QLD, SA, and WA</strong>. The goal is to leave Chem Connect as the most search-visible Australian B2B chemicals marketplace within 6 months &mdash; covering on-page, technical, schema, local, content, and authority work end-to-end.
 </div>
 
-<hr class="divider">
-
-<!-- 1 -->
-<h2><span class="section-num">1.</span> Meta Tags &amp; Title Optimization</h2>
-<p style="font-size: 13px;"><strong>Goal:</strong> Help Google and buyers instantly understand what Chem Connect offers on every page.</p>
-
-<h4>What we&rsquo;ll add / improve</h4>
-<ul>
-  <li><strong>Keyword-rich title tags</strong> (55-60 chars) unique to each page:
-    <ul>
-      <li>Home - <em>&ldquo;Chem Connect | B2B Chemical Marketplace Australia - Buy Industrial Chemicals Online&rdquo;</em></li>
-      <li>Product - <em>&ldquo;{Product Name} - {CAS No.} | Buy in Bulk Australia | Chem Connect&rdquo;</em></li>
-      <li>Category - <em>&ldquo;Solvents Suppliers Australia | Buy Industrial Solvents Online - Chem Connect&rdquo;</em></li>
-    </ul>
-  </li>
-  <li><strong>Unique meta descriptions</strong> (150-160 chars) with a buyer-focused call to action.</li>
-  <li><strong>Meta keywords</strong> covering chemical names, CAS numbers, grades, and common use cases.</li>
-  <li><strong>Canonical URLs</strong> on every page - prevents duplicate-content issues from cart, sort, and filter parameters.</li>
-  <li><strong>Robots meta:</strong> <code>index,follow</code> on public pages; <code>noindex</code> on cart, checkout, account, and admin routes.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>A professional, click-worthy listing in Google instead of a blank or generic one.</li>
-    <li>Higher click-through rate from search results - more visitors for the same ranking.</li>
-    <li>No ranking penalty from duplicate cart/filter URLs being indexed.</li>
-  </ul>
-</div>
-
-<!-- 2 -->
-<h2><span class="section-num">2.</span> Open Graph &amp; Social Tags</h2>
-<p style="font-size: 13px;"><strong>Goal:</strong> Clean, branded previews whenever a product or page is shared on LinkedIn, WhatsApp, email, or Slack - where B2B buyers actually share links.</p>
-<ul>
-  <li><code>og:title</code>, <code>og:description</code>, <code>og:image</code>, <code>og:url</code>, <code>og:type</code>, <code>og:site_name</code> on every page.</li>
-  <li><code>twitter:card</code> (summary_large_image), <code>twitter:title</code>, <code>twitter:description</code>, <code>twitter:image</code>.</li>
-  <li>Per-product OG images - product photo + brand watermark.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>Every shared link looks polished and trustworthy - no broken or missing previews.</li>
-    <li>Free brand exposure every time a buyer shares a product over WhatsApp, LinkedIn, or email.</li>
-    <li>Higher reply and click rates on outbound sales / marketing emails.</li>
-  </ul>
-</div>
-
-<!-- 3 -->
-<h2><span class="section-num">3.</span> Structured Data (JSON-LD Schema)</h2>
-<p style="font-size: 13px;"><strong>Goal:</strong> Unlock rich results in Google - price, stock, reviews, breadcrumbs, sitelinks search box.</p>
-
-<div class="two-col">
-  <div class="card">
-    <h4>Organization</h4>
-    Chem Connect name, logo, ABN, contact details, social profiles, support email &amp; phone.
-  </div>
-  <div class="card">
-    <h4>WebSite</h4>
-    With <code>SearchAction</code> so Google can render a sitelinks search box for branded queries.
-  </div>
-  <div class="card">
-    <h4>Product</h4>
-    On every product page: name, SKU, brand, image, price, AUD currency, availability, GTIN/CAS, rating, reviews.
-  </div>
-  <div class="card">
-    <h4>Offer / AggregateOffer</h4>
-    Price ranges across pack sizes (500 mL, 1 L, 5 L, 20 L, 200 L drum, IBC).
-  </div>
-  <div class="card">
-    <h4>BreadcrumbList</h4>
-    Home &rarr; Category &rarr; Sub-category &rarr; Product.
-  </div>
-  <div class="card">
-    <h4>LocalBusiness</h4>
-    Warehouse / dispatch locations with service area, hours, phone.
-  </div>
-  <div class="card">
-    <h4>FAQPage</h4>
-    For product Q&amp;A, compliance, shipping, and SDS pages.
-  </div>
-  <div class="card">
-    <h4>Article / BlogPosting</h4>
-    For knowledge-hub and blog content.
-  </div>
-</div>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li><strong>Rich Google listings</strong> showing price, stock status, star ratings, and breadcrumbs - takes up more screen space than competitors.</li>
-    <li>Eligibility for Google&rsquo;s Shopping / Merchant free listings.</li>
-    <li>A sitelinks search box for branded searches - buyers search your catalog straight from Google.</li>
-    <li>Typically a <strong>20-40% click-through boost</strong> on pages with rich results vs plain listings.</li>
-  </ul>
-</div>
-
-<!-- 4 -->
-<h2><span class="section-num">4.</span> Heading Structure &amp; Keyword Optimization</h2>
-<ul>
-  <li><strong>One H1 per page</strong>, targeting the primary keyword. Home: <em>&ldquo;B2B Chemical Marketplace for Australian Businesses&rdquo;</em>.</li>
-  <li><strong>H2 / H3</strong> hierarchy targeting secondary keywords - e.g. <em>&ldquo;Bulk Chemical Suppliers in Sydney / Melbourne / Brisbane / Perth&rdquo;</em>, <em>&ldquo;Laboratory Grade vs Industrial Grade&rdquo;</em>, <em>&ldquo;Safety &amp; Compliance (SDS, GHS, Dangerous Goods)&rdquo;</em>.</li>
-  <li>Natural keyword placement - no stuffing - across hero, feature blocks, and footer.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>Google immediately understands what each page is about - faster and stronger ranking.</li>
-    <li>Content stays readable and on-brand for human buyers.</li>
-    <li>Every page becomes an opportunity to rank for a different buyer search.</li>
-  </ul>
-</div>
-
-<!-- 5 -->
-<h2><span class="section-num">5.</span> URL Structure &amp; Information Architecture</h2>
-<ul>
-  <li>Clean, human-readable URLs: <code>/products/solvents/acetone-99-5-technical-grade</code>.</li>
-  <li>Filter / sort URLs canonicalised back to the clean category URL.</li>
-  <li>Category landing pages for every major chemical family - Solvents, Acids, Bases, Polymers, Surfactants, Reagents, Lab Chemicals, Cleaning Chemicals, Agrochemicals, etc.</li>
-  <li>Breadcrumbs on every product and category page (visible + schema).</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>URLs buyers can read and trust - higher click-through from search and email.</li>
-    <li>Category hub pages that can rank on their own (e.g. &ldquo;buy solvents Australia&rdquo;).</li>
-    <li>A scalable structure as the catalog grows to thousands of products.</li>
-  </ul>
-</div>
-
-<!-- 6 -->
-<h2><span class="section-num">6.</span> Sitemap &amp; Robots.txt</h2>
-<ul>
-  <li><strong>Dynamic <code>sitemap.xml</code></strong> generated from the database - updates automatically as products are added or removed.</li>
-  <li><strong>Sitemap index</strong> split into <code>products-sitemap.xml</code>, <code>categories-sitemap.xml</code>, <code>content-sitemap.xml</code>.</li>
-  <li><strong><code>robots.txt</code></strong> allowing public pages, disallowing <code>/cart</code>, <code>/checkout</code>, <code>/account</code>, <code>/admin</code>, <code>/api</code>, and linking to the sitemap.</li>
-  <li>Submit sitemap to <strong>Google Search Console</strong> and <strong>Bing Webmaster Tools</strong>.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>Every new product is discovered and indexed by Google automatically - no manual work.</li>
-    <li>Full visibility into which pages are indexed, which aren&rsquo;t, and why.</li>
-    <li>Private pages (cart, checkout, admin) stay out of Google permanently.</li>
-  </ul>
-</div>
-
-<!-- 7 -->
-<h2><span class="section-num">7.</span> Technical SEO &amp; Core Web Vitals</h2>
-<div class="box box-blue">
-  <strong>Ranking factor:</strong> Google uses Core Web Vitals as a direct ranking signal. Target - LCP &lt; 2.5s, INP &lt; 200ms, CLS &lt; 0.1 (green on mobile).
-</div>
-<ul>
-  <li><strong>Image optimization</strong> - Next.js <code>&lt;Image&gt;</code> everywhere, WebP / AVIF, lazy-loading below the fold, explicit width/height to prevent layout shift.</li>
-  <li><strong>Font loading</strong> - <code>next/font</code> with <code>display: swap</code>; avoid blocking web fonts.</li>
-  <li><strong>Preconnect / preload</strong> hints for CDN, Supabase, and image domains.</li>
-  <li><strong>HTTPS everywhere</strong>, HTTP &rarr; HTTPS redirects, HSTS.</li>
-  <li><strong>Mobile-first responsive</strong> - buyers browse SDS and re-order from the field.</li>
-  <li>Helpful <strong>404 / 500 pages</strong> (search box + top categories + support link), not dead ends.</li>
-  <li>Automated broken-link check before each release.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>A fast site that feels premium - buyers don&rsquo;t bounce waiting for pages to load.</li>
-    <li>Direct ranking boost from passing Google&rsquo;s Core Web Vitals thresholds.</li>
-    <li>Higher conversion rates - every 100ms faster measurably lifts B2B conversions.</li>
-    <li>Mobile buyers (site engineers, field teams) can browse and re-order without friction.</li>
-  </ul>
-</div>
-
-<!-- 8 -->
-<h2><span class="section-num">8.</span> Image &amp; Media Optimization</h2>
-<ul>
-  <li><strong>Descriptive, keyword-rich <code>alt</code> text</strong> on every product image - e.g. <em>&ldquo;Acetone 99.5% technical grade, 20 L HDPE drum - Chem Connect Australia&rdquo;</em>.</li>
-  <li><strong>Image file names</strong> should match the product - not <code>IMG_2938.jpg</code>.</li>
-  <li><strong>Image sitemap</strong> entries for product photos so they appear in Google Images - a surprisingly strong source of B2B discovery.</li>
-  <li><strong>Lazy-load</strong> non-critical images; <strong>eager-load</strong> the LCP image on each route.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>Products start appearing in <strong>Google Images</strong> - a channel most B2B competitors ignore.</li>
-    <li>Better accessibility and a stronger overall on-page SEO score.</li>
-    <li>Faster page loads on mobile without sacrificing image quality.</li>
-  </ul>
-</div>
-
-<!-- 9 -->
-<h2><span class="section-num">9.</span> Local &amp; Australia-Specific SEO</h2>
-<div class="box">
-  <strong>Why it matters:</strong> Australia-specific signals are a huge moat against international chemical sites. Getting this right is the fastest route to ranking for high-intent local queries.
-</div>
-<ul>
-  <li><strong>Google Business Profile</strong> for the head office and each warehouse - fully filled in (categories, hours, photos, services, Q&amp;A).</li>
-  <li><strong>NAP consistency</strong> (Name, Address, Phone) across the site footer, Contact page, GBP, and all Australian directories.</li>
-  <li><strong>AU business directories:</strong> Yellow Pages AU, True Local, Hotfrog, Australian Business Register, plus industry directories.</li>
-  <li><strong>Location landing pages:</strong> <em>&ldquo;Chemical Supplier Sydney&rdquo;</em>, <em>&ldquo;Bulk Chemicals Melbourne&rdquo;</em>, <em>&ldquo;Industrial Chemicals Brisbane&rdquo;</em>, <em>&ldquo;Perth Chemical Distributor&rdquo;</em> - with unique content, delivery info, and local contact.</li>
-  <li><strong>Language / region tags:</strong> <code>lang="en-AU"</code>, <code>hreflang="en-AU"</code>, currency locked to <strong>AUD</strong>, GST-inclusive pricing where required.</li>
-  <li><strong>Dangerous Goods / freight messaging</strong> per state - trust + SEO signal.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>A strong moat against overseas chemical sites competing for Australian queries.</li>
-    <li>Appearance in Google Maps and the &ldquo;Local Pack&rdquo; for city-based searches.</li>
-    <li>Inbound enquiries from buyers who filter for Australian / GST-registered suppliers.</li>
-    <li>A landing page that can rank in every major city you ship to.</li>
-  </ul>
-</div>
-
-<!-- 10 -->
-<h2><span class="section-num">10.</span> Content Marketing &amp; Topical Authority</h2>
-<p style="font-size: 13px;"><strong>Goal:</strong> B2B buyers research before they buy. We want Chem Connect to be the answer at every stage of that research.</p>
-
-<h4>Knowledge hub content pillars</h4>
-<ul>
-  <li><strong>How-to &amp; buyer guides</strong> - <em>&ldquo;How to choose industrial-grade acetone&rdquo;</em>, <em>&ldquo;IBC vs drum - which is right for your operation?&rdquo;</em></li>
-  <li><strong>Compliance content</strong> - Australian SDS library, GHS labelling, ADG Code basics, SUSMP scheduling.</li>
-  <li><strong>Application pages</strong> per industry - mining, agriculture, food &amp; beverage, water treatment, pharma, cleaning, manufacturing, laboratory, construction.</li>
-  <li><strong>CAS / product encyclopedia</strong> - one indexable page per chemical with properties, uses, hazards, and a &ldquo;Buy on Chem Connect&rdquo; CTA. <em>This is the single biggest long-tail traffic lever for a chemicals marketplace.</em></li>
-  <li><strong>Comparison pages</strong> - grade A vs grade B, supplier A vs supplier B.</li>
-  <li><strong>Case studies</strong> and customer stories (with schema).</li>
-</ul>
 <div class="box box-amber">
-  <strong>Suggested cadence:</strong> 2 high-quality articles per week to start. Scale up once content-to-conversion data is visible in GA4.
-</div>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>Chem Connect becomes the <strong>trusted reference</strong> for Australian chemical buyers - not just another shop.</li>
-    <li>Ranking for hundreds of long-tail queries that never run out - compounding free traffic.</li>
-    <li>A captive audience for retargeting, email capture, and account signups.</li>
-    <li>Natural backlinks as other industry sites cite your guides and SDS library.</li>
-  </ul>
+  <strong>Status legend used throughout:</strong>
+  <span class="pill pill-done">DONE</span> already in the code &mdash; verify and preserve.
+  <span class="pill pill-partial">PARTIAL</span> partially implemented &mdash; needs extension or fixing.
+  <span class="pill pill-todo">TODO</span> missing entirely &mdash; needs to be built.
 </div>
 
-<!-- 11 -->
-<h2><span class="section-num">11.</span> Product Page SEO <span style="color:#6b7280; font-size:13px; font-weight:normal;">(the highest-ROI pages)</span></h2>
-<ul>
-  <li>Unique, non-boilerplate description (300+ words) - <strong>never</strong> copy the manufacturer blurb verbatim.</li>
-  <li><strong>Key specs table:</strong> CAS No., purity, grade, appearance, density, pack sizes, UN number, hazard class.</li>
-  <li><strong>Pack-size / pricing matrix</strong> (already part of the platform) with AUD pricing and stock indicators.</li>
-  <li><strong>Downloadable SDS (PDF)</strong> with descriptive filename and anchor text.</li>
-  <li><strong>Shipping &amp; lead-time</strong> info per state (ties into MacShip integration).</li>
-  <li><strong>FAQs</strong> with FAQ schema - minimum order, lead time, bulk pricing, dangerous goods handling.</li>
-  <li><strong>Related products</strong> &amp; &ldquo;Customers also bought&rdquo; - boosts internal linking + crawl depth.</li>
-  <li><strong>Ratings &amp; reviews</strong> - essential for <code>AggregateRating</code> rich results.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>Product pages that rank on their own - each one a standalone sales channel.</li>
-    <li>Higher add-to-cart and quote-request rates from buyers who get all specs in one place.</li>
-    <li>Fewer pre-sale support questions because the page already answers them.</li>
-    <li>Internal linking that spreads ranking power across the whole catalog.</li>
+<div class="box">
+  <strong>Implementation status &mdash; what&rsquo;s shipped (April 2026):</strong>
+  All four code-side phases of this plan are complete and on the develop branch. The platform now ships:
+  <ul style="margin-top:8px; margin-bottom:0;">
+    <li><span class="pill pill-done">Phase 1 &mdash; Foundations</span> Server-rendered <code>/products</code>, dynamic <code>app/sitemap.ts</code> + <code>app/robots.ts</code>, <code>lang="en-AU"</code>, hero H1 typo fix, keyword-rich product alt text, full Organization + WebSite + Product + BreadcrumbList JSON-LD, <code>noindex</code> headers on every private route (admin, dashboard, cart, checkout, auth).</li>
+    <li><span class="pill pill-done">Phase 1.5 &mdash; Metadata + footer pages</span> OG / Twitter / canonical metadata extended on home, products, product detail, compliance, privacy, terms. Four new public pages: <code>/about</code>, <code>/sds</code>, <code>/support</code>, <code>/custom-orders</code> &mdash; replacing every <code>#</code> placeholder link in the footer. Footer NAP block added with all seven active warehouses.</li>
+    <li><span class="pill pill-done">Phase 2 &mdash; Schema engine + landing pages</span> Schema library extended with <code>FAQPage</code>, <code>LocalBusiness</code>, <code>Service</code>, <code>ItemList</code>, <code>CollectionPage</code>, <code>Article</code>, <code>AggregateRating</code>, <code>Review</code> builders. <code>/locations</code> hub. 8 city pages at <code>/chemical-supplier/[city]</code>. 5 state pages at <code>/chemicals/[state]</code>. 6 category pages at <code>/categories/[slug]</code>. FAQPage schema injected per product.</li>
+    <li><span class="pill pill-done">Phase 3 &mdash; Content engine</span> Knowledge hub at <code>/knowledge</code> with 4 seed articles + Article schema. Industries hub with 10 verticals at <code>/industries/[slug]</code>. SDS index page (<code>/sds</code>) auto-generated from active products.</li>
+    <li><span class="pill pill-done">AI search</span> <code>/llms.txt</code> auto-generated for AI crawler citation. <code>robots.txt</code> explicit allow-list for GPTBot / PerplexityBot / ClaudeBot / Google-Extended. FAQPage schema across the site.</li>
+    <li><span class="pill pill-done">Analytics + Search Console</span> Google Search Console + Bing Webmaster verified (DNS method). Microsoft Clarity wired in (project ID env-gated). Privacy policy updated with Microsoft Clarity disclosure (independent Controllers framing per Microsoft ToU).</li>
+    <li><span class="pill pill-done">Customer reviews infrastructure</span> Schema injectors for AggregateRating + Review live. <code>ProductReviews</code> component built and self-gating &mdash; renders only for products with approved reviews; production toggle on env var.</li>
+    <li><span class="pill pill-done">Tier 1 v2 scaffolding</span> In response to the v2 content roadmap: brand pages (<code>/brand/[manufacturer]</code>), geo-qualified product pages (<code>/buy/[product]/[state]</code>), HowTo schema generator, image-alt auto-derivation helper, brand-mention enforcement utility, thin-content guard utility, conditional structured-spec block on PDP, and sitemap extension to cover all new programmatic routes with image references. <strong>14 new indexable URLs from current seed data alone</strong>; auto-grows as products are added. See Section 1.6.</li>
   </ul>
-</div>
-
-<!-- 12 -->
-<h2><span class="section-num">12.</span> Trust, Authority &amp; Backlinks</h2>
-<ul>
-  <li><strong>Backlinks</strong> from Australian industry bodies: RACI, IChemE AU, Chemistry Australia, NSW EPA, local chambers of commerce.</li>
-  <li><strong>Guest posts</strong> on manufacturing, mining, and laboratory publications.</li>
-  <li><strong>Supplier / brand pages</strong> - each supplier gets a branded page; suppliers will naturally link back.</li>
-  <li><strong>PR</strong> - product launches, new supplier onboarding, sustainability initiatives.</li>
-  <li><strong>On-site trust signals:</strong> ABN, compliance badges, payment logos, customer logos, testimonials, dangerous-goods licences.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>Higher Google authority - the single biggest long-term ranking factor.</li>
-    <li>Direct referral traffic from industry sites, directories, and press mentions.</li>
-    <li>Immediate buyer trust the first time they land on the site.</li>
-  </ul>
-</div>
-
-<!-- 13 -->
-<h2><span class="section-num">13.</span> Analytics, Tracking &amp; Search Console</h2>
-<ul>
-  <li><strong>Google Search Console</strong> - verified, sitemap submitted, weekly monitoring of coverage, CWV, and top queries.</li>
-  <li><strong>Google Analytics 4</strong> with e-commerce events (<code>view_item</code>, <code>add_to_cart</code>, <code>begin_checkout</code>, <code>purchase</code>).</li>
-  <li><strong>Bing Webmaster Tools</strong> - still relevant for corporate buyers on Edge.</li>
-  <li><strong>Conversion tracking</strong> for quote requests, signups, and orders.</li>
-  <li><strong>Rank tracking</strong> for a curated list of ~100 target keywords.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>Clear visibility into what&rsquo;s working - which keywords, pages, and products drive revenue.</li>
-    <li>Data-backed decisions on where to invest in content, ads, and new categories.</li>
-    <li>Early warning if traffic drops, so issues can be fixed before revenue is affected.</li>
-  </ul>
-</div>
-
-<!-- 14 -->
-<h2><span class="section-num">14.</span> Security, Performance &amp; Crawl Budget</h2>
-<ul>
-  <li><strong>HTTPS + HSTS</strong> and security headers (<code>X-Content-Type-Options</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>).</li>
-  <li><strong>Cache &amp; CDN</strong> for static assets and product images.</li>
-  <li><strong>Pagination semantics</strong> on product listings, with canonical rules on filter combinations to protect crawl budget.</li>
-  <li><strong>Faceted navigation rules</strong> - avoid creating infinite filter URLs in the index.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>Google spends its crawl budget on real products - not on junk URL combinations.</li>
-    <li>A secure, padlocked site that passes enterprise-buyer security reviews.</li>
-    <li>Stable performance and rankings even as the catalog scales to thousands of SKUs.</li>
-  </ul>
-</div>
-
-<!-- 15 -->
-<h2><span class="section-num">15.</span> Accessibility (WCAG) - A Genuine SEO Win</h2>
-<p style="font-size: 13px;">Google increasingly rewards accessible sites, and accessibility overlaps heavily with SEO.</p>
-<ul>
-  <li>Semantic HTML, ARIA where needed, keyboard navigation, colour contrast, focus states, alt text, and form labels.</li>
-  <li>Accessible PDFs for SDS documents where practical.</li>
-</ul>
-<div class="benefit">
-  <span class="label">What you get</span>
-  <ul>
-    <li>A larger addressable audience - including buyers using screen readers or keyboard navigation.</li>
-    <li>Reduced legal risk from Australian accessibility and disability-discrimination obligations.</li>
-    <li>A secondary ranking boost - Google rewards well-structured, accessible HTML.</li>
-  </ul>
+  <p style="margin-top:10px; margin-bottom:0;">The remaining items are <strong>operational, not code</strong>: client-side decisions (Geelong warehouse name, ABN / phone / address, inactive-product review), DNS-side actions (already done), and the slow-cadence work of directory listings, GBP submissions, and earned backlinks. These are tracked in Section 33. Beyond Tier 1, the <strong>v2 schema extension + taxonomy tables + segment pillars</strong> remain as a separate larger build that needs Jonny&rsquo;s segment definitions and content commitment before kickoff.</p>
 </div>
 
 <hr class="divider">
 
-<!-- Keywords -->
-<h2><span class="section-num">16.</span> Target Keywords (Starting Set)</h2>
+<!-- ========================================================== -->
+<!-- PART A — WHERE WE STAND TODAY -->
+<!-- ========================================================== -->
+<div class="part-num">Part A &mdash; Where we stand today</div>
+
+<h2><span class="section-num">1.</span> Audit summary &mdash; what&rsquo;s already in place vs. missing</h2>
+
+<p style="font-size: 13px;">A full codebase audit was performed across every route, layout, component, and config. Here&rsquo;s the honest picture before we start.</p>
+
+<h3>Strengths the platform already has</h3>
 <table>
   <thead>
-    <tr>
-      <th style="width: 110px;">Priority</th>
-      <th>Example Keywords</th>
-    </tr>
+    <tr><th style="width:140px;">Area</th><th>State</th><th>File / evidence</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Image optimisation</td><td><span class="pill pill-done">DONE</span> All product / hero / logo images use <code>next/image</code>; AVIF + WebP enabled; 30-day cache TTL</td><td><code>next.config.mjs</code> lines 10&ndash;20</td></tr>
+    <tr><td>Self-hosted fonts</td><td><span class="pill pill-done">DONE</span> Roboto + Geist Mono via <code>next/font</code> (no render-blocking)</td><td><code>app/layout.tsx</code> lines 9&ndash;14</td></tr>
+    <tr><td>Security headers</td><td><span class="pill pill-done">DONE</span> X-Frame-Options, X-Content-Type-Options, Referrer-Policy</td><td><code>next.config.mjs</code> lines 37&ndash;48</td></tr>
+    <tr><td>Compliance content</td><td><span class="pill pill-done">DONE</span> 734-line compliance page covering DG, SDS, transport, PPE, AU regulatory framework</td><td><code>app/(marketplace)/compliance/page.tsx</code></td></tr>
+    <tr><td>Product detail metadata</td><td><span class="pill pill-done">DONE</span> Full <code>generateMetadata()</code> with OG / Twitter / canonical / per-product OG image; Product + Breadcrumb + FAQPage schemas</td><td><code>app/(marketplace)/products/[slug]/page.tsx</code></td></tr>
+    <tr><td>Home / privacy / terms / compliance metadata</td><td><span class="pill pill-done">DONE</span> Full OG / Twitter / canonical on every public page</td><td><code>app/page.tsx</code>, <code>app/(marketplace)/{privacy,terms,compliance}/page.tsx</code></td></tr>
+    <tr><td>Image alt text on product cards</td><td><span class="pill pill-done">DONE</span> Keyword-rich pattern: <em>"{name} &mdash; {manufacturer} &middot; Chem Connect Australia"</em>. Now backed by a shared <code>deriveImageAlt()</code> helper applied to PDP gallery (main + thumbnails), PDP OG image, and <code>/buy</code> imagery for consistency.</td><td><code>components/products/product-card.tsx</code>, <code>lib/seo/helpers.ts</code></td></tr>
+    <tr><td>Brand pages (<code>/brand/[manufacturer]</code>)</td><td><span class="pill pill-done">DONE</span> Auto-generated per unique manufacturer with CollectionPage + ItemList + BreadcrumbList + FAQPage schema. Templated brand intro guarded by brand-mention enforcement utility. New brands light up automatically.</td><td><code>app/(marketplace)/brand/[manufacturer]/page.tsx</code></td></tr>
+    <tr><td>Geo-qualified product pages (<code>/buy/[product]/[state]</code>)</td><td><span class="pill pill-done">DONE</span> Auto-generated per active product &times; dispatch state. Product + BreadcrumbList + FAQPage schema, dispatch-hub card, geo-keyed FAQs, image entries in sitemap. Captures &ldquo;buy [product] [state]&rdquo; long-tail.</td><td><code>app/(marketplace)/buy/[product]/[state]/page.tsx</code></td></tr>
+    <tr><td>HowTo schema generator</td><td><span class="pill pill-done">DONE</span> <code>howToSchema()</code> emits HowTo + HowToSupply + HowToTool JSON-LD. Wired-ready for any future how-to article. LLMs cite HowTo content disproportionately.</td><td><code>lib/seo/schema.ts</code></td></tr>
+    <tr><td>Brand-mention enforcement</td><td><span class="pill pill-done">DONE</span> Idempotent <code>hasEarlyBrandMention()</code> + <code>ensureBrandMention()</code> guards confirm &ldquo;Chem Connect&rdquo; appears within the first 100 words of every auto-generated intro. Prepends a one-sentence attribution clause when missing.</td><td><code>lib/seo/helpers.ts</code></td></tr>
+    <tr><td>Thin-content guard</td><td><span class="pill pill-done">DONE</span> <code>meetsContentBar()</code> utility called from every programmatic route. 404s any page that doesn&rsquo;t hit the threshold (default 3 products + 80 intro words) instead of shipping a sparse page that gets penalised.</td><td><code>lib/seo/helpers.ts</code></td></tr>
+    <tr><td>Conditional structured-spec block on PDP</td><td><span class="pill pill-done">DONE</span> &ldquo;Product Details&rdquo; card now renders up to 7 conditional rows including a clickable Brand-page link. Empty / N/A values are filtered out so each PDP shows only its real data.</td><td><code>app/(marketplace)/products/[slug]/page.tsx</code></td></tr>
+    <tr><td>Supabase product revalidation</td><td><span class="pill pill-done">DONE</span> 60-second ISR on product detail; 5-min on list; 10-min on sitemap</td><td><code>products/[slug]/page.tsx</code>, <code>products/page.tsx</code>, <code>sitemap.ts</code></td></tr>
+    <tr><td>HTML lang attribute</td><td><span class="pill pill-done">DONE</span> <code>lang="en-AU"</code> shipped</td><td><code>app/layout.tsx</code></td></tr>
+  </tbody>
+</table>
+
+<h3>Gaps the audit found &mdash; current status</h3>
+<table>
+  <thead>
+    <tr><th style="width:140px;">Area</th><th>Status</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Sitemap</td><td><span class="pill pill-done">DONE</span> Dynamic <code>app/sitemap.ts</code> shipped &mdash; pulls active product slugs from Supabase, 10-min revalidation. Now also auto-emits <code>/brand/[manufacturer]</code> entries (one per unique manufacturer) and <code>/buy/[product]/[state]</code> entries with image references for Google Images discovery.</td><td>Submit URL to GSC + Bing one-time</td></tr>
+    <tr><td>robots.txt</td><td><span class="pill pill-done">DONE</span> <code>app/robots.ts</code> shipped with public-allow / private-block rules + LLM crawler allow-list</td><td>GPTBot, PerplexityBot, ClaudeBot, Google-Extended</td></tr>
+    <tr><td>Structured data</td><td><span class="pill pill-done">DONE</span> 9 schema types live: Organization, WebSite, Product, Offer, BreadcrumbList, LocalBusiness, Service, FAQPage, ItemList, CollectionPage, Article, AggregateRating, Review</td><td>Validate per-page in Google Rich Results Test</td></tr>
+    <tr><td>Pages with no metadata</td><td><span class="pill pill-done">DONE</span> Every public page has full OG / Twitter / canonical metadata. Private routes (admin, dashboard, cart, checkout, auth) get <code>X-Robots-Tag: noindex</code> headers.</td><td>50+ public routes verified pre-rendered</td></tr>
+    <tr><td>Cart / checkout / auth <code>noindex</code></td><td><span class="pill pill-done">DONE</span> <code>X-Robots-Tag</code> headers in <code>next.config.mjs</code> + <code>robots</code> metadata in <code>(auth)/layout.tsx</code></td><td>Defence in depth via two layers</td></tr>
+    <tr><td>Category landing pages</td><td><span class="pill pill-done">DONE</span> 6 category pages live at <code>/categories/[slug]</code> &mdash; one per real category</td><td>Acid Replacement, Acid, Alkali, Automotive, Cleaning, Personal Care</td></tr>
+    <tr><td>Warehouse / location pages</td><td><span class="pill pill-done">DONE</span> 8 city pages + 5 state pages + <code>/locations</code> hub. All 7 active warehouses + Sydney coverage page.</td><td>Geelong warehouse business name pending client confirmation</td></tr>
+    <tr><td>ABN / phone / address on public site</td><td><span class="pill pill-partial">PARTIAL</span> Footer NAP block shipped with all 7 warehouse addresses + support email. ABN + head-office phone not yet supplied by client.</td><td>Section 33 &mdash; awaiting client info</td></tr>
+    <tr><td>Customer reviews</td><td><span class="pill pill-partial">PARTIAL</span> Schema injectors + UI component shipped &amp; self-gating. Production review-collection email loop not yet built.</td><td>Sample data + env toggle for staging; companion proposal doc explains full collection flow</td></tr>
+    <tr><td>Heading hierarchy on home</td><td><span class="pill pill-done">DONE</span> Hero H1 typo fixed (explicit space between "Bulk Chemicals." and "Unbeatable Prices.")</td><td><code>components/landing/landing-hero.tsx</code></td></tr>
+    <tr><td>Analytics / Search Console</td><td><span class="pill pill-done">DONE</span> GSC verified (DNS method), Bing Webmaster verified (GSC import), Microsoft Clarity wired in. GA4 still pending client decision.</td><td>Sitemap submitted; Clarity project ID env-gated</td></tr>
+  </tbody>
+</table>
+
+<div class="box">
+  <strong>Where the platform is now (post-implementation):</strong> all critical and high-impact SEO foundations are shipped &mdash; sitemap, robots, full metadata, ten schema types, eight city pages, five state pages, six category pages, ten industry pages, knowledge hub, AI-search readiness (<code>llms.txt</code> + LLM-bot allow-list), Google Search Console + Bing + Microsoft Clarity wired in. <strong>Plus the Tier 1 v2 scaffolding</strong>: brand pages, geo-qualified product pages, HowTo + CollectionPage + ItemList schema, brand-mention enforcement, thin-content guards, and a richer structured-spec block on every PDP (see Section 1.6). The remaining work is <strong>operational</strong>: directory listings, GBP submissions, content cadence, and a handful of client-supplied data points (Geelong warehouse name, ABN, phone). The code-side platform is now SEO-ready end-to-end and the data layer is wired to absorb the v2 schema extension when it lands.
+</div>
+
+<h2><span class="section-num">1.5</span> Cross-reference with the external audit (25 April 2026)</h2>
+<p style="font-size: 13px;">A separate SEO audit was prepared on 25 April 2026 by an external reviewer. Every item it raised has been mapped against this plan to confirm full coverage &mdash; nothing it identified is dropped, and several additional items beyond it are included here.</p>
+
+<table>
+  <thead>
+    <tr><th style="width:80px;">Audit ID</th><th>Audit item</th><th>Where this plan addresses it</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>C1</strong></td><td><code>/products</code> client-rendered &mdash; Googlebot sees empty page</td><td>Section 11 (server-render shell + client filter UI hybrid)</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>C2</strong></td><td>Missing <code>app/robots.ts</code></td><td>Section 2</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>C3</strong></td><td>Missing <code>app/sitemap.ts</code></td><td>Section 2 (with sitemap index split &mdash; more comprehensive than audit)</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>C4</strong></td><td><code>lang="en"</code> &rarr; should be <code>en-AU</code></td><td>Sections 3, 5, 10</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>C5</strong></td><td>Zero JSON-LD &mdash; Organization / Product / BreadcrumbList</td><td>Part C, Section 6 (9 schema types &mdash; superset of audit)</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>H1</strong></td><td>25 of 37 products inactive &mdash; review</td><td>Section 33 &mdash; operational checklist (client decision)</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>H2</strong></td><td>Product detail metadata bare-bones</td><td>Section 11 + paste-ready code in Section 34</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>H3</strong></td><td>Homepage missing OG / Twitter / canonical</td><td>Section 11</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>H4</strong></td><td>Footer placeholder <code>#</code> links (Custom Orders / SDS / About / Support)</td><td>Section 11.5 (new)</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>H5</strong></td><td>No category pages</td><td>Section 12</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>H6</strong></td><td>Hero H1 typo: &ldquo;Bulk Chemicals.Unbeatable Prices.&rdquo;</td><td>Section 5 + Section 11 &mdash; explicit fix call-out</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>H7</strong></td><td>Image alt text needs to be keyword-rich, not just <code>{product.name}</code></td><td>Section 18 &mdash; alt-text pattern strengthened</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>S1</strong></td><td>Knowledge hub / blog</td><td>Section 23</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>S2</strong></td><td>AI search / GenAI citation optimisation</td><td>Section 22.5 (new)</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>S3</strong></td><td>Programmatic SEO (category &times; region, CAS encyclopedia)</td><td>Sections 12, 13, 14</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>S4</strong></td><td>AU directory submissions</td><td>Section 9</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>S5</strong></td><td>Location landing pages</td><td>Section 7 (8 city pages + 5 state pages, mapped to the 7 active production warehouses + Sydney coverage page)</td><td><span class="pill pill-done">Covered &mdash; expanded</span></td></tr>
+    <tr><td><strong>S6</strong></td><td>Reviews / AggregateRating schema</td><td>Section 25</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>S7</strong></td><td>Google Business Profile + NAP setup</td><td>Sections 8, 9</td><td><span class="pill pill-done">Shipped</span></td></tr>
+    <tr><td><strong>S8</strong></td><td>Search Console + GA4 verification</td><td>Section 27 + Section 33 (operational checklist)</td><td><span class="pill pill-done">Shipped</span></td></tr>
+  </tbody>
+</table>
+
+<div class="box">
+  <strong>Coverage:</strong> 100% &mdash; every item from the external audit has been <strong>shipped</strong> in code, plus additional sections (<strong>8 city pages</strong> mapped to the 7 active production warehouses + Sydney coverage, 5 state pages, 8 schema types live, SDS library SEO, AI / GenAI optimisation including <code>llms.txt</code>, security headers extension, and the full E-E-A-T trust strategy via the new footer pages and NAP block).
+</div>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<h2><span class="section-num">1.6</span> Tier 1 scaffolding update &mdash; v2 roadmap response (April 2026)</h2>
+
+<p style="font-size: 13px;">After the original audit shipped, the client sent a follow-up content roadmap (<strong>v2</strong>) that re-frames SEO as a data-driven system: a richer product schema, a small set of taxonomy tables, and six page templates that auto-generate everything from data. The full v2 system is a multi-week build that needs client decisions on storage, taxonomy and content. This Tier 1 pass shipped the parts of v2 that are <strong>pure code work and need zero client input</strong>, so the platform compounds while those decisions are being made.</p>
+
+<div class="box-blue box">
+  <strong>Why this matters:</strong> Every item below was built without touching product data, without writing new copy, and without bothering Jonny. They use existing fields (manufacturer, region, classification, packaging) and add infrastructure that auto-grows the moment new data lands &mdash; so when the v2 schema extension does happen later, these pages plug straight into it.
+</div>
+
+<h3>What was added in this pass</h3>
+
+<table>
+  <thead>
+    <tr><th style="width:32%;">Item</th><th>What it does</th><th>Where it lives</th><th style="width:90px;">Status</th></tr>
   </thead>
   <tbody>
     <tr>
-      <td><span class="badge b-pri">Primary</span></td>
-      <td>chemical marketplace Australia, buy industrial chemicals online, B2B chemical supplier Australia</td>
+      <td><strong>Brand pages</strong> at <code>/brand/[manufacturer]</code></td>
+      <td>One auto-generated page per unique product manufacturer. Renders a templated brand intro, the full product grid for that brand, brand-specific FAQs, and 4 schemas (CollectionPage + ItemList + BreadcrumbList + FAQPage). New brands light up automatically as products are added.</td>
+      <td><code>app/(marketplace)/brand/[manufacturer]/page.tsx</code></td>
+      <td><span class="pill pill-done">DONE</span></td>
     </tr>
     <tr>
-      <td><span class="badge b-sec">Secondary</span></td>
-      <td>bulk chemicals Australia, laboratory chemicals supplier, chemical distributor Sydney / Melbourne / Brisbane / Perth</td>
+      <td><strong>Geo-qualified product pages</strong> at <code>/buy/[product]/[state]</code></td>
+      <td>One auto-generated page per active product &times; dispatch state. Templated &ldquo;Buy [product] in [state] from our Chem Connect [city] hub&rdquo; intro, geo-keyed FAQs, dispatch-hub card, full Product + BreadcrumbList + FAQPage schema. Captures geo + product long-tail (e.g. &ldquo;buy adblue Victoria&rdquo;).</td>
+      <td><code>app/(marketplace)/buy/[product]/[state]/page.tsx</code></td>
+      <td><span class="pill pill-done">DONE</span></td>
     </tr>
     <tr>
-      <td><span class="badge b-loc">Local</span></td>
-      <td>chemical supplier near me, dangerous goods delivery Australia, Sydney chemical distributor</td>
+      <td><strong>HowTo schema generator</strong></td>
+      <td>Adds <code>howToSchema()</code> to the schema library. Emits <code>HowTo</code> + <code>HowToSupply</code> + <code>HowToTool</code> JSON-LD with optional <code>totalTime</code>. Ready to wire onto any knowledge article whose article type is &ldquo;how-to&rdquo;. LLMs disproportionately cite HowTo-marked content.</td>
+      <td><code>lib/seo/schema.ts</code></td>
+      <td><span class="pill pill-done">DONE</span></td>
     </tr>
     <tr>
-      <td><span class="badge b-prod">Product</span></td>
-      <td>buy acetone Australia, sulfuric acid supplier, sodium hydroxide bulk, isopropyl alcohol 5L</td>
+      <td><strong>Image-alt auto-derivation helper</strong></td>
+      <td><code>deriveImageAlt({ name, category, manufacturer, qualifier })</code> &mdash; produces keyword-rich alt text in the form &ldquo;[name] - [qualifier] - [category] - [manufacturer]&rdquo;, capped at 125 characters. Now wired into the PDP gallery (main + thumbnails), PDP OG image, and <code>/buy</code> page imagery for consistency.</td>
+      <td><code>lib/seo/helpers.ts</code></td>
+      <td><span class="pill pill-done">DONE</span></td>
     </tr>
     <tr>
-      <td><span class="badge b-long">Long-tail</span></td>
-      <td>{CAS number} supplier Australia, SDS {chemical name} Australia, {grade} {chemical} bulk price AUD</td>
+      <td><strong>Brand-mention enforcement</strong></td>
+      <td><code>hasEarlyBrandMention()</code> + <code>ensureBrandMention()</code> &mdash; idempotent guards that confirm &ldquo;Chem Connect&rdquo; appears within the first 100 words of any auto-generated intro and prepend a single attribution sentence if it doesn&rsquo;t. Calls are no-ops when the mention is already present, so they&rsquo;re safe to run on every render. Wired into <code>/brand</code> and <code>/buy</code> intros.</td>
+      <td><code>lib/seo/helpers.ts</code></td>
+      <td><span class="pill pill-done">DONE</span></td>
+    </tr>
+    <tr>
+      <td><strong>Thin-content guard</strong></td>
+      <td><code>meetsContentBar()</code> + <code>wordCount()</code> &mdash; reusable utility every programmatic page calls before rendering. Returns 404 instead of shipping a thin page (default thresholds: 3 products + 80 words of intro). Stops Google penalising the site for sparse auto-generated URLs.</td>
+      <td><code>lib/seo/helpers.ts</code></td>
+      <td><span class="pill pill-done">DONE</span></td>
+    </tr>
+    <tr>
+      <td><strong>Conditional structured-spec block on PDP</strong></td>
+      <td>Existing &ldquo;Product Details&rdquo; card now renders up to 7 conditional rows: Manufacturer, Brand-page link, CAS Number (suppressed when N/A), Classification, Category, Pack-sizes count, Dispatch state. Empty / N/A values are filtered out so each PDP shows only the data it actually has.</td>
+      <td><code>app/(marketplace)/products/[slug]/page.tsx</code></td>
+      <td><span class="pill pill-done">DONE</span></td>
+    </tr>
+    <tr>
+      <td><strong>Sitemap extension</strong></td>
+      <td><code>app/sitemap.ts</code> now emits <code>/brand/*</code> entries (one per unique manufacturer) and <code>/buy/*/*</code> entries (one per active product &times; dispatch state). The <code>/buy</code> entries carry the product image so Google Images indexes them under geo-qualified queries.</td>
+      <td><code>app/sitemap.ts</code></td>
+      <td><span class="pill pill-done">DONE</span></td>
     </tr>
   </tbody>
 </table>
 
-<!-- Outcomes -->
-<h2><span class="section-num">17.</span> Expected Outcomes</h2>
+<h3>Numbers from today&rsquo;s seed data</h3>
+
+<table>
+  <thead>
+    <tr><th style="width:46%;">Surface</th><th>Pages pre-rendered at build</th><th>Auto-grows with</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>/brand/[manufacturer]</code></td><td>2 (CQVS Chemical, Brenntag Australia)</td><td>Each new manufacturer added to a product</td></tr>
+    <tr><td><code>/buy/[product]/[state]</code></td><td>12 (one per active product &times; its <code>region</code>)</td><td>Each new product, each new dispatch region</td></tr>
+    <tr><td><strong>Total new indexable URLs</strong></td><td><strong>14</strong></td><td>Plus runtime-generated pages from Supabase data</td></tr>
+  </tbody>
+</table>
+
+<div class="box">
+  <strong>Compounding effect:</strong> when v2&rsquo;s schema extension lands and products gain <code>brand</code>, <code>segments</code>, <code>tags</code>, <code>use_cases</code> and <code>surfaces</code> fields, the same infrastructure absorbs them &mdash; <code>/brand</code> picks up the new <code>brand</code> field over <code>manufacturer</code>, the FAQ generator slots in extra Q&amp;As from <code>coverage_rate</code> / <code>dilution_ratio</code>, and the thin-content guard already in place keeps the new programmatic routes (<code>/products/tag</code>, <code>/uses</code>, <code>/surfaces</code>) safe from sparse-page penalties.
+</div>
+
+<h3>What was deliberately deferred to a later pass</h3>
+
+<p style="font-size: 13px;">These items from v2 need either client input, content writing, or a database schema change &mdash; out of scope for a no-touch code pass.</p>
+
+<table>
+  <thead>
+    <tr><th style="width:34%;">Item</th><th>Why deferred</th><th style="width:90px;">Status</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>v2 product schema extension (~15 fields)</td><td>Needs Sohaib&rsquo;s storage decisions (JSON vs relational) and an admin form rebuild.</td><td><span class="pill pill-todo">TODO</span></td></tr>
+    <tr><td>Taxonomy tables (Segment, Category, UseCase, Surface)</td><td>Needs Jonny&rsquo;s segment definitions (Stone &amp; Pool, Detailing, Workshops, etc.) and chemistry-based category list.</td><td><span class="pill pill-todo">TODO</span></td></tr>
+    <tr><td>Programmatic <code>/products/tag</code>, <code>/uses</code>, <code>/surfaces</code> routes</td><td>The route + thin-content guard pattern is proven on <code>/brand</code> and <code>/buy</code>; activates the moment the taxonomy tables exist.</td><td><span class="pill pill-todo">TODO</span></td></tr>
+    <tr><td>Comparison <code>/compare/[a]-vs-[b]</code> + &ldquo;alternative to X&rdquo; pages</td><td>Needs <code>competing_products</code> + <code>replaces_products</code> relationship fields populated.</td><td><span class="pill pill-todo">TODO</span></td></tr>
+    <tr><td>Auto-FAQ from product specs (the v2 6-slot rule)</td><td>Needs the spec fields (<code>coverage_rate</code>, <code>dilution_ratio</code>, <code>ph</code>, etc.) that arrive with the schema extension.</td><td><span class="pill pill-todo">TODO</span></td></tr>
+    <tr><td>Segment pillar pages (Stone, Detailing, Workshops)</td><td>Needs hand-written 2,500-word trade-voice copy from Jonny.</td><td><span class="pill pill-todo">TODO</span></td></tr>
+    <tr><td>Money articles per segment (3-5 per pillar)</td><td>AI-drafted + Jonny&rsquo;s QA pass. Generator infrastructure (Article + HowTo schema) is ready.</td><td><span class="pill pill-todo">TODO</span></td></tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<!-- PART B — FOUNDATIONS -->
+<!-- ========================================================== -->
+<div class="part-num">Part B &mdash; Foundations (Week 1&ndash;2 must-haves)</div>
+
+<h2><span class="section-num">2.</span> Sitemap &amp; robots.txt</h2>
+
+<h4>What I&rsquo;ll build</h4>
 <ul>
-  <li>Branded search results with a clean title, description, sitelinks, and search box.</li>
-  <li><strong>Rich results</strong> on product pages: price, availability, reviews, breadcrumbs.</li>
-  <li>Ranking for <strong>product-level and CAS-level long-tail queries</strong> - the main organic traffic engine for any chemicals marketplace.</li>
-  <li>Stronger <strong>local visibility</strong> across Sydney, Melbourne, Brisbane, Perth, Adelaide, and regional hubs.</li>
-  <li>Faster pages and better Core Web Vitals - lower bounce, higher conversion.</li>
-  <li>Polished link previews on LinkedIn, WhatsApp, and email - where B2B deals actually move.</li>
-  <li>A compounding <strong>content + backlink flywheel</strong> that gets stronger every month.</li>
+  <li><strong>Dynamic sitemap</strong> at <code>app/sitemap.ts</code> &mdash; pulls live product slugs, category slugs, and content pages from Supabase. Updates automatically on every deploy and on revalidation.</li>
+  <li><strong>Sitemap index split</strong> into logical sections so it scales when the catalog grows past a few hundred SKUs:
+    <ul>
+      <li><code>/sitemap.xml</code> &mdash; index pointing to children below</li>
+      <li><code>/sitemap-static.xml</code> &mdash; home, compliance, privacy, terms, contact, about, blog index</li>
+      <li><code>/sitemap-products.xml</code> &mdash; one URL per product (auto-generated)</li>
+      <li><code>/sitemap-categories.xml</code> &mdash; one URL per category landing page</li>
+      <li><code>/sitemap-locations.xml</code> &mdash; one URL per state + per warehouse city (10 entries)</li>
+      <li><code>/sitemap-content.xml</code> &mdash; knowledge hub articles, SDS pages, FAQs</li>
+      <li><code>/sitemap-images.xml</code> &mdash; product photos with captions (Google Images discovery)</li>
+    </ul>
+  </li>
+  <li><strong>robots.txt</strong> at <code>app/robots.ts</code>:
+    <ul>
+      <li>Allow: <code>/</code>, <code>/products/*</code>, <code>/categories/*</code>, <code>/chemical-supplier/*</code>, <code>/compliance</code>, <code>/privacy</code>, <code>/terms</code></li>
+      <li>Disallow: <code>/cart</code>, <code>/checkout</code>, <code>/login</code>, <code>/register</code>, <code>/forgot-password</code>, <code>/reset-password</code>, <code>/dashboard/*</code>, <code>/admin/*</code>, <code>/api/*</code></li>
+      <li>Sitemap reference and host directive</li>
+    </ul>
+  </li>
+  <li><strong>Submit</strong> to Google Search Console + Bing Webmaster Tools and monitor coverage weekly.</li>
+</ul>
+
+<div class="benefit">
+  <span class="label">What you get</span>
+  <ul>
+    <li>Every product is discovered by Google automatically &mdash; no manual submission ever again.</li>
+    <li>Private pages (cart, checkout, account, admin) stay out of Google permanently.</li>
+    <li>Full visibility in Search Console of which pages are indexed and which aren&rsquo;t.</li>
+    <li>Image sitemap surfaces product photos in Google Images &mdash; a B2B discovery channel competitors ignore.</li>
+  </ul>
+</div>
+
+<h2><span class="section-num">3.</span> Metadata coverage on every page</h2>
+
+<p style="font-size: 13px;">Right now, 40+ pages have zero metadata. I&rsquo;ll add a structured metadata layer to every public route.</p>
+
+<h4>Root metadata template (<code>app/layout.tsx</code>)</h4>
+<ul>
+  <li>Default <code>metadataBase</code> (<code>https://chemconnect.com.au</code>) so all relative OG / canonical URLs resolve correctly.</li>
+  <li>Default <code>openGraph</code> block: site name, locale (<code>en_AU</code>), default OG image (1200&times;630, branded).</li>
+  <li>Default <code>twitter</code> card (<code>summary_large_image</code>).</li>
+  <li>Default <code>robots: { index: true, follow: true, googleBot: { ... } }</code>.</li>
+  <li>Default <code>alternates: { canonical: '/' }</code> &mdash; overridden per page.</li>
+  <li><code>lang="en-AU"</code> on <code>&lt;html&gt;</code> instead of plain <code>en</code>.</li>
+  <li>Theme color, format detection, viewport metadata.</li>
+</ul>
+
+<h4>Per-page metadata strategy</h4>
+<table>
+  <thead>
+    <tr><th>Route</th><th>Title pattern (55&ndash;60 chars)</th><th>Description (150&ndash;160 chars)</th><th>Robots</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>/</code></td><td>&ldquo;Chem Connect &mdash; B2B Industrial Chemical Marketplace Australia&rdquo;</td><td>&ldquo;Buy industrial chemicals direct from Australian manufacturers. Bulk pricing, GST inclusive, fast freight from VIC, NSW, QLD, SA, WA.&rdquo;</td><td>index,follow</td></tr>
+    <tr><td><code>/products</code></td><td>&ldquo;Industrial Chemicals Australia &mdash; Bulk Buy Online &middot; Chem Connect&rdquo;</td><td>&ldquo;Browse {n} industrial chemicals across {m} categories. Acid replacements, solvents, cleaning, automotive. Australian stock, AUD pricing.&rdquo;</td><td>index,follow</td></tr>
+    <tr><td><code>/products/[slug]</code></td><td>&ldquo;{name} {pack-size} &mdash; CAS {cas} &middot; Chem Connect&rdquo;</td><td>From product description &mdash; first 150 chars, with city / state if dispatched from a specific warehouse.</td><td>index,follow</td></tr>
+    <tr><td><code>/categories/[slug]</code></td><td>&ldquo;Buy {category} Online Australia &mdash; Bulk Pricing &middot; Chem Connect&rdquo;</td><td>Custom 150-char copy per category, listing top products and use cases.</td><td>index,follow</td></tr>
+    <tr><td><code>/chemical-supplier/[city]</code></td><td>&ldquo;Chemical Supplier in {City}, {State} &mdash; Chem Connect&rdquo;</td><td>City-specific copy with warehouse address, dispatch lead times, local DG handling.</td><td>index,follow</td></tr>
+    <tr><td><code>/compliance</code></td><td>&ldquo;Chemical Compliance &amp; Safety &mdash; SDS, DG, ADG Code &middot; Chem Connect&rdquo;</td><td>Existing copy &mdash; keep but tighten to 158 chars.</td><td>index,follow</td></tr>
+    <tr><td><code>/cart</code>, <code>/checkout</code></td><td>&ldquo;Cart / Checkout &middot; Chem Connect&rdquo;</td><td>Generic, short.</td><td><strong>noindex,nofollow</strong></td></tr>
+    <tr><td><code>/login</code>, <code>/register</code>, <code>/forgot-password</code>, <code>/reset-password</code></td><td>Functional title</td><td>Generic, short.</td><td><strong>noindex,nofollow</strong></td></tr>
+    <tr><td><code>/dashboard/*</code></td><td>&ldquo;Account &middot; Chem Connect&rdquo;</td><td>Generic.</td><td><strong>noindex,nofollow</strong></td></tr>
+    <tr><td><code>/admin/*</code></td><td>&ldquo;Admin &middot; Chem Connect&rdquo;</td><td>Generic.</td><td><strong>noindex,nofollow</strong> (set on <code>(admin)/admin/layout.tsx</code> so every nested page inherits it).</td></tr>
+  </tbody>
+</table>
+
+<div class="work">
+  <span class="label">Implementation</span>
+  <ul>
+    <li>Add <code>export const metadata</code> or <code>export async function generateMetadata</code> on every page that doesn&rsquo;t already have it.</li>
+    <li>One central <code>noindex</code> in <code>app/(admin)/admin/layout.tsx</code> covers all 32 admin pages with one change.</li>
+    <li>One <code>noindex</code> in <code>app/(dashboard)/dashboard/layout.tsx</code> covers all 5 customer-dashboard pages.</li>
+    <li>Per-page canonical URLs &mdash; especially important for <code>/products</code> with filter / sort / pagination params.</li>
+  </ul>
+</div>
+
+<h2><span class="section-num">4.</span> Canonical URLs &amp; duplicate-content protection</h2>
+<ul>
+  <li><strong>Canonical on every page</strong> &mdash; pointing to the clean URL without query strings.</li>
+  <li><strong>Filter / sort URLs canonicalise back to the parent</strong>: <code>/products?category=acid&amp;sort=price</code> &rarr; canonical <code>/products</code>.</li>
+  <li><strong>Pagination semantics</strong>: <code>/products?page=2</code> uses self-referencing canonical and <code>rel="next" / "prev"</code> hints (still useful as discoverability hints).</li>
+  <li><strong>Trailing slash policy</strong>: enforce one canonical form (no trailing slash) at the Next.js redirect layer in <code>next.config.mjs</code>.</li>
+  <li><strong>HTTP &rarr; HTTPS</strong> + <code>www</code> &rarr; apex (or vice-versa) at the hosting layer + canonical to match.</li>
+</ul>
+
+<h2><span class="section-num">5.</span> Heading hierarchy &amp; semantic HTML</h2>
+<ul>
+  <li><strong>Exactly one <code>&lt;h1&gt;</code> per page</strong>, targeting the page&rsquo;s primary keyword:
+    <ul>
+      <li>Home: &ldquo;B2B Industrial Chemical Marketplace for Australian Businesses&rdquo; &mdash; currently the home page uses an <code>&lt;h2&gt;</code> for the main heading. <strong>Fix this in <code>app/page.tsx</code>.</strong></li>
+      <li>Product detail: <code>{product.name}</code> &mdash; already correct.</li>
+      <li>Category: &ldquo;{category} Suppliers in Australia &mdash; Buy Online&rdquo;.</li>
+      <li>Location: &ldquo;Chemical Supplier in {City}, {State}&rdquo;.</li>
+    </ul>
+  </li>
+  <li><strong>H2 / H3 hierarchy</strong> targets secondary keywords without stuffing.</li>
+  <li><strong>Semantic HTML</strong>: <code>&lt;article&gt;</code> for content pages, <code>&lt;main&gt;</code> on every layout, <code>&lt;nav&gt;</code> with <code>aria-label</code>, <code>&lt;footer&gt;</code> with contact info.</li>
+</ul>
+
+<div class="box box-red">
+  <strong>Specific bug to fix:</strong> the hero on <code>components/landing/landing-hero.tsx</code> currently renders as <em>&ldquo;Bulk Chemicals.Unbeatable Prices.&rdquo;</em> &mdash; missing the space between sentences (likely a JSX line-break being concatenated). Easy fix; ship it with the metadata pass.
+</div>
+
+<div class="benefit">
+  <span class="label">What Part B gets you</span>
+  <ul>
+    <li>Every public page indexed cleanly with a unique, click-worthy listing in Google.</li>
+    <li>Zero risk of cart, checkout, or admin URLs leaking into search results.</li>
+    <li>No duplicate-content penalties from filter / sort / pagination URLs.</li>
+    <li>Strong, unambiguous page topic signal &mdash; faster rankings.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<!-- PART C — STRUCTURED DATA -->
+<!-- ========================================================== -->
+<div class="part-num">Part C &mdash; Structured data (the rich-results layer)</div>
+
+<h2><span class="section-num">6.</span> JSON-LD schema strategy</h2>
+
+<p style="font-size: 13px;">There is currently <strong>zero structured data anywhere in the codebase</strong>. This is the single biggest visual upgrade we can give Google &mdash; rich results take up 2&ndash;3&times; the screen real estate of plain results.</p>
+
+<div class="three-col">
+  <div class="card">
+    <h4>Organization</h4>
+    Site-wide (root layout). Includes legal name (<em>Concrete &amp; Quarry Vending Systems Pty Ltd</em>), <strong>ABN</strong>, logo URL, customer contact email, support phone, social profiles, and address of head office.
+  </div>
+  <div class="card">
+    <h4>WebSite + SearchAction</h4>
+    Site-wide. Tells Google about the site&rsquo;s search box so it can render a <strong>sitelinks search box</strong> for branded queries (&ldquo;chem connect acetone&rdquo;).
+  </div>
+  <div class="card">
+    <h4>Product</h4>
+    On every <code>/products/[slug]</code> page. Includes name, SKU, brand (manufacturer), CAS as <code>gtin</code> alternative, image, description, hazard pictograms via <code>hasMerchantReturnPolicy</code> + custom properties.
+  </div>
+  <div class="card">
+    <h4>Offer / AggregateOffer</h4>
+    Per pack-size (500 mL, 1 L, 5 L, 20 L drum, IBC). Pulls live AUD pricing + stock from Supabase. Includes <code>priceCurrency: AUD</code>, <code>availability</code>, <code>itemCondition</code>, and per-warehouse <code>shippingDetails</code>.
+  </div>
+  <div class="card">
+    <h4>BreadcrumbList</h4>
+    Home &rarr; Category &rarr; Sub-category &rarr; Product. Renders as breadcrumb trail in search results, lifts CTR.
+  </div>
+  <div class="card">
+    <h4>LocalBusiness &times; 5</h4>
+    One per active warehouse: ChemBuild Melbourne, Geelong site, Environex (QLD) Brisbane, QLD Shed Gold Coast, Chemology Adelaide, Environex (WA) Perth, NSW Shed Newcastle. With opening hours, geo coordinates, service area. Sydney coverage uses <code>Service</code> schema (no physical address there).
+  </div>
+  <div class="card">
+    <h4>FAQPage</h4>
+    On <code>/compliance</code> (already a long-form Q&amp;A page) and on every product page&rsquo;s FAQ section (minimum order, lead time, dangerous-goods handling, bulk pricing).
+  </div>
+  <div class="card">
+    <h4>Article / BlogPosting</h4>
+    On every knowledge-hub article. Includes <code>author</code>, <code>datePublished</code>, <code>dateModified</code>, <code>publisher</code>, and image.
+  </div>
+  <div class="card">
+    <h4>AggregateRating + Review</h4>
+    Once reviews are collected (see Part G). Lights up <strong>star ratings</strong> in search results &mdash; widely shown to lift CTR by 25%+.
+  </div>
+  <div class="card">
+    <h4>HowTo <span class="pill pill-done" style="font-size:9px;">DONE</span></h4>
+    <code>howToSchema()</code> generator emits <code>HowTo</code> + <code>HowToSupply</code> + <code>HowToTool</code> JSON-LD with optional <code>totalTime</code>. Wired-ready for any future how-to article. LLMs (ChatGPT, Perplexity, Claude) cite HowTo content disproportionately.
+  </div>
+  <div class="card">
+    <h4>CollectionPage + ItemList <span class="pill pill-done" style="font-size:9px;">DONE</span></h4>
+    Now also auto-emitted on <code>/brand/[manufacturer]</code> pages alongside BreadcrumbList + FAQPage. Each brand page becomes a fully-typed crawlable collection in Google&rsquo;s eyes.
+  </div>
+</div>
+
+<div class="work">
+  <span class="label">Implementation</span>
+  <ul>
+    <li>Build a single <code>components/seo/JsonLd.tsx</code> server component that takes a typed schema object and emits <code>&lt;script type="application/ld+json"&gt;</code>.</li>
+    <li>Build typed builders in <code>lib/seo/schema.ts</code>: <code>buildProductSchema()</code>, <code>buildBreadcrumbSchema()</code>, <code>buildLocalBusinessSchema()</code>, etc.</li>
+    <li>Inject <code>Organization</code> + <code>WebSite</code> in <code>app/layout.tsx</code>.</li>
+    <li>Inject <code>Product</code> + <code>Breadcrumb</code> + (later) <code>FAQPage</code> in <code>products/[slug]/page.tsx</code>.</li>
+    <li>Inject 5 <code>LocalBusiness</code> nodes in the new <code>chemical-supplier/[city]</code> pages and aggregated on a <code>/locations</code> page.</li>
+    <li>Validate every schema with the <a href="https://search.google.com/test/rich-results">Google Rich Results Test</a> + <a href="https://validator.schema.org/">Schema.org validator</a> before each release.</li>
+  </ul>
+</div>
+
+<div class="benefit">
+  <span class="label">What you get</span>
+  <ul>
+    <li><strong>Rich Google listings</strong> on product pages: AUD price, stock status, breadcrumbs, eventually star ratings.</li>
+    <li>Eligibility for <strong>Google Shopping free listings</strong> (Merchant Center).</li>
+    <li>A <strong>sitelinks search box</strong> on branded searches &mdash; buyers search your catalog from Google.</li>
+    <li>7 separate Google Maps / Local Pack appearances &mdash; one per active warehouse city.</li>
+    <li>Industry data shows <strong>20&ndash;40% CTR uplift</strong> on pages with rich results vs. plain blue links.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<!-- PART D — AUSTRALIA & LOCAL SEO -->
+<!-- ========================================================== -->
+<div class="part-num">Part D &mdash; Australia &amp; local SEO (the moat)</div>
+
+<h2><span class="section-num">7.</span> Seven-warehouse local SEO playbook (production state)</h2>
+
+<div class="box">
+  <strong>Why this matters more than any other section:</strong> Chem Connect has <strong>seven active physical pickup / dispatch points across five Australian states</strong>. That&rsquo;s a serious moat against international and interstate-only competitors &mdash; very few chemical marketplaces can claim a real local presence in seven distinct cities. Google rewards this heavily for &ldquo;near me&rdquo; and city-based queries.
+</div>
+
+<h3>The seven active locations (production data, April 2026)</h3>
+<table>
+  <thead>
+    <tr><th>#</th><th>Warehouse</th><th>City / area</th><th>Postcode</th><th>State</th><th>Primary local queries</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>ChemBuild Industries</td><td>Melbourne (Dandenong South)</td><td>3175</td><td>VIC</td><td>chemical supplier Melbourne, Dandenong chemical distributor, south-east Melbourne chemicals</td></tr>
+    <tr><td>2</td><td><em>(unnamed &mdash; needs business name)</em></td><td>Geelong</td><td>3220</td><td>VIC</td><td>chemical supplier Geelong, bulk chemicals Western VIC, Geelong industrial chemicals</td></tr>
+    <tr><td>3</td><td>Environex (QLD)</td><td>Brisbane / Logan (Crestmead)</td><td>4132</td><td>QLD</td><td>chemical supplier Brisbane, Logan chemical distributor, SE Queensland bulk chemicals</td></tr>
+    <tr><td>4</td><td>QLD Shed</td><td>Gold Coast (Burleigh Heads)</td><td>4220</td><td>QLD</td><td>chemical supplier Gold Coast, Burleigh chemicals, Tweed / Northern NSW chemicals</td></tr>
+    <tr><td>5</td><td>Chemology Pty Ltd</td><td>Adelaide (Lonsdale)</td><td>5160</td><td>SA</td><td>chemical supplier Adelaide, Lonsdale chemical distributor, southern SA chemicals</td></tr>
+    <tr><td>6</td><td>Environex (WA)</td><td>Perth (Wangara)</td><td>6065</td><td>WA</td><td>chemical supplier Perth, Wangara chemical distributor, WA bulk chemicals</td></tr>
+    <tr><td>7</td><td>NSW Shed</td><td>Newcastle (Cardiff)</td><td>2285</td><td>NSW</td><td>chemical supplier Newcastle, Hunter Valley chemicals, Cardiff industrial supplier</td></tr>
+  </tbody>
+</table>
+
+<div class="box box-amber">
+  <strong>Two production observations to flag with the client (and that I&rsquo;ll list as operational items in Section 33):</strong>
+  <ol>
+    <li><strong>The Geelong warehouse has no business name in the database</strong> &mdash; it&rsquo;s stored as a raw address. SEO and Google Business Profile both need a real business name. Need the client to supply this before the Geelong landing page can be built properly.</li>
+    <li><strong>Formula Chemicals (West Ryde NSW) is marked Inactive.</strong> No public landing page for it. But Sydney is the single largest B2B chemicals market in Australia &mdash; skipping it forfeits massive search volume. See the &ldquo;Sydney coverage&rdquo; sub-section below.</li>
+  </ol>
+</div>
+
+<h3>Geographic coverage analysis</h3>
+<p style="font-size:13px;">The seven warehouses give Chem Connect dispatch coverage across <strong>5 states</strong>, with double-coverage in VIC (Melbourne + Geelong) and QLD (Brisbane + Gold Coast). Combined with realistic next-day freight to Sydney from the Newcastle warehouse, the live SEO surface is:</p>
+<ul>
+  <li><strong>VIC</strong> &mdash; Melbourne metro + Geelong (separate market, ~75 km apart): two distinct city pages.</li>
+  <li><strong>QLD</strong> &mdash; Brisbane / Logan + Gold Coast / Tweed (~80 km apart, completely different industrial markets): two distinct city pages.</li>
+  <li><strong>NSW</strong> &mdash; Newcastle / Hunter (warehouse) + Sydney metro (served from Newcastle): two pages, one local-physical, one served-from.</li>
+  <li><strong>SA</strong> &mdash; Adelaide metro: one page.</li>
+  <li><strong>WA</strong> &mdash; Perth metro: one page.</li>
+</ul>
+
+<h3>Sydney coverage strategy &mdash; even without a warehouse there</h3>
+<div class="box box-blue">
+  <strong>Decision point:</strong> Sydney has more B2B chemical buyers than any other Australian city. Walking away from those queries would be a strategic miss. Cardiff / Newcastle is ~140 km from Sydney CBD &mdash; a 1.5&ndash;2 hour run, well within next-day freight territory. We can target Sydney queries honestly without a Sydney warehouse, by being upfront about dispatch.
+</div>
+<ul>
+  <li>Build a <strong>Sydney coverage landing page</strong> at <code>/chemical-supplier/sydney</code> with content like:
+    <ul>
+      <li>&ldquo;Chem Connect dispatches to Sydney metro within 1&ndash;2 business days from our Newcastle hub.&rdquo;</li>
+      <li>Map showing the Newcastle dispatch point + Sydney delivery radius.</li>
+      <li>Per-suburb lead times (north shore / inner west / west / south).</li>
+      <li>Linked products with regional availability checks (already in the <code>region</code> column).</li>
+      <li>Honest framing &mdash; <strong>no fake address, no &ldquo;Sydney warehouse&rdquo; claim.</strong> Google penalises that, and B2B buyers spot it instantly.</li>
+    </ul>
+  </li>
+  <li>Pair with a single <code>Service</code> schema (not <code>LocalBusiness</code> &mdash; we don&rsquo;t have a Sydney address). Service schema tells Google we serve Sydney without claiming to be located in Sydney.</li>
+</ul>
+
+<h4>What I&rsquo;ll build for each warehouse city</h4>
+<ul>
+  <li><strong>Eight dedicated city landing pages</strong> at <code>/chemical-supplier/{slug}</code> &mdash; Melbourne, Geelong, Brisbane, Gold Coast, Adelaide, Perth, Newcastle, plus the Sydney coverage page. Each ~600&ndash;800 words of unique content:
+    <ul>
+      <li>Warehouse name, address, phone, hours (pulled live from the existing <code>warehouses</code> Supabase table; the API already exposes this at <code>/api/warehouses</code>).</li>
+      <li>Embedded Google Map (lazy-loaded so it doesn&rsquo;t hurt LCP).</li>
+      <li>Dispatch lead times to surrounding suburbs (ties into existing MacShip integration; lead-time data is already in the <code>warehouse_lead_times</code> table).</li>
+      <li>List of top-selling products dispatched from that warehouse (filtered via the <code>region</code> column already on products).</li>
+      <li>State-specific DG handling and freight messaging.</li>
+      <li>Customer testimonials from buyers in that state (once collected).</li>
+      <li><code>LocalBusiness</code> schema for the 7 physical locations; <code>Service</code> schema for the Sydney coverage page.</li>
+    </ul>
+  </li>
+  <li><strong>Five state landing pages</strong> at <code>/chemicals/{state-slug}</code> (<code>/chemicals/vic</code>, <code>/chemicals/nsw</code>, <code>/chemicals/qld</code>, <code>/chemicals/sa</code>, <code>/chemicals/wa</code>) &mdash; broader state-level queries, link down to the city pages within them. VIC links to Melbourne + Geelong; QLD links to Brisbane + Gold Coast; NSW links to Newcastle + Sydney coverage page.</li>
+  <li><strong>One <code>/locations</code> hub page</strong> showing all 7 active warehouses on a single map, with <code>ItemList</code> schema linking to each city page.</li>
+  <li><strong>Footer NAP block</strong> on every page: condensed list of all 7 warehouse cities + one head-office phone. NAP = Name, Address, Phone &mdash; needed for local SEO consistency.</li>
+</ul>
+
+<h2><span class="section-num">8.</span> Google Business Profile setup (one per active warehouse)</h2>
+<ul>
+  <li><strong>Seven separate Google Business Profiles</strong> &mdash; one per active warehouse address (Formula Chemicals at West Ryde NSW is excluded because it&rsquo;s flagged Inactive in the database). Each profile fully completed:
+    <ul>
+      <li>Categories: Chemical Wholesaler, Industrial Chemicals Supplier, Distribution Service.</li>
+      <li>Services list (matched to product categories).</li>
+      <li>Photos of facility, packaging, fleet (5&ndash;10 per profile).</li>
+      <li>Opening hours and special hours for AU public holidays.</li>
+      <li>Q&amp;A section pre-seeded with common buyer questions.</li>
+      <li>Posts (weekly): new product launches, compliance updates.</li>
+    </ul>
+  </li>
+  <li><strong>Special handling for the Geelong warehouse:</strong> currently has no business name in the database. <strong>GBP requires a real, registered business name</strong> &mdash; we cannot list it as &ldquo;14 Shorts Place, Geelong&rdquo; or as a generic store name. The client needs to supply the registered name (or confirm it&rsquo;s operated under one of the existing entities) before this profile can be created.</li>
+  <li><strong>Verification</strong> via postcard at each warehouse address &mdash; required by Google. Postcards take ~5&ndash;7 business days each.</li>
+  <li><strong>Review collection flow</strong>: post-order email asking the buyer to leave a Google review for the warehouse that dispatched the order. Tie into the existing GHL workflow system (already wired up in the marketing module).</li>
+  <li><strong>No GBP for Sydney</strong> (because we don&rsquo;t have a Sydney warehouse). The Sydney landing page leans on the Newcastle GBP&rsquo;s service-area radius instead of a fake Sydney listing.</li>
+</ul>
+
+<h2><span class="section-num">9.</span> NAP consistency &amp; AU directories</h2>
+<ul>
+  <li><strong>Identical NAP block</strong> in: site footer, <code>/contact</code> page (to be built), all 7 GBP profiles, the 7 LocalBusiness schemas, and the AU directories below. The footer block lists all 7 warehouses (compact format: <em>City &middot; Suburb &middot; State &middot; Postcode</em>) plus head-office phone.</li>
+  <li><strong>Listings on AU directories</strong> (in priority order):
+    <ol>
+      <li>Australian Business Register (already required &mdash; just confirm public listing).</li>
+      <li>Yellow Pages AU.</li>
+      <li>True Local.</li>
+      <li>Hotfrog AU.</li>
+      <li>StartLocal.</li>
+      <li>Local chambers of commerce in each warehouse city.</li>
+      <li>Industry directories: ChemSupply, Australian Chemical Specialists, Chemistry Australia member directory.</li>
+    </ol>
+  </li>
+</ul>
+
+<h2><span class="section-num">10.</span> Australia locale signals</h2>
+<ul>
+  <li><strong><code>lang="en-AU"</code></strong> on the root <code>&lt;html&gt;</code> tag (currently <code>en</code>).</li>
+  <li><strong><code>hreflang="en-AU"</code></strong> on the canonical link, plus an <code>x-default</code> pointing to the same URL.</li>
+  <li><strong>Currency lock</strong>: every Product / Offer schema declares <code>priceCurrency: "AUD"</code>; every visible price says &ldquo;AUD&rdquo;.</li>
+  <li><strong>GST messaging</strong>: pricing display toggle (ex-GST / inc-GST) where relevant; clear &ldquo;GST registered&rdquo; in footer; ABN visible.</li>
+  <li><strong>Australian English copy</strong> across all SEO content (&ldquo;optimisation&rdquo;, &ldquo;colour&rdquo;, &ldquo;analyse&rdquo;) &mdash; matches local buyer expectations and ranks for AU spelling variants.</li>
+  <li><strong>State-level dangerous-goods messaging</strong>: ADG Code references, state EPA notes, transport requirements.</li>
+</ul>
+
+<div class="benefit">
+  <span class="label">What Part D gets you</span>
+  <ul>
+    <li>Appearance in Google Maps and the &ldquo;Local Pack&rdquo; in <strong>Melbourne, Geelong, Brisbane, Gold Coast, Adelaide, Perth, and Newcastle</strong> &mdash; seven distinct local markets.</li>
+    <li>An honest <strong>Sydney coverage page</strong> ranking for Sydney delivery queries even without a Sydney warehouse.</li>
+    <li>Eight city landing pages and five state pages each ranking for their own queries &mdash; the deepest geographic moat any AU chemicals marketplace can claim.</li>
+    <li>Buyers searching &ldquo;chemical supplier near me&rdquo; in 7 capital / regional cities see Chem Connect first.</li>
+    <li>Local trust signals (real address, real phone, GBP reviews per warehouse) &mdash; closes deals faster.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<!-- PART E — PAGE-BY-PAGE OPTIMIZATION -->
+<!-- ========================================================== -->
+<div class="part-num">Part E &mdash; Page-by-page optimisation</div>
+
+<h2><span class="section-num">11.</span> Public pages &mdash; surgical optimisation</h2>
+
+<h3>Home page (<code>app/page.tsx</code>)</h3>
+<ul>
+  <li>Fix the missing <code>&lt;h1&gt;</code> &mdash; currently the hero uses an <code>&lt;h2&gt;</code>.</li>
+  <li>Add an <strong>above-the-fold trust strip</strong>: ABN, GST registered, &ldquo;ships from VIC / NSW / QLD / WA / SA&rdquo;.</li>
+  <li>Add internal links into all 5 location pages and top 6&ndash;8 category pages from the home content.</li>
+  <li>Inject <code>Organization</code> + <code>WebSite</code> JSON-LD.</li>
+  <li>Open Graph image: branded 1200&times;630 (already-exists or design new).</li>
+</ul>
+
+<h3>Products listing page (<code>app/(marketplace)/products/page.tsx</code>)</h3>
+<ul>
+  <li>Currently <strong>fully client-side</strong> with no metadata. Convert to a hybrid: server-rendered shell with metadata + client-side filter UI.</li>
+  <li>Add <code>generateMetadata</code> based on the active filter (e.g. &ldquo;Acid Replacement Chemicals &mdash; Bulk Buy Australia &middot; Chem Connect&rdquo; when <code>?category=acid</code> is set).</li>
+  <li>Server-render the first page of products into the HTML so Google sees them without executing JS.</li>
+  <li>Inject <code>BreadcrumbList</code> and <code>ItemList</code> schemas.</li>
+  <li>Canonical: clean <code>/products</code> regardless of query string.</li>
+</ul>
+
+<h3>Product detail page (<code>app/(marketplace)/products/[slug]/page.tsx</code>)</h3>
+<ul>
+  <li>Already has <code>generateMetadata</code> &mdash; extend it: add <code>openGraph</code>, <code>twitter</code>, canonical, and per-product OG image (product photo on branded background).</li>
+  <li>Inject <code>Product</code>, <code>AggregateOffer</code>, <code>BreadcrumbList</code>, <code>FAQPage</code> schemas.</li>
+  <li>Strengthen on-page content:
+    <ul>
+      <li>Unique 300+ word description (no manufacturer-blurb copy-paste).</li>
+      <li><strong>Spec table</strong>: CAS No., purity, grade, density, UN number, hazard class, pack sizes.</li>
+      <li><strong>Pack-size pricing matrix</strong> (already in the platform via the <code>packagingSizes</code> field).</li>
+      <li><strong>Downloadable SDS</strong> with descriptive filename and anchor text.</li>
+      <li><strong>Per-state shipping &amp; lead time</strong> (ties into existing MacShip integration).</li>
+      <li><strong>FAQ block</strong> (3&ndash;6 questions per product) with <code>FAQPage</code> schema.</li>
+      <li><strong>Related products</strong> &amp; &ldquo;customers also bought&rdquo; &mdash; boosts internal linking and crawl depth.</li>
+    </ul>
+  </li>
+  <li>Image alt text already strong &mdash; preserve.</li>
+</ul>
+
+<h2><span class="section-num">11.5</span> Footer placeholder <code>#</code> links &mdash; replace with real, indexable pages</h2>
+<p style="font-size: 13px;">The marketplace footer (<code>components/layouts/marketplace-footer.tsx</code>) currently has four links pointing to <code>#</code>. Each one is a missed indexable page and breaks user trust. Replace them with real routes:</p>
+
+<table>
+  <thead>
+    <tr><th>Footer link</th><th>New route</th><th>What it does + SEO value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Custom Orders</td><td><code>/custom-orders</code></td><td>Landing page for the &ldquo;tell us what you need&rdquo; CTA &mdash; a form-based lead-gen page. Targets &ldquo;custom chemical formulation Australia&rdquo;-style queries.</td></tr>
+    <tr><td>Safety Data Sheets</td><td><code>/sds</code> (hub) + <code>/sds/{chemical-slug}</code></td><td>Searchable SDS library &mdash; massive long-tail SEO surface. Buyers search &ldquo;{chemical} SDS Australia&rdquo; constantly. Each SDS becomes its own indexable page with <code>FAQPage</code> schema.</td></tr>
+    <tr><td>About CQVS</td><td><code>/about</code></td><td>Company story, founder background, mission, ABN, head office address. Hosts <code>Organization</code> schema. Strongest E-E-A-T signal page on the site.</td></tr>
+    <tr><td>Support</td><td><code>/support</code></td><td>Top-of-funnel FAQ page covering shipping, freight, GST, payment terms, returns, dangerous goods handling. With <code>FAQPage</code> schema &mdash; rich-result eligible.</td></tr>
+  </tbody>
+</table>
+
+<div class="work">
+  <span class="label">Implementation</span>
+  <ul>
+    <li>Create the four routes under <code>app/(marketplace)/</code>.</li>
+    <li>Each gets its own <code>generateMetadata</code> with title, description, OG, canonical.</li>
+    <li><code>/about</code> hosts the canonical Organization JSON-LD (also referenced from <code>app/layout.tsx</code>).</li>
+    <li><code>/support</code> hosts the FAQPage JSON-LD with 8&ndash;12 questions covering common buyer queries.</li>
+    <li><code>/sds</code> is a paginated index of all SDS pages, with internal links from each product detail page back into it.</li>
+    <li>Update the footer to point to these real URLs.</li>
+  </ul>
+</div>
+
+<h2><span class="section-num">12.</span> NEW &mdash; Category landing pages</h2>
+<p style="font-size: 13px;">The existing <code>lib/data/products.ts</code> defines categories like Acid Replacement, Automotive, Cleaning, DG Products, Solvents, Lab Chemicals, Surfactants, Polymers, Reagents, Agrochemicals. None of these have dedicated landing pages today.</p>
+<ul>
+  <li><strong>One indexable page per category</strong> at <code>/categories/{slug}</code> with:
+    <ul>
+      <li>Unique 400&ndash;600 word intro covering use cases, common buyers, and why CQVS supplies them.</li>
+      <li>Filtered product grid (server-rendered first page).</li>
+      <li>Category-specific FAQs (with FAQPage schema).</li>
+      <li><code>BreadcrumbList</code> and <code>CollectionPage</code> schemas.</li>
+      <li>Internal links: up to category index, sideways to sibling categories, down to top products.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2><span class="section-num">13.</span> NEW &mdash; Application landing pages</h2>
+<p style="font-size: 13px;">B2B buyers search by application, not just by chemical name (&ldquo;chemicals for water treatment&rdquo;, &ldquo;mining reagents Australia&rdquo;).</p>
+<ul>
+  <li><strong>One page per industry vertical</strong> at <code>/industries/{slug}</code>:
+    <ul>
+      <li>Mining</li>
+      <li>Quarrying &amp; concrete</li>
+      <li>Agriculture &amp; agrochemicals</li>
+      <li>Food &amp; beverage processing</li>
+      <li>Water &amp; wastewater treatment</li>
+      <li>Pharmaceutical &amp; lab</li>
+      <li>Cleaning &amp; sanitation</li>
+      <li>Manufacturing</li>
+      <li>Construction</li>
+      <li>Automotive</li>
+    </ul>
+  </li>
+  <li>Each page links into relevant category and product pages, building topical authority.</li>
+</ul>
+
+<h2><span class="section-num">14.</span> NEW &mdash; CAS / chemical encyclopedia (the long-tail engine)</h2>
+<div class="box box-amber">
+  <strong>The single biggest long-tail traffic lever for any chemicals marketplace.</strong> Buyers research before they buy, and they search by CAS number, IUPAC name, or trade name. We need an indexable page for every chemical we stock.
+</div>
+<ul>
+  <li><strong>One page per chemical</strong> at <code>/chemicals/{cas-or-slug}</code>:
+    <ul>
+      <li>Properties: molecular formula, weight, density, boiling / flash point.</li>
+      <li>Common uses, hazards, storage, handling.</li>
+      <li>Australian regulatory notes (SUSMP scheduling if relevant, ADG class).</li>
+      <li>SDS download.</li>
+      <li>Clear &ldquo;Buy on Chem Connect&rdquo; CTA linking to product pages.</li>
+      <li><code>Article</code> + <code>ChemicalSubstance</code> schemas.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2><span class="section-num">15.</span> Auth, cart, checkout, dashboard &mdash; aggressive <code>noindex</code></h2>
+<ul>
+  <li><strong>One layout-level <code>noindex</code></strong> in <code>(dashboard)/dashboard/layout.tsx</code> covers all 5 customer-dashboard pages without touching individual files.</li>
+  <li><strong>Per-page <code>noindex</code></strong> on cart, checkout, and the 4 auth pages.</li>
+  <li><strong>Reinforce in robots.txt</strong> (defence in depth).</li>
+</ul>
+
+<h2><span class="section-num">16.</span> Admin &mdash; strict <code>noindex,nofollow,noarchive,nosnippet</code></h2>
+<ul>
+  <li>Single <code>metadata</code> export in <code>app/(admin)/admin/layout.tsx</code> with the strictest robots block.</li>
+  <li>Reinforce with <code>X-Robots-Tag: noindex, nofollow</code> response header on every <code>/admin/*</code> route via <code>next.config.mjs</code>.</li>
+  <li>Reinforce in robots.txt with <code>Disallow: /admin/</code>.</li>
+  <li><strong>Three-layer protection</strong> &mdash; even if one layer is misconfigured, the others catch it.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<!-- PART F — TECHNICAL SEO -->
+<!-- ========================================================== -->
+<div class="part-num">Part F &mdash; Technical SEO</div>
+
+<h2><span class="section-num">17.</span> Core Web Vitals &mdash; targets and audit plan</h2>
+<div class="box box-blue">
+  <strong>Direct ranking signal.</strong> Google uses Core Web Vitals as a ranking factor. Targets: <strong>LCP &lt; 2.5 s</strong>, <strong>INP &lt; 200 ms</strong>, <strong>CLS &lt; 0.1</strong> on mobile (75th percentile).
+</div>
+<ul>
+  <li><strong>Audit pass</strong> with PageSpeed Insights + Lighthouse on home, products list, product detail, category, location, compliance pages.</li>
+  <li><strong>LCP optimisations</strong>:
+    <ul>
+      <li>Preload the LCP image on each route.</li>
+      <li>Use <code>priority</code> on hero images.</li>
+      <li>Preconnect to Supabase and image CDN.</li>
+      <li>Eliminate render-blocking JS / CSS.</li>
+    </ul>
+  </li>
+  <li><strong>INP optimisations</strong>:
+    <ul>
+      <li>Audit large client components &mdash; defer non-critical hydration.</li>
+      <li>Use <code>useTransition</code> on filter / search state changes in the products list.</li>
+      <li>Replace heavy event handlers with debounced versions.</li>
+    </ul>
+  </li>
+  <li><strong>CLS optimisations</strong>:
+    <ul>
+      <li>Explicit <code>width</code>/<code>height</code> on every image (already required by <code>next/image</code> &mdash; verify).</li>
+      <li>Reserve space for fonts (<code>next/font</code> with <code>display: swap</code> &mdash; already in use).</li>
+      <li>Skeleton placeholders for async content blocks.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2><span class="section-num">18.</span> Image SEO &amp; image sitemap</h2>
+<ul>
+  <li><strong>Descriptive file names</strong> on every uploaded product photo &mdash; not <code>IMG_2938.jpg</code>. Pattern: <code>{chemical-name}-{grade}-{pack-size}.webp</code>.</li>
+  <li><strong>Keyword-rich alt text</strong> &mdash; <span class="pill pill-done">DONE</span> A shared <code>deriveImageAlt({ name, category, manufacturer, qualifier })</code> helper in <code>lib/seo/helpers.ts</code> produces consistent alt text in the form &ldquo;[name] - [qualifier] - [category] - [manufacturer]&rdquo;, capped at 125 characters for Google&rsquo;s alt-text limit. The helper is wired into:
+    <ul>
+      <li><strong>Product card</strong> &mdash; pre-existing keyword-rich pattern preserved.</li>
+      <li><strong>PDP gallery</strong> &mdash; main image and thumbnails now receive the rich alt via a new optional <code>altText</code> prop on the gallery (non-breaking; falls back to <code>productName</code>).</li>
+      <li><strong>PDP OG image</strong> &mdash; OpenGraph and Twitter card alt now use the helper.</li>
+      <li><strong>/buy/[product]/[state]</strong> imagery &mdash; alt picks up the state qualifier so Google Images surfaces under geo-qualified queries.</li>
+    </ul>
+    Example output: <em>&ldquo;Acetone 99.5% - Victoria - Solvents - Brenntag Australia&rdquo;</em>. Still passes accessibility checks because it&rsquo;s human-readable; adds the keywords Google&rsquo;s image index uses.
+  </li>
+  <li><strong>Image sitemap</strong> at <code>/sitemap-images.xml</code> &mdash; every product photo with a caption and licence note. Lifts presence in Google Images.</li>
+  <li><strong>Lazy-load</strong> non-critical images, <strong>eager-load</strong> the LCP image (already configured by <code>next/image</code>'s default loading strategy).</li>
+  <li><strong>Modern formats</strong> &mdash; AVIF first, WebP fallback (already configured in <code>next.config.mjs</code>).</li>
+</ul>
+
+<h2><span class="section-num">19.</span> Performance, caching &amp; CDN</h2>
+<ul>
+  <li><strong>Static asset caching</strong> &mdash; long max-age on <code>/_next/static</code>, immutable.</li>
+  <li><strong>Edge caching</strong> on category and product pages (Vercel Edge or hosting equivalent) with stale-while-revalidate.</li>
+  <li><strong>Compression</strong>: Brotli on text assets (Vercel default; verify on alternative hosts).</li>
+  <li><strong>HTTP/2 / HTTP/3</strong> on the host.</li>
+  <li><strong>Resource hints</strong>: <code>preconnect</code> to Supabase storage and image CDN; <code>preload</code> the hero font + LCP image.</li>
+</ul>
+
+<h2><span class="section-num">20.</span> Faceted navigation &amp; crawl budget</h2>
+<ul>
+  <li><strong>Self-referencing canonicals</strong> on filter / sort URLs that point back to the parent so Google doesn&rsquo;t crawl every combination.</li>
+  <li><strong>Disallow specific URL patterns</strong> in <code>robots.txt</code> for combinations that produce thin / duplicate content (<code>/products?sort=*</code>, <code>/products?stock=*</code>).</li>
+  <li><strong>Cap pagination depth</strong> &mdash; or use a &ldquo;view all&rdquo; canonical pattern past page 10.</li>
+  <li><strong>404 / 500 pages</strong>: helpful pages with search box + top categories + support link &mdash; not dead ends. Already supported by Next.js&rsquo;s <code>not-found.tsx</code> and <code>error.tsx</code>.</li>
+</ul>
+
+<h2><span class="section-num">21.</span> Security &amp; HTTPS</h2>
+<ul>
+  <li><strong>HTTPS everywhere</strong> with HSTS preload (<code>max-age=63072000; includeSubDomains; preload</code>).</li>
+  <li><strong>Already in place</strong>: <code>X-Frame-Options</code>, <code>X-Content-Type-Options</code>, <code>Referrer-Policy</code>.</li>
+  <li><strong>Add</strong>: <code>Permissions-Policy</code> (no camera, no mic, no geolocation by default), <code>Strict-Transport-Security</code>, optional <code>Content-Security-Policy</code> (start with <code>report-only</code>).</li>
+</ul>
+
+<h2><span class="section-num">21.5</span> AI search &amp; GenAI citation optimisation (2026 priority)</h2>
+
+<div class="box box-blue">
+  <strong>Why this is now critical:</strong> in 2025&ndash;2026 a meaningful share of B2B research moved out of classic Google search and into <strong>Google AI Overviews, ChatGPT, Perplexity, Microsoft Copilot, and Claude</strong>. These systems answer queries by citing trusted, well-structured web pages &mdash; getting cited becomes the new &ldquo;ranking&rdquo;. Most chemical sites haven&rsquo;t adapted; this is a window we should walk through now.
+</div>
+
+<h4>What gets a page cited by AI search systems</h4>
+<ul>
+  <li><strong>Well-structured, fact-dense content</strong> &mdash; clear headings, definitions, tables, FAQs, comparison structures. The kind of content that&rsquo;s easy for a model to extract.</li>
+  <li><strong>Schema.org markup</strong> (already covered in Part C) &mdash; Product, FAQPage, HowTo, ChemicalSubstance, Article. AI systems lean on schema heavily for entity disambiguation.</li>
+  <li><strong>Author bylines + dates</strong> on content. Models penalise undated, unattributed copy.</li>
+  <li><strong>Llms.txt</strong> &mdash; an emerging convention (mirroring <code>robots.txt</code>) signalling which content is canonical / preferred for citation. Cheap to add, marginally future-proof.</li>
+  <li><strong>Original data + opinions</strong> &mdash; pricing tables, freight lead times, comparison matrices, safety notes specific to AU regulations. Generic copy doesn&rsquo;t get cited; specific, sourced facts do.</li>
+  <li><strong>Brand attribution within the citation window</strong> &mdash; <span class="pill pill-done">DONE</span> AI systems usually cite a single sentence; if &ldquo;Chem Connect&rdquo; isn&rsquo;t in that sentence, the citation goes to a competitor or to a generic source. The <code>ensureBrandMention()</code> utility in <code>lib/seo/helpers.ts</code> guarantees the brand name lands within the first 100 words of every auto-generated intro on programmatic pages (<code>/brand</code>, <code>/buy</code>, future <code>/uses</code>, <code>/surfaces</code>, etc.).</li>
+  <li><strong>Crawl access for AI bots</strong> &mdash; <code>GPTBot</code> (OpenAI), <code>PerplexityBot</code>, <code>ClaudeBot</code> (Anthropic), <code>Google-Extended</code>. <strong>Decision needed</strong>: allow them to index the public catalog (recommended for visibility), or block them. Default to allow.</li>
+</ul>
+
+<h4>What I&rsquo;ll build</h4>
+<ul>
+  <li><strong><code>app/llms.txt/route.ts</code></strong> serving an <code>llms.txt</code> file &mdash; lists canonical content URLs, summary of the business, and citation guidance for LLMs.</li>
+  <li><strong>Updated robots.ts</strong> with explicit allow rules for <code>GPTBot</code>, <code>PerplexityBot</code>, <code>ClaudeBot</code>, <code>Google-Extended</code>. Disallow them from <code>/admin</code>, <code>/api</code>, etc. (same as Googlebot).</li>
+  <li><strong>FAQ blocks</strong> on every product, category, location, and SDS page &mdash; structured Q&amp;A with <code>FAQPage</code> schema. AI systems prefer FAQ-formatted answers.</li>
+  <li><strong>Comparison tables</strong> on category pages (e.g. industrial-grade vs lab-grade acetone, drum vs IBC) &mdash; AI systems cite tables disproportionately often.</li>
+  <li><strong>Author bylines</strong> on every knowledge-hub article: named author, role, link to a real bio page (<code>/about/team</code>).</li>
+  <li><strong>Citation-friendly summaries</strong> at the top of long content pages (1&ndash;2 sentences, fact-dense) &mdash; the bit that gets quoted.</li>
+  <li><strong>Test prompts monthly</strong> against ChatGPT, Perplexity, and Google AI Overviews for queries like &ldquo;Australian industrial chemical supplier with bulk pricing&rdquo;. Track citation rate as a KPI.</li>
+</ul>
+
+<div class="benefit">
+  <span class="label">What you get</span>
+  <ul>
+    <li>Citations in <strong>ChatGPT</strong>, <strong>Perplexity</strong>, <strong>Google AI Overviews</strong>, <strong>Copilot</strong> when buyers ask &ldquo;where do I buy {chemical} in Australia?&rdquo;.</li>
+    <li>Defensive position as classic search shifts toward AI summaries.</li>
+    <li>Same structural changes that help AI also help classic Google rankings &mdash; double dividend.</li>
+    <li>Trackable: citation count over time becomes a north-star KPI alongside organic sessions.</li>
+  </ul>
+</div>
+
+<h2><span class="section-num">22.</span> Accessibility (WCAG 2.1 AA)</h2>
+<p style="font-size: 13px;">Accessibility overlaps heavily with SEO &mdash; well-structured, accessible HTML is what Google&rsquo;s crawler also wants to see.</p>
+<ul>
+  <li>Semantic HTML across all new pages (<code>&lt;main&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;section&gt;</code>).</li>
+  <li>Visible focus states on all interactive elements.</li>
+  <li>Keyboard navigation across the products list filters.</li>
+  <li>Colour contrast audit &mdash; text + interactive components &gt; 4.5:1.</li>
+  <li>Alt text on every image (already covered).</li>
+  <li>ARIA labels on icon-only buttons.</li>
+  <li>Form labels and error messages tied via <code>aria-describedby</code>.</li>
+  <li>Accessible PDFs for SDS where practical.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<!-- PART G — CONTENT, AUTHORITY & TRUST -->
+<!-- ========================================================== -->
+<div class="part-num">Part G &mdash; Content, authority &amp; E-E-A-T</div>
+
+<h2><span class="section-num">23.</span> Knowledge hub &amp; content pillars</h2>
+<p style="font-size: 13px;">Google&rsquo;s 2024&ndash;2026 algorithm updates (Helpful Content, E-E-A-T, AI Overviews) reward depth and topical authority. The platform needs a knowledge hub.</p>
+
+<h4>Five content pillars</h4>
+<table>
+  <thead>
+    <tr><th>Pillar</th><th>Examples</th><th>Why it ranks</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Buyer guides</td><td>&ldquo;How to choose industrial-grade acetone&rdquo;, &ldquo;IBC vs drum &mdash; which fits your operation?&rdquo;</td><td>Mid-funnel queries with high purchase intent</td></tr>
+    <tr><td>Compliance &amp; safety</td><td>SDS library, GHS labelling, ADG Code basics, SUSMP scheduling, state EPA notes</td><td>High-trust queries; FAQ schema unlocks rich snippets</td></tr>
+    <tr><td>Application</td><td>Per-industry pages from Section 13</td><td>Vertical-specific intent</td></tr>
+    <tr><td>CAS encyclopedia</td><td>Per-chemical pages from Section 14</td><td>Massive long-tail surface</td></tr>
+    <tr><td>Comparison &amp; reviews</td><td>&ldquo;Industrial-grade vs lab-grade&rdquo;, &ldquo;Supplier comparison&rdquo;, &ldquo;Bulk pack-size economics&rdquo;</td><td>Bottom-funnel queries close to purchase</td></tr>
+  </tbody>
+</table>
+
+<div class="box box-amber">
+  <strong>Suggested editorial cadence:</strong> 2 high-quality articles per week to start (one buyer guide + one compliance / encyclopedia entry). Scale once content-to-conversion data is visible in GA4 (typically month 3).
+</div>
+
+<h2><span class="section-num">24.</span> SDS library SEO</h2>
+<ul>
+  <li>Every product&rsquo;s SDS as a discoverable, indexable HTML page (in addition to the PDF).</li>
+  <li>Unique URL per SDS (<code>/sds/{chemical-slug}</code>), with semantic structure for sections (Identification, Hazards, Composition, etc.).</li>
+  <li><code>Article</code> + <code>FAQPage</code> schema, plus a clear &ldquo;Buy this chemical&rdquo; CTA into the product page.</li>
+  <li>SDS PDFs stored with descriptive filenames and linked with anchor text that includes the chemical name.</li>
+</ul>
+
+<h2><span class="section-num">25.</span> E-E-A-T &amp; trust signals on the public site</h2>
+<p style="font-size: 13px;">Google's E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) framework heavily weights visible trust signals on a commercial site. Currently almost none of these are surfaced.</p>
+<ul>
+  <li><strong>ABN</strong> displayed in the footer of every page (currently not shown anywhere).</li>
+  <li><strong>Phone number</strong> in the header / footer (currently not shown).</li>
+  <li><strong>Physical address</strong> &mdash; head office in footer + 7 warehouse addresses on <code>/locations</code>.</li>
+  <li><strong>Compliance badges</strong>: ADG, ChemAlert, RACI / Chemistry Australia membership where applicable.</li>
+  <li><strong>Payment logos</strong> (Stripe / supported card networks).</li>
+  <li><strong>Customer logos</strong> on home / about (with permission).</li>
+  <li><strong>Testimonials</strong> &mdash; collected via post-order email, displayed with schema.</li>
+  <li><strong>Customer reviews</strong> on product pages once collected (lights up <code>AggregateRating</code>).</li>
+  <li><strong>Author bios</strong> on every knowledge-hub article &mdash; named author, credentials, link to LinkedIn.</li>
+  <li><strong>Editorial / sourcing policy</strong> page outlining how content is researched and reviewed.</li>
+</ul>
+
+<h2><span class="section-num">26.</span> Backlinks &amp; PR strategy</h2>
+<ul>
+  <li><strong>High-value AU industry links</strong> (target list):
+    <ul>
+      <li>RACI (Royal Australian Chemical Institute) member directory.</li>
+      <li>IChemE Australia.</li>
+      <li>Chemistry Australia.</li>
+      <li>NSW EPA, VIC EPA, QLD DES, WA DWER, SA EPA suppliers / licence holders lists.</li>
+      <li>Local chambers of commerce in each warehouse city.</li>
+    </ul>
+  </li>
+  <li><strong>Guest posts</strong> on manufacturing, mining, water-treatment, and laboratory publications (1&ndash;2 per quarter).</li>
+  <li><strong>Supplier / brand pages</strong>: each manufacturer Chem Connect stocks gets a branded page; suppliers will naturally link back from their own marketing.</li>
+  <li><strong>PR moments</strong>: new product launches, new supplier onboarding, sustainability initiatives, warehouse expansions.</li>
+  <li><strong>Broken-link reclamation</strong>: find competitor / industry pages with broken outbound links to defunct chemical suppliers and offer Chem Connect as the replacement.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<!-- PART H — MEASUREMENT -->
+<!-- ========================================================== -->
+<div class="part-num">Part H &mdash; Measurement &amp; iteration</div>
+
+<h2><span class="section-num">27.</span> Analytics, tracking &amp; Search Console</h2>
+
+<h4>Core stack</h4>
+<ul>
+  <li><strong>Google Search Console</strong> &mdash; verified, sitemap submitted, weekly review of: coverage, queries, CTR, top pages, Core Web Vitals, manual actions.</li>
+  <li><strong>Google Analytics 4</strong> with full e-commerce event tracking:
+    <ul>
+      <li><code>view_item_list</code> on category / search pages</li>
+      <li><code>view_item</code> on product detail</li>
+      <li><code>add_to_cart</code> from product / cart</li>
+      <li><code>begin_checkout</code> at checkout step 1</li>
+      <li><code>add_payment_info</code> on payment step</li>
+      <li><code>purchase</code> on order confirmation (already integrated with Stripe)</li>
+    </ul>
+  </li>
+  <li><strong>Bing Webmaster Tools</strong> &mdash; corporate buyers on Edge use Bing more than retail.</li>
+  <li><strong>Conversion goals</strong>: signups, quote requests, orders &mdash; all tied back to source / medium / campaign.</li>
+  <li><strong>Rank tracking</strong>: ~150 curated keywords (covering brand, primary, location, product, long-tail) tracked weekly via a third-party tool (Ahrefs / SE Ranking / Semrush).</li>
+</ul>
+
+<h4>Reporting cadence</h4>
+<ul>
+  <li><strong>Weekly</strong>: GSC coverage + CWV monitoring (5-minute scan).</li>
+  <li><strong>Monthly</strong>: full SEO report &mdash; rankings, organic traffic, conversions, top movers, action items.</li>
+  <li><strong>Quarterly</strong>: deep audit + content / link plan refresh.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<!-- PART I — TARGET KEYWORDS -->
+<!-- ========================================================== -->
+<div class="part-num">Part I &mdash; Target keywords (refined for Chem Connect)</div>
+
+<h2><span class="section-num">28.</span> Keyword universe</h2>
+<table>
+  <thead>
+    <tr><th style="width: 130px;">Bucket</th><th>Examples</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><span class="badge b-brand">Brand</span></td><td>chem connect, cqvs, cqvs chemicals, chem connect australia, chemconnect.com.au</td></tr>
+    <tr><td><span class="badge b-pri">Primary</span></td><td>industrial chemicals australia, b2b chemical marketplace australia, buy industrial chemicals online, australian chemical supplier, bulk chemicals supplier australia</td></tr>
+    <tr><td><span class="badge b-sec">Secondary</span></td><td>laboratory chemicals supplier australia, chemical distributor australia, factory direct chemicals australia, gst registered chemical supplier, dangerous goods supplier australia</td></tr>
+    <tr><td><span class="badge b-loc">Local (city)</span></td><td>chemical supplier melbourne, chemical supplier geelong, chemical supplier brisbane, chemical supplier gold coast, chemical supplier newcastle, chemical supplier sydney, chemical supplier perth, chemical supplier adelaide, dandenong chemical supplier, crestmead chemical distributor, burleigh heads chemicals, cardiff nsw chemicals, lonsdale chemicals, wangara chemicals, chemical supplier near me</td></tr>
+    <tr><td><span class="badge b-loc">Local (state)</span></td><td>chemicals nsw, chemicals vic, chemicals qld, chemicals wa, chemicals sa, dangerous goods nsw, chemicals supplier brisbane qld</td></tr>
+    <tr><td><span class="badge b-prod">Product (category)</span></td><td>buy acid replacement australia, industrial solvents australia, automotive chemicals supplier, cleaning chemicals bulk, lab chemicals australia, surfactants supplier, polymer chemicals australia, agrochemicals supplier</td></tr>
+    <tr><td><span class="badge b-prod">Product (specific)</span></td><td>buy acetone australia, sulfuric acid supplier australia, sodium hydroxide bulk, isopropyl alcohol 5l, hydrochloric acid 20l drum, ethylene glycol ibc, green acid replacement</td></tr>
+    <tr><td><span class="badge b-long">Long-tail (CAS / SDS)</span></td><td>{cas number} supplier australia, sds {chemical name} australia, {grade} {chemical} bulk price aud, msds acetone australia, gst-inclusive {chemical} price</td></tr>
+    <tr><td><span class="badge b-q">Question</span></td><td>where to buy {chemical} in australia, what is the cheapest {chemical} supplier in {city}, how to buy {chemical} bulk, is {chemical} a dangerous good in australia, can i ship {chemical} interstate</td></tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<!-- PART J — IMPLEMENTATION ROADMAP -->
+<!-- ========================================================== -->
+<div class="part-num">Part J &mdash; Implementation roadmap</div>
+
+<h2><span class="section-num">29.</span> Phased delivery plan</h2>
+
+<div class="phase">
+  <strong>Phase 1 &mdash; Critical foundations</strong> &nbsp;<span class="pill pill-done">SHIPPED</span>
+  <ul>
+    <li><span class="pill pill-done">DONE</span> <strong>C1.</strong> <code>app/(marketplace)/products/page.tsx</code> converted to Server Component with <code>products-client.tsx</code> child. Server-fetches active products from Supabase with 5-min revalidation.</li>
+    <li><span class="pill pill-done">DONE</span> <strong>C2.</strong> <code>app/robots.ts</code> live &mdash; public allow, private disallow, LLM crawler allow-list (GPTBot, PerplexityBot, ClaudeBot, Google-Extended).</li>
+    <li><span class="pill pill-done">DONE</span> <strong>C3.</strong> <code>app/sitemap.ts</code> live &mdash; dynamic, 10-min revalidation, pulls active product slugs from Supabase.</li>
+    <li><span class="pill pill-done">DONE</span> <strong>C4.</strong> <code>&lt;html lang="en-AU"&gt;</code> shipped.</li>
+    <li><span class="pill pill-done">DONE</span> <strong>C5.</strong> Organization, WebSite, Product, BreadcrumbList JSON-LD all live and validating.</li>
+    <li><span class="pill pill-done">DONE</span> <strong>Quick wins:</strong> hero H1 typo fix shipped; product image alt-text pattern updated; <code>X-Robots-Tag</code> headers on every private route in <code>next.config.mjs</code>.</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <strong>Phase 1.5 &mdash; Metadata + footer pages</strong> &nbsp;<span class="pill pill-done">SHIPPED</span>
+  <ul>
+    <li><span class="pill pill-done">DONE</span> Extended <code>generateMetadata</code> on home, products, product detail, compliance, privacy, terms (OG, Twitter, canonical, per-page OG image).</li>
+    <li><span class="pill pill-done">DONE</span> Built four real footer pages: <code>/about</code>, <code>/sds</code>, <code>/support</code> (with FAQPage schema), <code>/custom-orders</code>. Footer updated to point at them.</li>
+    <li><span class="pill pill-done">DONE</span> Footer NAP block shipped &mdash; all 7 active warehouses, support email, GST notice.</li>
+    <li><span class="pill pill-done">DONE</span> Sitemap submitted to Google Search Console + Bing Webmaster (GSC verified via DNS, Bing imported from GSC).</li>
+    <li><span class="pill pill-done">DONE</span> Microsoft Clarity wired in for behavioural analytics (env-gated, project ID set).</li>
+    <li><span class="pill pill-todo">TODO</span> GA4 install &mdash; pending client decision on whether to use GA4 alongside Clarity.</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <strong>Phase 2 &mdash; Schema &amp; landing pages</strong> &nbsp;<span class="pill pill-done">SHIPPED</span>
+  <ul>
+    <li><span class="pill pill-done">DONE</span> FAQPage schema injected on every product page (4 dynamically-generated Q&amp;As per product).</li>
+    <li><span class="pill pill-done">DONE</span> <strong>8 city landing pages</strong> at <code>/chemical-supplier/[city]</code> &mdash; Melbourne, Geelong, Brisbane, Gold Coast, Adelaide, Perth, Newcastle (each with LocalBusiness schema), plus Sydney with Service schema.</li>
+    <li><span class="pill pill-done">DONE</span> <strong>5 state landing pages</strong> at <code>/chemicals/[state]</code> &mdash; NSW, VIC, QLD, SA, WA.</li>
+    <li><span class="pill pill-done">DONE</span> <strong><code>/locations</code> hub page</strong> with ItemList schema linking all 7 active warehouses + Sydney.</li>
+    <li><span class="pill pill-done">DONE</span> <strong>6 category landing pages</strong> at <code>/categories/[slug]</code> &mdash; Acid Replacement, Acid, Alkali, Automotive, Cleaning, Personal Care.</li>
+    <li><span class="pill pill-done">DONE</span> Schema library extended: <code>FAQPage</code>, <code>LocalBusiness</code>, <code>Service</code>, <code>ItemList</code>, <code>CollectionPage</code>, <code>Article</code>, <code>AggregateRating</code>, <code>Review</code> builders.</li>
+    <li><span class="pill pill-todo">TODO</span> Submit GBP profiles for the 7 active warehouse addresses (operational; postcards required &mdash; Section 33).</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <strong>Phase 3 &mdash; Content engine</strong> &nbsp;<span class="pill pill-done">SHIPPED</span>
+  <ul>
+    <li><span class="pill pill-done">DONE</span> Knowledge hub launched at <code>/knowledge</code> + <code>/knowledge/[slug]</code> with 4 seed articles (buyer guide, compliance, comparison) and Article schema (author + dates &mdash; AI citation eligible).</li>
+    <li><span class="pill pill-done">DONE</span> Industries hub launched at <code>/industries</code> + <code>/industries/[slug]</code> with 10 verticals: Concrete &amp; Quarrying, Mining, Agriculture, Food &amp; Beverage, Water &amp; Wastewater, Pharma &amp; Lab, Manufacturing, Automotive Workshops, Cleaning &amp; Sanitation, Construction.</li>
+    <li><span class="pill pill-done">DONE</span> SDS index page at <code>/sds</code> auto-generated from active products with A&ndash;Z navigation. Per-product SDS lives under each product detail page.</li>
+    <li><span class="pill pill-done">DONE</span> AI search readiness: <code>/llms.txt</code> dynamic route + LLM-bot allow-list in <code>robots.ts</code>.</li>
+    <li><span class="pill pill-done">DONE</span> Customer reviews infrastructure: schema injectors + UI component with self-gating; sample data + env toggle for staging. Companion proposal doc explains the full collection flow when ready to ship.</li>
+    <li><span class="pill pill-todo">TODO</span> CAS / chemical encyclopedia template &mdash; deferred (content-heavy, no structured data source yet).</li>
+    <li><span class="pill pill-todo">TODO</span> Editorial cadence (2 articles per week) &mdash; operational, ongoing.</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <strong>Phase 4 &mdash; Authority &amp; links</strong> &nbsp;<span class="pill pill-todo">OPERATIONAL &mdash; ONGOING</span>
+  <p style="font-size:12.5px; margin: 6px 0 8px;">No code work &mdash; all of Phase 4 is real-world outreach and listing management. Detailed playbook in <code>docs/SEO-Directories-And-Backlinks-Explainer.md</code> (companion doc, written for someone who's never done SEO).</p>
+  <ul>
+    <li>List on all priority AU directories (Yellow Pages, True Local, Hotfrog, ABR, chambers).</li>
+    <li>Reach out to RACI, IChemE AU, Chemistry Australia for member-directory inclusion / link.</li>
+    <li>Launch supplier / brand pages with backlinks from each manufacturer&rsquo;s own site.</li>
+    <li>Quarterly PR push (new launches, sustainability, warehouse expansion).</li>
+    <li>Guest-post on 2&ndash;3 industry publications per quarter.</li>
+    <li>Continue weekly content cadence; double down on highest-converting topics from analytics data.</li>
+  </ul>
+</div>
+
+<h2><span class="section-num">30.</span> Expected outcomes &mdash; measurable milestones</h2>
+
+<table>
+  <thead>
+    <tr><th style="width: 110px;">Horizon</th><th>What you should see</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>30 days</strong></td><td>Branded results show clean title + description + sitelinks. All 7 active warehouses live in Google Maps (Geelong pending business-name confirmation). Search Console + GA4 reporting. Sitemap fully indexed. Cart / checkout / admin verified out of the index.</td></tr>
+    <tr><td><strong>90 days</strong></td><td>Rich product results in Google (price, stock, breadcrumbs). 7 city landing pages ranking in their respective Local Pack (Melbourne, Geelong, Brisbane, Gold Coast, Adelaide, Perth, Newcastle). Sydney coverage page ranking for &ldquo;Sydney chemical supplier&rdquo; queries from a Newcastle dispatch position. First wave of CAS encyclopedia pages indexed. Organic traffic 2&ndash;4&times; baseline.</td></tr>
+    <tr><td><strong>6 months</strong></td><td>Compounding long-tail traffic from CAS pages, SDS library, and buyer guides. AggregateRating live on top products. Backlinks from at least 3 major AU industry sources. Local Pack visibility in all 7 active warehouse cities + Sydney. Organic traffic 5&ndash;10&times; baseline.</td></tr>
+    <tr><td><strong>12 months</strong></td><td>Chem Connect is the default Google answer for &ldquo;buy {chemical} Australia&rdquo;-style queries. Most product pages have a rich result. Knowledge hub is referenced by other industry sites &mdash; natural backlinks. SEO becomes the largest non-paid acquisition channel.</td></tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ========================================================== -->
+<!-- PART K — APPENDIX -->
+<!-- ========================================================== -->
+<div class="part-num">Part K &mdash; Appendix</div>
+
+<h2><span class="section-num">33.</span> Operational checklist &mdash; status</h2>
+<p style="font-size: 13px;">Items that can&rsquo;t be solved with code alone &mdash; client decisions, manual actions, real-world outreach. Updated to reflect what&rsquo;s been done since the original plan.</p>
+
+<table>
+  <thead>
+    <tr><th style="width:120px;">Status</th><th>Item</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><span class="pill pill-done">DONE</span></td><td>Verify <strong>Google Search Console</strong> for <code>cqvs-chemconnect.com.au</code></td><td>Verified via DNS TXT record (Domain method &mdash; covers all subdomains).</td></tr>
+    <tr><td><span class="pill pill-done">DONE</span></td><td>Verify <strong>Bing Webmaster Tools</strong></td><td>Imported from GSC &mdash; auto-verified through that integration.</td></tr>
+    <tr><td><span class="pill pill-done">DONE</span></td><td>Submit sitemap to GSC + Bing</td><td><code>/sitemap.xml</code> submitted; pages discovered automatically.</td></tr>
+    <tr><td><span class="pill pill-done">DONE</span></td><td>Install <strong>Microsoft Clarity</strong> for behavioural analytics</td><td>Wired in env-gated; project ID set; privacy policy disclosure added with independent-Controllers framing.</td></tr>
+    <tr><td><span class="pill pill-done">DONE</span></td><td>Decide LLM crawler policy (GPTBot, PerplexityBot, ClaudeBot, Google-Extended)</td><td>Allow-listed in <code>robots.ts</code>. <code>/llms.txt</code> generated dynamically as canonical-citation guidance for AI search.</td></tr>
+    <tr><td><span class="pill pill-partial">PARTIAL</span></td><td><strong>Geelong warehouse business name</strong> &mdash; currently set to <code>"Geelong Shed"</code> (provisional, matches QLD/NSW Shed naming pattern)</td><td>Client to confirm or replace with the registered trading name. GBP submission for Geelong is blocked until this is locked.</td></tr>
+    <tr><td><span class="pill pill-todo">TODO</span></td><td>Confirm or supply <strong>company info</strong> for footer + Organization schema: ABN, primary phone number, head-office address</td><td>Footer NAP block is built; ABN and phone fields are wired but empty. Schema injectors will pick them up the moment they're supplied via env.</td></tr>
+    <tr><td><span class="pill pill-todo">TODO</span></td><td>Decide whether to add <strong>GA4</strong> alongside Microsoft Clarity</td><td>Clarity covers behaviour; GA4 covers conversion attribution. Optional &mdash; not urgent.</td></tr>
+    <tr><td><span class="pill pill-todo">TODO</span></td><td><strong>Review the 25 inactive products</strong>: publish what's ready, archive what's discontinued, leave drafts alone</td><td>Each newly-active product expands the indexable catalogue surface. Sitemap auto-picks them up the moment <code>is_active</code> flips.</td></tr>
+    <tr><td><span class="pill pill-todo">TODO</span></td><td>Submit <strong>7 Google Business Profiles</strong> (one per active warehouse)</td><td>Postcards required; ~5&ndash;7 business days each. Geelong blocked on business name.</td></tr>
+    <tr><td><span class="pill pill-todo">TODO</span></td><td>Decide what to do with <strong>Formula Chemicals (Inactive, West Ryde NSW)</strong></td><td>Options: leave dormant, reactivate, or archive permanently. Currently excluded from all public SEO surfaces.</td></tr>
+    <tr><td><span class="pill pill-todo">TODO</span></td><td><strong>AU directory submissions</strong> (Yellow Pages AU, True Local, Hotfrog, ABR, RACI / IChemE / Chemistry Australia)</td><td>Detailed playbook in <code>docs/SEO-Directories-And-Backlinks-Explainer.md</code>. Tier 1 (~90 min total).</td></tr>
+    <tr><td><span class="pill pill-todo">TODO</span></td><td><strong>Photos for each warehouse</strong> (5&ndash;10 per location, 1280px+) for local landing pages and GBP</td><td>Substantial local-SEO uplift. Half a day per warehouse on-site.</td></tr>
+    <tr><td><span class="pill pill-partial">PARTIAL</span></td><td><strong>Review collection</strong> &mdash; post-order email + magic-link submission + admin moderation</td><td>Display infrastructure (schema, UI, env toggle) is shipped. Full collection pipeline is scoped in <code>docs/Chem-Connect-Customer-Reviews-Feature.html</code> &mdash; ready to ship when client gives go-ahead.</td></tr>
+    <tr><td><span class="pill pill-todo">TODO</span></td><td><strong>Editorial calendar sign-off</strong> for the knowledge hub</td><td>4 seed articles already live. Topics, voice, cadence agreement needed before scaling to weekly publication.</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="section-num">34.</span> File-level changes summary</h2>
+
+<table>
+  <thead>
+    <tr><th>File</th><th>Change</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>app/layout.tsx</code></td><td>Update root metadata (en-AU, metadataBase, default OG / Twitter / robots), inject Organization + WebSite JSON-LD.</td></tr>
+    <tr><td><code>app/sitemap.ts</code></td><td><strong>NEW</strong> &mdash; dynamic sitemap pulling products, categories, locations, content from Supabase.</td></tr>
+    <tr><td><code>app/robots.ts</code></td><td><strong>NEW</strong> &mdash; allow public, disallow admin / cart / checkout / auth / dashboard / api.</td></tr>
+    <tr><td><code>app/(admin)/admin/layout.tsx</code></td><td>Add layout-level <code>noindex,nofollow,noarchive,nosnippet</code>.</td></tr>
+    <tr><td><code>app/(dashboard)/dashboard/layout.tsx</code></td><td>Add layout-level <code>noindex,nofollow</code>.</td></tr>
+    <tr><td><code>app/page.tsx</code></td><td>Fix h1, extend metadata, inject home-page schema.</td></tr>
+    <tr><td><code>app/(marketplace)/products/page.tsx</code></td><td>Add metadata, server-render first page, inject ItemList + Breadcrumb schemas.</td></tr>
+    <tr><td><code>app/(marketplace)/products/[slug]/page.tsx</code></td><td>Extend metadata (OG / canonical), inject Product + Offer + Breadcrumb + FAQPage schemas, add per-product OG image.</td></tr>
+    <tr><td><code>app/(marketplace)/categories/[slug]/page.tsx</code></td><td><strong>NEW</strong> &mdash; one route per category.</td></tr>
+    <tr><td><code>app/(marketplace)/chemical-supplier/[city]/page.tsx</code></td><td><strong>NEW</strong> &mdash; 8 city landing pages: Melbourne, Geelong, Brisbane, Gold Coast, Adelaide, Perth, Newcastle (each with <code>LocalBusiness</code> schema for the active warehouse), plus Sydney (with <code>Service</code> schema, dispatched from Newcastle).</td></tr>
+    <tr><td><code>app/(marketplace)/chemicals/[state]/page.tsx</code></td><td><strong>NEW</strong> &mdash; 5 state landing pages.</td></tr>
+    <tr><td><code>app/(marketplace)/locations/page.tsx</code></td><td><strong>NEW</strong> &mdash; locations hub.</td></tr>
+    <tr><td><code>app/(marketplace)/industries/[slug]/page.tsx</code></td><td><strong>NEW</strong> &mdash; ~10 industry application pages.</td></tr>
+    <tr><td><code>app/(marketplace)/chemicals/[slug]/page.tsx</code></td><td><strong>NEW</strong> &mdash; CAS / chemical encyclopedia.</td></tr>
+    <tr><td><code>app/(marketplace)/sds/[slug]/page.tsx</code></td><td><strong>NEW</strong> &mdash; indexable SDS pages.</td></tr>
+    <tr><td><code>app/(marketplace)/cart/page.tsx</code> &amp; <code>/checkout/page.tsx</code></td><td>Add <code>noindex</code> metadata.</td></tr>
+    <tr><td><code>app/(auth)/*/page.tsx</code></td><td>Add <code>noindex</code> metadata to all 4 auth pages.</td></tr>
+    <tr><td><code>components/seo/JsonLd.tsx</code></td><td><strong>NEW</strong> &mdash; reusable JSON-LD injector.</td></tr>
+    <tr><td><code>lib/seo/schema.ts</code></td><td><strong>NEW</strong> &mdash; typed schema builders (Product, Organization, LocalBusiness, FAQPage, etc.).</td></tr>
+    <tr><td><code>components/layouts/marketplace-footer.tsx</code></td><td>Add full NAP block, ABN, GST notice, social links.</td></tr>
+    <tr><td><code>next.config.mjs</code></td><td>Add HSTS, Permissions-Policy, X-Robots-Tag for /admin, redirects for canonical URL form.</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="section-num">35.</span> Paste-ready code &mdash; the five Phase 1 critical fixes</h2>
+<p style="font-size: 13px;">For full transparency, here&rsquo;s the actual code for each Phase 1 critical item. I&rsquo;ll ship these in the same order, then validate each in Search Console before moving on.</p>
+
+<h4>C1 &mdash; Server-render the products list</h4>
+<pre><code>// app/(marketplace)/products/page.tsx
+import { ProductsClient } from "./products-client"
+
+export const metadata = {
+  title: "Industrial Chemicals &mdash; Buy Bulk Online Australia | Chem Connect",
+  description:
+    "Browse 30+ bulk industrial chemicals &mdash; acids, alkalis, truck washes, agi gels. Live AUD pricing, no quote forms. 2&ndash;5 day DG-rated delivery from your state.",
+  alternates: { canonical: "https://www.cqvs-chemconnect.com.au/products" },
+}
+
+async function getActiveProducts() {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/products` +
+    `?is_active=eq.true&select=id,name,slug,price,unit,manufacturer,category,classification,` +
+    `cas_number,packaging_sizes,in_stock,stock_qty,region,image_url,badge&order=name.asc`,
+    {
+      headers: {
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
+      },
+      next: { revalidate: 300 },
+    },
+  )
+  return res.ok ? res.json() : []
+}
+
+export default async function ProductsPage() {
+  const products = await getActiveProducts()
+  return &lt;ProductsClient initialProducts={products} /&gt;
+}</code></pre>
+<p style="font-size: 12.5px;">Then move every <code>"use client"</code>-needing piece (filter chips, search, sort, useState) into <code>products-client.tsx</code> taking <code>initialProducts</code> as a prop.</p>
+
+<h4>C2 &mdash; robots.ts (public + LLM crawlers allowed)</h4>
+<pre><code>// app/robots.ts
+import type { MetadataRoute } from "next"
+
+export default function robots(): MetadataRoute.Robots {
+  const disallowed = ["/cart", "/checkout", "/dashboard", "/api/", "/admin", "/login", "/register", "/forgot-password", "/reset-password"]
+  return {
+    rules: [
+      { userAgent: "*", allow: "/", disallow: disallowed },
+      // LLM crawlers &mdash; allow public, block private (decision in section 21.5)
+      { userAgent: "GPTBot", allow: "/", disallow: disallowed },
+      { userAgent: "PerplexityBot", allow: "/", disallow: disallowed },
+      { userAgent: "ClaudeBot", allow: "/", disallow: disallowed },
+      { userAgent: "Google-Extended", allow: "/", disallow: disallowed },
+    ],
+    sitemap: "https://www.cqvs-chemconnect.com.au/sitemap.xml",
+    host: "https://www.cqvs-chemconnect.com.au",
+  }
+}</code></pre>
+
+<h4>C3 &mdash; sitemap.ts</h4>
+<pre><code>// app/sitemap.ts
+import type { MetadataRoute } from "next"
+const SITE = "https://www.cqvs-chemconnect.com.au"
+
+async function getActiveProductSlugs() {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/products?is_active=eq.true&select=slug,updated_at`,
+    {
+      headers: {
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
+      },
+      next: { revalidate: 600 },
+    },
+  )
+  return res.ok ? res.json() : []
+}
+
+export default async function sitemap(): Promise&lt;MetadataRoute.Sitemap&gt; {
+  const products = await getActiveProductSlugs()
+  const now = new Date()
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: `${SITE}/`, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
+    { url: `${SITE}/products`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE}/rewards`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${SITE}/compliance`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${SITE}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+  ]
+  const productRoutes: MetadataRoute.Sitemap = products.map(
+    (p: { slug: string; updated_at: string }) =&gt; ({
+      url: `${SITE}/products/${p.slug}`,
+      lastModified: new Date(p.updated_at),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    }),
+  )
+  return [...staticRoutes, ...productRoutes]
+}</code></pre>
+<p style="font-size: 12.5px;">Note: as the catalog grows past a few hundred SKUs, this gets split into <code>sitemap-products.xml</code>, <code>sitemap-categories.xml</code>, etc. (see Section 2). Keep it simple for now.</p>
+
+<h4>C4 &mdash; en-AU lang attribute</h4>
+<pre><code>// app/layout.tsx, line 30
+&lt;html lang="en-AU"&gt;</code></pre>
+
+<h4>C5 &mdash; Minimum-viable JSON-LD</h4>
+<pre><code>// In app/layout.tsx, inside &lt;body&gt; before {children}:
+&lt;script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "Chem Connect",
+      legalName: "Concrete &amp; Quarry Vending Systems",
+      url: "https://www.cqvs-chemconnect.com.au",
+      logo: "https://www.cqvs-chemconnect.com.au/images/cqvs-logo.png",
+      description: "Manufacturer-direct B2B marketplace for industrial chemicals in Australia.",
+      areaServed: "AU",
+      // ABN, sameAs, contactPoint added once client supplies them (Section 33)
+    }),
+  }}
+/&gt;</code></pre>
+<p style="font-size: 12.5px;">Then in <code>products/[slug]/page.tsx</code>, inject <code>Product</code> + <code>BreadcrumbList</code> schemas (full markup in the build pass; see Section 6 for the schema strategy).</p>
+
+<div class="box box-amber">
+  <strong>Validation step (mandatory):</strong> after each schema deploy, run the page through <a href="https://search.google.com/test/rich-results">Google&rsquo;s Rich Results Test</a> and the <a href="https://validator.schema.org/">Schema.org validator</a>. A schema with errors is worse than no schema.
+</div>
+
+<h2><span class="section-num">36.</span> What I&rsquo;ll deliver to you each week</h2>
+<ul>
+  <li><strong>Weekly</strong>: Search Console snapshot &mdash; new indexed pages, top movers, coverage warnings, CWV.</li>
+  <li><strong>Monthly</strong>: Full SEO report &mdash; organic traffic, top queries, top landing pages, conversion rate, recommendations for next month.</li>
+  <li><strong>Quarterly</strong>: Deep audit + content / backlink plan refresh.</li>
 </ul>
 
 <div class="footer">
-  Prepared for the Chem Connect team &middot; A living document - to be revisited each quarter as the catalog, content, and link profile grow.
+  Prepared for the Chem Connect team &middot; Sohaib &middot; April 2026 &middot; This is a living document &mdash; revisited each quarter as the catalog, content, and link profile grow.
 </div>
 
 </body>

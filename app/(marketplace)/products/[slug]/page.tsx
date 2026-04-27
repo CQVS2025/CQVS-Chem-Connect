@@ -11,6 +11,21 @@ import {
 } from "lucide-react"
 
 import { getProductBySlug, products as staticProducts } from "@/lib/data/products"
+import {
+  REVIEWS_VISIBLE,
+  getReviewAggregate,
+  getReviewsForProduct,
+} from "@/lib/content/reviews"
+import { ProductReviews } from "@/components/products/product-reviews"
+import { JsonLd } from "@/components/seo/json-ld"
+import {
+  aggregateRatingFragment,
+  breadcrumbSchema,
+  faqPageSchema,
+  productSchema,
+  reviewFragment,
+} from "@/lib/seo/schema"
+import { deriveImageAlt } from "@/lib/seo/helpers"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -203,6 +218,9 @@ export function generateStaticParams() {
   }))
 }
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.cqvs-chemconnect.com.au"
+
 export async function generateMetadata({
   params,
 }: {
@@ -212,12 +230,51 @@ export async function generateMetadata({
   const product = await getProduct(slug)
 
   if (!product) {
-    return { title: "Product Not Found - Chem Connect" }
+    return {
+      title: "Product Not Found",
+      robots: { index: false, follow: false },
+    }
   }
 
+  const title = `${product.name} | Buy Bulk in Australia`
+  const description =
+    product.description?.slice(0, 158) ||
+    `${product.name} - manufacturer-direct bulk supply across Australia. Live AUD pricing, GST-inclusive, DG-rated freight.`
+  const url = `${SITE_URL}/products/${product.slug}`
+  const image = product.image || `${SITE_URL}/images/cqvs-logo.png`
+  const absoluteImage = image.startsWith("http") ? image : `${SITE_URL}${image}`
+
   return {
-    title: `${product.name} - Chem Connect`,
-    description: product.description,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      url,
+      siteName: "Chem Connect",
+      locale: "en_AU",
+      title,
+      description,
+      images: [
+        {
+          url: absoluteImage,
+          width: 1200,
+          height: 630,
+          alt: deriveImageAlt({
+            name: product.name,
+            category: product.category,
+            manufacturer: product.manufacturer,
+            qualifier: "Australia",
+          }),
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [absoluteImage],
+    },
   }
 }
 
@@ -238,8 +295,96 @@ export default async function ProductDetailPage({
     getProductImages(product.id),
   ])
 
+  // Build the Product schema, then splice in aggregateRating + review when
+  // reviews are visible (gated by NEXT_PUBLIC_REVIEWS_VISIBLE - production
+  // default is OFF; see lib/content/reviews.ts for the policy reasoning).
+  const productLd: Record<string, unknown> = productSchema({
+    name: product.name,
+    slug: product.slug,
+    description: product.description,
+    price: product.price,
+    unit: product.unit,
+    manufacturer: product.manufacturer,
+    category: product.category,
+    classification: product.classification,
+    casNumber: product.casNumber,
+    inStock: product.inStock,
+    image: product.image || "/images/cqvs-logo.png",
+    baseUrl: SITE_URL,
+  })
+  if (REVIEWS_VISIBLE) {
+    const aggregate = getReviewAggregate(product.slug)
+    const reviewList = getReviewsForProduct(product.slug)
+    if (aggregate) {
+      productLd.aggregateRating = aggregateRatingFragment({
+        ratingValue: aggregate.averageRating,
+        reviewCount: aggregate.count,
+      })
+    }
+    if (reviewList.length > 0) {
+      productLd.review = reviewList.map((r) =>
+        reviewFragment({
+          authorName: r.authorName,
+          ratingValue: r.rating,
+          reviewBody: r.body,
+          datePublished: r.publishedAt,
+          reviewHeadline: r.title,
+        }),
+      )
+    }
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      {/* Schema.org structured data - Product + BreadcrumbList. Powers
+          rich-result eligibility (price, stock, breadcrumb trail).
+          AggregateRating + Review fragments are spliced in only when
+          NEXT_PUBLIC_REVIEWS_VISIBLE is "true" - production default is OFF
+          to avoid emitting fake-review schema (Google manual-action risk). */}
+      <JsonLd id="ld-product" schema={productLd} />
+      <JsonLd
+        id="ld-breadcrumb"
+        schema={breadcrumbSchema([
+          { name: "Home", url: `${SITE_URL}/` },
+          { name: "Products", url: `${SITE_URL}/products` },
+          { name: product.name, url: `${SITE_URL}/products/${product.slug}` },
+        ])}
+      />
+      {/* FAQPage schema - generic per-product Q&A composed from product
+          fields. Light enough to render universally; heavier custom FAQ
+          per product can be added by storing a `faqs` JSON column on the
+          products table later. */}
+      <JsonLd
+        id="ld-product-faq"
+        schema={faqPageSchema([
+          {
+            question: `Is ${product.name} in stock for delivery in Australia?`,
+            answer: product.inStock
+              ? `Yes - ${product.name} is currently in stock and ships from the closest Chem Connect warehouse to your delivery address. Most orders dispatch within 1 business day.`
+              : `${product.name} is currently out of stock. Use the Custom Orders form to request restocking lead time, or browse alternatives in the same category.`,
+          },
+          {
+            question: `What pack sizes does ${product.name} come in?`,
+            answer:
+              product.packagingSizes && product.packagingSizes.length > 0
+                ? `${product.name} is available in ${product.packagingSizes.join(", ")}. Custom pack sizes can be sourced via the Custom Orders form.`
+                : `Standard pack sizes for ${product.name} are listed on the product page. Custom sizes available via Custom Orders.`,
+          },
+          {
+            question: `Is ${product.name} classified as dangerous goods (DG)?`,
+            answer:
+              product.classification === "Non-DG"
+                ? `${product.name} is non-DG and ships through standard freight without the additional ADG-rated handling required for dangerous goods.`
+                : `${product.name} is classified as ${product.classification}. It ships through approved Australian DG-rated freight carriers compliant with the ADG Code.`,
+          },
+          {
+            question: `Are prices GST-inclusive?`,
+            answer:
+              "Prices are listed in AUD on the marketplace. GST is shown as a separate line in the cart. Invoices are tax-compliant for ABN-holding Australian businesses.",
+          },
+        ])}
+      />
+
       {/* Breadcrumb */}
       <FadeIn delay={0}>
         <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -270,6 +415,11 @@ export default async function ProductDetailPage({
               images={productImages}
               fallbackImage={product.image}
               productName={product.name}
+              altText={deriveImageAlt({
+                name: product.name,
+                category: product.category,
+                manufacturer: product.manufacturer,
+              })}
             />
           </ScaleIn>
 
@@ -409,25 +559,82 @@ export default async function ProductDetailPage({
                 <CardTitle>Product Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {[
-                  { label: "Manufacturer", value: product.manufacturer },
-                  {
-                    label: "CAS Number",
-                    value: product.casNumber,
-                    mono: true,
-                  },
-                  { label: "Classification", value: product.classification },
-                  { label: "Category", value: product.category },
-                ].map((row) => (
-                  <div key={row.label} className="flex justify-between">
-                    <span className="text-muted-foreground">{row.label}</span>
-                    <span
-                      className={`font-medium ${row.mono ? "font-mono" : ""}`}
+                {(() => {
+                  type SpecRow = {
+                    label: string
+                    value: string
+                    mono?: boolean
+                    href?: string
+                  }
+                  const rows: SpecRow[] = [
+                    { label: "Manufacturer", value: product.manufacturer },
+                  ]
+                  if (
+                    product.manufacturer &&
+                    product.manufacturer !== product.category
+                  ) {
+                    const brandSlug = product.manufacturer
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]+/g, "-")
+                      .replace(/^-+|-+$/g, "")
+                    rows.push({
+                      label: "Brand page",
+                      value: product.manufacturer,
+                      href: `/brand/${brandSlug}`,
+                    })
+                  }
+                  if (product.casNumber && product.casNumber !== "N/A") {
+                    rows.push({
+                      label: "CAS Number",
+                      value: product.casNumber,
+                      mono: true,
+                    })
+                  }
+                  rows.push({
+                    label: "Classification",
+                    value: product.classification,
+                  })
+                  rows.push({ label: "Category", value: product.category })
+                  if (
+                    product.packagingSizes &&
+                    product.packagingSizes.length > 0
+                  ) {
+                    rows.push({
+                      label: "Pack sizes",
+                      value: `${product.packagingSizes.length} option${product.packagingSizes.length === 1 ? "" : "s"}`,
+                    })
+                  }
+                  if (product.region) {
+                    rows.push({
+                      label: "Dispatched from",
+                      value: product.region,
+                    })
+                  }
+                  return rows.map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex justify-between gap-3"
                     >
-                      {row.value}
-                    </span>
-                  </div>
-                ))}
+                      <span className="text-muted-foreground">
+                        {row.label}
+                      </span>
+                      {row.href ? (
+                        <Link
+                          href={row.href}
+                          className={`font-medium text-primary hover:underline ${row.mono ? "font-mono" : ""}`}
+                        >
+                          {row.value}
+                        </Link>
+                      ) : (
+                        <span
+                          className={`font-medium ${row.mono ? "font-mono" : ""}`}
+                        >
+                          {row.value}
+                        </span>
+                      )}
+                    </div>
+                  ))
+                })()}
               </CardContent>
             </Card>
           </StaggerItem>
@@ -498,6 +705,12 @@ export default async function ProductDetailPage({
 
         </StaggerContainer>
       </div>
+
+      {/* Customer reviews - fully self-gating. The component renders
+          nothing if NEXT_PUBLIC_REVIEWS_VISIBLE is off, or if this
+          product has zero approved reviews. No wrapper / divider needed
+          - when it has reviews to render, it owns its own spacing. */}
+      <ProductReviews productSlug={product.slug} />
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (

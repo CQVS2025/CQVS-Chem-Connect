@@ -18,10 +18,38 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.cqvs-chemconnect.com.au"
+
 export const metadata: Metadata = {
-  title: "Compliance - Chem Connect by CQVS",
+  title: "Chemical Compliance & Safety - SDS, DG, ADG Code",
   description:
-    "Compliance information for Chem Connect by CQVS. Learn about our chemical safety standards, dangerous goods handling, regulatory compliance, and customer obligations.",
+    "Compliance information for Chem Connect by CQVS - chemical safety standards, dangerous-goods handling, ADG Code, SUSMP scheduling, customer obligations across Australia.",
+  alternates: { canonical: `${SITE_URL}/compliance` },
+  openGraph: {
+    type: "article",
+    url: `${SITE_URL}/compliance`,
+    siteName: "Chem Connect",
+    locale: "en_AU",
+    title: "Chemical Compliance & Safety · Chem Connect",
+    description:
+      "Chemical safety standards, dangerous-goods handling, ADG Code, SUSMP scheduling, customer obligations across Australia.",
+    images: [
+      {
+        url: `${SITE_URL}/images/cqvs-logo.png`,
+        width: 1200,
+        height: 630,
+        alt: "Chem Connect - Compliance & Safety",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Chemical Compliance & Safety · Chem Connect",
+    description:
+      "Chemical safety standards, dangerous-goods handling, ADG Code, SUSMP scheduling.",
+    images: [`${SITE_URL}/images/cqvs-logo.png`],
+  },
 }
 
 const sections = [

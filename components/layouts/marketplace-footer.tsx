@@ -1,23 +1,28 @@
 import Link from "next/link"
 import Image from "next/image"
+import { MapPin, Mail } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { getActiveWarehouses } from "@/lib/seo/warehouses"
 
 const footerSections = [
   {
     title: "Products",
     links: [
       { label: "Marketplace", href: "/products" },
-      { label: "Custom Orders", href: "#" },
-      { label: "Safety Data Sheets", href: "#" },
+      { label: "Industries we supply", href: "/industries" },
+      { label: "Custom Orders", href: "/custom-orders" },
+      { label: "Safety Data Sheets", href: "/sds" },
+      { label: "Locations", href: "/locations" },
     ],
   },
   {
     title: "Company",
     links: [
-      { label: "About CQVS", href: "#" },
+      { label: "About CQVS", href: "/about" },
       { label: "How It Works", href: "/#how-it-works" },
-      { label: "Support", href: "#" },
+      { label: "Knowledge Hub", href: "/knowledge" },
+      { label: "Support & FAQs", href: "/support" },
     ],
   },
   {
@@ -39,6 +44,10 @@ const footerSections = [
 ]
 
 export function MarketplaceFooter() {
+  // Pulled from the source-of-truth warehouse data so the footer stays in
+  // sync as warehouses are added / removed (no separate hand-coded list).
+  const warehouses = getActiveWarehouses()
+
   return (
     <footer
       className={cn("border-t border-border bg-card text-card-foreground")}
@@ -48,7 +57,7 @@ export function MarketplaceFooter() {
         <div className="mb-12 flex items-center gap-3">
           <Image
             src="/images/cqvs-logo.png"
-            alt="CQVS"
+            alt="CQVS Chem Connect"
             width={36}
             height={36}
             className="rounded-lg"
@@ -87,10 +96,54 @@ export function MarketplaceFooter() {
           ))}
         </div>
 
+        {/* NAP - name, address, phone block. Required for local SEO
+            consistency (matches the LocalBusiness schemas + GBP listings).
+            Lists every active warehouse in compact form. */}
+        <div className="mt-12 grid gap-6 border-t border-border pt-8 lg:grid-cols-[1fr_2fr]">
+          <div>
+            <p className="flex items-center gap-2 text-sm font-semibold tracking-wide text-foreground">
+              <MapPin className="size-4 text-primary" /> Australian dispatch hubs
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Seven active warehouses across five states. Pick the one
+              closest to your site for fastest lead times.
+            </p>
+            <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Mail className="size-3.5" />
+              <a
+                href="mailto:support@chemconnect.com.au"
+                className="hover:text-foreground"
+              >
+                support@chemconnect.com.au
+              </a>
+            </p>
+          </div>
+          <ul className="grid grid-cols-1 gap-x-6 gap-y-2 text-xs text-muted-foreground sm:grid-cols-2">
+            {warehouses.map((w) => (
+              <li key={w.slug}>
+                <Link
+                  href={`/chemical-supplier/${w.slug}`}
+                  className="group inline-flex flex-col leading-tight hover:text-foreground"
+                >
+                  <span className="font-medium text-foreground/90 group-hover:text-primary">
+                    {w.city} · {w.state}
+                  </span>
+                  <span>
+                    {w.name ? `${w.name} · ` : ""}
+                    {w.street}, {w.suburb} {w.postcode}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         {/* Bottom Bar */}
-        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            Connecting chemical manufacturers to concrete plants and civil sites
+            Connecting Australian chemical manufacturers to concrete plants
+            and civil sites &middot; GST-registered &middot; ABN required for
+            purchases
           </p>
           <p className="text-sm text-muted-foreground">
             &copy; 2026 CQVS Chemical Marketplace

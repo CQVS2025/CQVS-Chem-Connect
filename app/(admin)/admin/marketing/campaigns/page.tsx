@@ -5,6 +5,7 @@ import { useMemo, useState } from "react"
 import {
   BarChart3,
   Clock,
+  GitBranch,
   Loader2,
   Mail,
   MessageCircle,
@@ -49,11 +50,12 @@ export default function CampaignsListPage() {
   const { data, isLoading } = useMarketingCampaigns({ limit: 100 })
   const [tab, setTab] = useState<CampaignType>("email")
 
-  const { email, sms } = useMemo(() => {
+  const { email, sms, workflow } = useMemo(() => {
     const campaigns = data?.campaigns ?? []
     return {
       email: campaigns.filter((c) => c.type === "email"),
       sms: campaigns.filter((c) => c.type === "sms"),
+      workflow: campaigns.filter((c) => c.type === "ghl_workflow"),
     }
   }, [data?.campaigns])
 
@@ -97,6 +99,13 @@ export default function CampaignsListPage() {
               {sms.length}
             </span>
           </TabsTrigger>
+          <TabsTrigger value="ghl_workflow" className="gap-1.5">
+            <GitBranch className="h-3.5 w-3.5" />
+            Workflows
+            <span className="ml-1 rounded-md bg-muted px-1.5 text-[10px] text-muted-foreground">
+              {workflow.length}
+            </span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="email" className="mt-4">
@@ -106,13 +115,17 @@ export default function CampaignsListPage() {
         <TabsContent value="sms" className="mt-4">
           <SmsCampaignsTable campaigns={sms} isLoading={isLoading} />
         </TabsContent>
+
+        <TabsContent value="ghl_workflow" className="mt-4">
+          <WorkflowCampaignsTable campaigns={workflow} isLoading={isLoading} />
+        </TabsContent>
       </Tabs>
     </div>
   )
 }
 
 // =======================================================
-// Email table — keeps the engagement columns (Open, Click).
+// Email table - keeps the engagement columns (Open, Click).
 // =======================================================
 function EmailCampaignsTable({
   campaigns,
@@ -163,7 +176,7 @@ function EmailCampaignsTable({
 }
 
 // =======================================================
-// SMS table — no Open/Click (SMS can't track those). Keeps
+// SMS table - no Open/Click (SMS can't track those). Keeps
 // Delivered (which reflects successful GHL API handoffs,
 // the only carrier-level signal we get reliably).
 // =======================================================
@@ -213,15 +226,85 @@ function SmsCampaignsTable({
   )
 }
 
+// =======================================================
+// Workflow table - shows which GHL workflow each campaign
+// targets plus how many contacts were enrolled. Open/click
+// rates for workflow emails live in GHL itself (each email
+// the workflow sends generates its own opens/clicks, but
+// those are attributed to the workflow, not this campaign).
+// =======================================================
+function WorkflowCampaignsTable({
+  campaigns,
+  isLoading,
+}: {
+  campaigns: MarketingCampaign[]
+  isLoading: boolean
+}) {
+  return (
+    <div className="rounded-lg border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Workflow</TableHead>
+            <TableHead>Audience</TableHead>
+            <TableHead>Enrolled</TableHead>
+            <TableHead>Sent</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {campaigns.map((c) => (
+            <WorkflowCampaignRow key={c.id} campaign={c} />
+          ))}
+          {campaigns.length === 0 && !isLoading && (
+            <TableRow>
+              <TableCell
+                colSpan={7}
+                className="py-8 text-center text-sm text-muted-foreground"
+              >
+                No workflow campaigns yet.{" "}
+                <Link
+                  href="/admin/marketing/campaigns/new"
+                  className="text-primary hover:underline"
+                >
+                  Enrol contacts into a GHL workflow
+                </Link>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+function WorkflowCampaignRow({ campaign }: { campaign: MarketingCampaign }) {
+  return (
+    <TableRow className="hover:bg-muted/40">
+      <NameCell campaign={campaign} />
+      <StatusCell campaign={campaign} />
+      <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+        {campaign.ghl_workflow_name ?? "-"}
+      </TableCell>
+      <TableCell>{campaign.audience_count}</TableCell>
+      <TableCell>{campaign.enrolled_count}</TableCell>
+      <SentCell campaign={campaign} />
+      <ActionsCell campaign={campaign} />
+    </TableRow>
+  )
+}
+
 function EmailCampaignRow({ campaign }: { campaign: MarketingCampaign }) {
   const openRate =
     campaign.delivered_count > 0
       ? `${Math.round((campaign.opened_count / campaign.delivered_count) * 100)}%`
-      : "—"
+      : "-"
   const clickRate =
     campaign.delivered_count > 0
       ? `${Math.round((campaign.clicked_count / campaign.delivered_count) * 100)}%`
-      : "—"
+      : "-"
 
   return (
     <TableRow className="hover:bg-muted/40">

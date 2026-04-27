@@ -4,10 +4,28 @@ import { Shield, Database, Cookie, Lock, UserCheck, Mail, Eye, Clock, Scale } fr
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.cqvs-chemconnect.com.au"
+
 export const metadata: Metadata = {
-  title: "Privacy Policy - Chem Connect by CQVS",
+  title: "Privacy Policy",
   description:
-    "Privacy Policy for Chem Connect, the B2B chemical marketplace by CQVS. Learn how we collect, use, and protect your business information under the Australian Privacy Act 1988.",
+    "Privacy Policy for Chem Connect, the B2B chemical marketplace by CQVS. How we collect, use, and protect your business information under the Australian Privacy Act 1988.",
+  alternates: { canonical: `${SITE_URL}/privacy` },
+  openGraph: {
+    type: "article",
+    url: `${SITE_URL}/privacy`,
+    siteName: "Chem Connect",
+    locale: "en_AU",
+    title: "Privacy Policy · Chem Connect",
+    description:
+      "How Chem Connect collects, uses, and protects your business information under the Australian Privacy Act 1988.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Privacy Policy · Chem Connect",
+    description: "Australian Privacy Act 1988 compliance for B2B chemical buyers.",
+  },
 }
 
 const sections = [
@@ -291,6 +309,34 @@ export default function PrivacyPolicyPage() {
                 Help us understand how customers use the platform so we can improve functionality and
                 content. We may use services such as Google Analytics or similar tools. These cookies
                 collect aggregated, anonymised data.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="mb-2 font-semibold text-foreground">Behavioural Analytics (Microsoft Clarity)</h4>
+              <p>
+                We use Microsoft Clarity to understand how visitors interact with our platform -
+                specifically through heatmaps, anonymised session recordings, and aggregated behavioural
+                insights. Clarity uses a first-party cookie to attribute activity to a session and
+                automatically masks sensitive content (form fields, passwords, payment details) before
+                any data leaves your browser.
+              </p>
+              <p className="mt-2">
+                In connection with Clarity, Chem Connect and Microsoft act as <strong>independent
+                Controllers</strong> of any personal data collected. Microsoft may collect personal
+                data directly from visitors to this website and process it under their{" "}
+                <a
+                  href="https://privacy.microsoft.com/en-us/privacystatement"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Microsoft Privacy Statement
+                </a>
+                , which describes how Microsoft handles personal data and your rights with respect to
+                that data. You can opt out at any time by enabling Do Not Track in your browser, by
+                using browser-level tracking protection, or by contacting us at the email below to
+                request exclusion from session recording.
               </p>
             </div>
 

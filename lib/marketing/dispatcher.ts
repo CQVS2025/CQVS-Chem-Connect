@@ -1,5 +1,5 @@
 /**
- * Campaign dispatcher — turns a `marketing_campaigns` row into actual sends.
+ * Campaign dispatcher - turns a `marketing_campaigns` row into actual sends.
  *
  * Concurrency: sends run in parallel batches of CONCURRENCY recipients at a
  * time. This keeps per-campaign wall-time under the serverless budget while
@@ -13,7 +13,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { GhlCampaigns, GhlConversations } from "@/lib/ghl"
+import { GhlCampaigns, GhlConversations, GhlWorkflows } from "@/lib/ghl"
 import {
   countAudience,
   resolveAudience,
@@ -25,7 +25,7 @@ import { substituteMergeTags, type MergeTagContext } from "./merge-tags"
 export interface CampaignRow {
   id: string
   name: string
-  type: "email" | "sms"
+  type: "email" | "sms" | "ghl_workflow"
   status: string
   audience_filter: AudienceFilter
   subject: string | null
@@ -34,6 +34,14 @@ export interface CampaignRow {
   from_email: string | null
   from_name: string | null
   reply_to: string | null
+  // Populated when the campaign was saved as scheduled. Carried through to
+  // audit logs by the cron worker so we can trace which fire corresponded
+  // to which scheduled time.
+  scheduled_at?: string | null
+  // Only populated for type === "ghl_workflow". Workflow is designed in GHL;
+  // on dispatch we enrol each contact into it and GHL runs the drip.
+  ghl_workflow_id?: string | null
+  ghl_workflow_name?: string | null
 }
 
 export interface DispatchResult {
@@ -45,7 +53,7 @@ export interface DispatchResult {
   errors: Array<{ contactId: string; error: string }>
 }
 
-/** Parallel sends per batch — tuned to fit 1000+ contacts inside 60s. */
+/** Parallel sends per batch - tuned to fit 1000+ contacts inside 60s. */
 const CONCURRENCY = 6
 /** Small inter-batch pause to spread load across GHL's per-minute window. */
 const BATCH_PAUSE_MS = 50
@@ -87,18 +95,23 @@ export async function dispatchCampaign(
     }
   }
 
-  // GHL doesn't emit a workflow trigger for "Delivered" (only user-initiated
-  // events like Opened / Clicked / Bounced). So we set delivered_count to the
-  // number of successful API handoffs, which is the closest proxy we have
-  // without a real delivery receipt.
+  // For email/SMS campaigns: "delivered" is our proxy for successful GHL API
+  // handoffs (GHL doesn't emit a reliable delivery event for outbound sends).
+  // For ghl_workflow campaigns: every success is a workflow enrolment, not a
+  // delivery - GHL will send the actual emails later as the workflow runs.
+  const finalUpdate: Record<string, unknown> = {
+    status: failed > 0 && succeeded === 0 ? "failed" : "sent",
+    sent_at: new Date().toISOString(),
+    failed_count: failed,
+  }
+  if (campaign.type === "ghl_workflow") {
+    finalUpdate.enrolled_count = succeeded
+  } else {
+    finalUpdate.delivered_count = succeeded
+  }
   await supabase
     .from("marketing_campaigns")
-    .update({
-      status: failed > 0 && succeeded === 0 ? "failed" : "sent",
-      sent_at: new Date().toISOString(),
-      delivered_count: succeeded,
-      failed_count: failed,
-    })
+    .update(finalUpdate)
     .eq("id", campaign.id)
 
   return {
@@ -128,11 +141,62 @@ async function sendOne(
 ): Promise<SendResult> {
   const displayId = member.ghl_contact_id ?? member.id
 
-  if (campaign.type === "email" && (!member.email || !member.ghl_contact_id)) {
+  // Channel-specific eligibility checks. Every channel requires the contact
+  // to be linked to GHL (we need the GHL contact ID for any API call).
+  if (!member.ghl_contact_id) {
+    return { status: "skipped", contactId: displayId, reason: "not linked to GHL" }
+  }
+  if (campaign.type === "email" && !member.email) {
     return { status: "skipped", contactId: displayId, reason: "no email" }
   }
-  if (campaign.type === "sms" && (!member.phone || !member.ghl_contact_id)) {
+  if (campaign.type === "sms" && !member.phone) {
     return { status: "skipped", contactId: displayId, reason: "no phone" }
+  }
+  if (campaign.type === "ghl_workflow" && !campaign.ghl_workflow_id) {
+    return { status: "failed", contactId: displayId, error: "workflow not configured on campaign" }
+  }
+
+  // GHL workflow enrolment path - no email/SMS content is sent from here;
+  // GHL runs the whole drip sequence (emails, waits, branches) on its own.
+  if (campaign.type === "ghl_workflow") {
+    const workflowId = campaign.ghl_workflow_id as string
+    try {
+      await GhlWorkflows.enrollContact(member.ghl_contact_id, workflowId)
+      // Log the enrolment so the recent-events feed and future audit queries
+      // can show which contacts were handed off to which workflow and when.
+      // ghl_event_id is a synthesised unique key (contact+workflow+timestamp)
+      // because GHL doesn't return an event id for enrolment responses.
+      await supabase.from("marketing_events").insert({
+        ghl_event_id: `enrol-${campaign.id}-${member.id}-${Date.now()}`,
+        event_type: "workflow_enrolled",
+        campaign_id: campaign.id,
+        contact_id: member.id,
+        ghl_contact_id: member.ghl_contact_id,
+        metadata: {
+          workflow_id: workflowId,
+          workflow_name: campaign.ghl_workflow_name ?? null,
+        },
+        occurred_at: new Date().toISOString(),
+      })
+      return { status: "succeeded", contactId: displayId, messageId: workflowId }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      // Best-effort failure log so the detail page can surface what went wrong
+      // per-recipient (e.g. contact deleted in GHL, workflow unpublished).
+      await supabase.from("marketing_events").insert({
+        ghl_event_id: `enrol-fail-${campaign.id}-${member.id}-${Date.now()}`,
+        event_type: "workflow_enroll_failed",
+        campaign_id: campaign.id,
+        contact_id: member.id,
+        ghl_contact_id: member.ghl_contact_id,
+        metadata: {
+          workflow_id: workflowId,
+          error: msg,
+        },
+        occurred_at: new Date().toISOString(),
+      })
+      return { status: "failed", contactId: displayId, error: msg }
+    }
   }
 
   try {
@@ -145,7 +209,7 @@ async function sendOne(
     let emailMessageId: string | undefined
     if (campaign.type === "email") {
       const res = await GhlCampaigns.sendEmailMessage({
-        contactId: member.ghl_contact_id as string,
+        contactId: member.ghl_contact_id,
         subject: substituteMergeTags(campaign.subject as string, ctx),
         html: substituteMergeTags(campaign.body_html as string, ctx, {
           escapeHtml: true,
@@ -158,7 +222,7 @@ async function sendOne(
       emailMessageId = res.emailMessageId
     } else {
       const res = await GhlConversations.sendSmsMessage({
-        contactId: member.ghl_contact_id as string,
+        contactId: member.ghl_contact_id,
         message: substituteMergeTags(campaign.body_text as string, ctx),
       })
       messageId = res.messageId
@@ -168,7 +232,7 @@ async function sendOne(
     // campaign_id deterministically. Two identifiers are stored:
     //   - message_id: GHL's conversation messageId (always present)
     //   - email_message_id: SMTP Message-ID header (emails only, when GHL
-    //     surfaces it on the send response — matches LCEmailStats webhook).
+    //     surfaces it on the send response - matches LCEmailStats webhook).
     // Idempotent on ghl_event_id.
     await supabase.from("marketing_events").upsert(
       {

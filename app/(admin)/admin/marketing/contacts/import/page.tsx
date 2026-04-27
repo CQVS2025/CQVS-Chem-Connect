@@ -281,7 +281,7 @@ export default function ImportContactsPage() {
           <p className="text-sm text-muted-foreground">
             Each row is upserted into GoHighLevel and mirrored locally.
             Duplicates (by email or phone) update the existing record.
-            Maximum {MAX_ROWS_PER_IMPORT} rows per upload &mdash; split larger
+            Maximum {MAX_ROWS_PER_IMPORT} rows per upload - split larger
             files into batches.
           </p>
         </div>

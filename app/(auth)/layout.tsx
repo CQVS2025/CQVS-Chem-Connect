@@ -1,8 +1,16 @@
+import type { Metadata } from "next"
 import type { ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
 import { PageTransition } from "@/components/shared/page-transition"
+
+// User-specific auth routes - defence in depth alongside the X-Robots-Tag
+// header in next.config.mjs. Either alone is enough; both together stay
+// safe if one config drifts out of sync with the other.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false, nocache: true },
+}
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (

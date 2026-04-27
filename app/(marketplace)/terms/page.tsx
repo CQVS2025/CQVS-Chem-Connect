@@ -19,10 +19,27 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.cqvs-chemconnect.com.au"
+
 export const metadata: Metadata = {
-  title: "Terms of Use - Chem Connect by CQVS",
+  title: "Terms of Use",
   description:
-    "Terms of Use for Chem Connect, the B2B chemical marketplace by CQVS. Understand the terms governing purchases, payments, delivery, and use of our platform.",
+    "Terms of Use for Chem Connect - terms governing purchases, payments, delivery, dangerous-goods handling, and use of the platform across Australia.",
+  alternates: { canonical: `${SITE_URL}/terms` },
+  openGraph: {
+    type: "article",
+    url: `${SITE_URL}/terms`,
+    siteName: "Chem Connect",
+    locale: "en_AU",
+    title: "Terms of Use · Chem Connect",
+    description: "Terms governing purchases, payments, delivery and DG handling.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Terms of Use · Chem Connect",
+    description: "Terms governing purchases, payments, delivery and DG handling.",
+  },
 }
 
 const sections = [

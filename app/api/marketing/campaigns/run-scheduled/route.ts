@@ -63,14 +63,22 @@ async function handle(request: NextRequest) {
         succeeded: res.succeeded,
         failed: res.failed,
       })
+      // Audit row mirrors the user-triggered send route's shape (audience,
+      // succeeded, failed, skipped) so admins can grep both fire paths
+      // uniformly. `type` lets us split scheduled email vs sms vs workflow
+      // fires; `scheduled_at` records which scheduled slot this fire was
+      // honouring.
       await supabase.from("marketing_audit_log").insert({
         action: "campaign.scheduled_fired",
         target_type: "campaign",
         target_id: campaign.id,
         meta: {
-          scheduled_at: campaign.audience_filter,
+          type: campaign.type,
+          scheduled_at: campaign.scheduled_at ?? null,
+          audience: res.audienceCount,
           succeeded: res.succeeded,
           failed: res.failed,
+          skipped: res.skipped,
         },
       })
     } catch (err) {

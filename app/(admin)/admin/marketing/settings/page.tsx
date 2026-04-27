@@ -242,7 +242,7 @@ function AuditLogCard() {
         </CardTitle>
         <CardDescription>
           Every marketing action logged for audit &amp; compliance. Showing{" "}
-          {total === 0 ? 0 : (page - 1) * AUDIT_PAGE_SIZE + 1}&ndash;
+          {total === 0 ? 0 : (page - 1) * AUDIT_PAGE_SIZE + 1}-
           {Math.min(page * AUDIT_PAGE_SIZE, total)} of {total}.
         </CardDescription>
       </CardHeader>

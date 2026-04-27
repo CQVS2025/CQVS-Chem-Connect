@@ -7,9 +7,9 @@
  * recipients so the numbers reflect the real audience.
  *
  * Query params:
- *   page, size  — pagination (defaults 1, 25; size capped at 500 in SQL)
- *   status      — filter derived status (opened | clicked | bounced | ...)
- *   q           — case-insensitive search across name + email
+ *   page, size  - pagination (defaults 1, 25; size capped at 500 in SQL)
+ *   status      - filter derived status (opened | clicked | bounced | ...)
+ *   q           - case-insensitive search across name + email
  */
 
 import { NextResponse, type NextRequest } from "next/server"
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   const { data: campaign, error: campaignError } = await supabase
     .from("marketing_campaigns")
     .select(
-      "id, name, type, status, audience_count, subject, preheader, sent_at, scheduled_at, created_at",
+      "id, name, type, status, audience_count, subject, preheader, sent_at, scheduled_at, created_at, ghl_workflow_id, ghl_workflow_name, enrolled_count, unenrolled_count",
     )
     .eq("id", id)
     .maybeSingle()

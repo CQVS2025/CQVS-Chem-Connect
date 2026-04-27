@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Supplier-Managed Fulfillment - Requirements Confirmation</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 880px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #16a34a; margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .box-purple { border-left-color: #8b5cf6; background: #f5f3ff; }
+  .box-grey { border-left-color: #6b7280; background: #f3f4f6; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 5px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 44px 0; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .b-confirm { background: #dbeafe; color: #1e40af; }
+  .b-question { background: #fef3c7; color: #92400e; }
+  .b-flow { background: #f0fdf4; color: #166534; }
+  .b-new { background: #fce7f3; color: #9d174d; }
+  .b-current { background: #f3f4f6; color: #374151; }
+  .question-block { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin: 10px 0; border-left: 4px solid #f59e0b; }
+  .question-block h4 { margin-top: 0; color: #92400e; }
+  .answer-area { background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 4px; padding: 10px 14px; margin: 8px 0; min-height: 36px; font-size: 12px; color: #9ca3af; }
+  .check { display: inline-block; width: 14px; height: 14px; border: 2px solid #d1d5db; border-radius: 3px; margin-right: 8px; vertical-align: middle; }
+  .checklist { padding-left: 0; list-style: none; }
+  .checklist li { display: flex; align-items: flex-start; gap: 6px; margin: 8px 0; }
+  .flow-step { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px 16px; margin: 10px 0; }
+  .flow-step .step-num { display: inline-block; background: #16a34a; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: 700; font-size: 12px; margin-right: 8px; }
+  .flow-step h4 { display: inline; color: #1a1a2e; text-transform: none; letter-spacing: 0; font-size: 14px; }
+  .flow-step p { margin: 8px 0 0 32px; font-size: 13px; }
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  .compare-card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; }
+  .compare-card.left { border-left: 4px solid #6b7280; }
+  .compare-card.right { border-left: 4px solid #16a34a; }
+  .compare-card h4 { margin-top: 0; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Supplier-Managed Fulfillment - Requirements Confirmation</p>
+  <p style="color: #9ca3af;">Prepared by Sohaib | April 2026</p>
+</div>
+
+<div class="box">
+  <strong>Purpose:</strong> This document captures what we discussed in our last call about onboarding the AdBlue supplier (and future external suppliers) onto Chem Connect. Before we start building, please read through and confirm that this is exactly what you want, or correct anything I have misunderstood.
+</div>
+
+<div class="box-blue box">
+  <strong>How to use this document:</strong> Read each section, mark Yes or No against my understanding, and answer the open questions at the end. Once you confirm, I will lock the scope and begin building.
+</div>
+
+<div class="box-grey box">
+  <strong>What is not in this document:</strong> No code, no database design, no timelines and no pricing. Those will follow once you confirm the feature itself is what you want.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">1.</span> The Problem We Are Solving</h2>
+
+<p>Today, every product on Chem Connect follows the same fulfillment pipeline:</p>
+
+<div class="box-grey box">
+  <strong>Current flow:</strong> Buyer pays through Stripe &rarr; MacShip quotes the freight &rarr; Purchase order is sent to a Chem Connect warehouse &rarr; Warehouse dispatches the goods &rarr; MacShip provides scan-based tracking back to the buyer.
+</div>
+
+<p>This works well for products you stock and dispatch yourself, but it does not work for AdBlue. The reason is simple:</p>
+
+<ul>
+  <li>AdBlue is supplied by an external company, not Chem Connect.</li>
+  <li>That company runs its own freight network across Australia and uses a <strong>pump-in service</strong> - a tanker truck pumps the product directly into the buyer's on-site tank, priced per litre by distance.</li>
+  <li>MacShip cannot quote or move this kind of delivery, and the supplier already handles dispatch through their own depots.</li>
+  <li>The supplier needs to know where the order is going, and the buyer needs to know when it will arrive - but no part of that conversation goes through Chem Connect today.</li>
+</ul>
+
+<p><strong>What we need:</strong> a second fulfillment path inside Chem Connect, where the supplier acts almost like one of our own warehouses, but with their own freight rules, their own dispatch contact, and a small dashboard so they can keep the buyer informed.</p>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">2.</span> What I Understood From Our Call</h2>
+
+<p>Here is a summary of what I understood. Please tick Yes or No against each row.</p>
+
+<table>
+  <tr><th style="width: 40%;">What You Said</th><th>My Understanding</th><th style="width: 80px;">Correct?</th></tr>
+  <tr>
+    <td>"We are not doing AdBlue ourselves, the supplier handles it"</td>
+    <td>AdBlue is fulfilled end-to-end by an external supplier. Chem Connect lists and sells the product; the supplier dispatches and delivers it.</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"They run their own freight service all around Australia"</td>
+    <td>For AdBlue we do not use MacShip. Freight is calculated using the supplier's per-litre, distance-based rate sheet, and the supplier organises the actual delivery.</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"The purchase order goes to one person, she organises which depot it leaves from"</td>
+    <td>For AdBlue orders, the purchase order is sent to a single supplier contact (based in Queensland), instead of to one of our Chem Connect warehouses.</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"She needs to be able to tell us when it will be delivered"</td>
+    <td>The supplier should be able to enter an estimated delivery date directly inside Chem Connect, and the buyer should see it on their order page and in email updates.</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"Like a supplier dashboard"</td>
+    <td>The supplier gets a small dashboard inside Chem Connect, limited to the orders for their products, where they can update tracking, ETA, dispatch notes and status.</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"We will register them as a warehouse"</td>
+    <td>Internally we treat the supplier as a special kind of warehouse - same idea, but flagged as supplier-managed, with their own freight rules and their own login.</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"We need to add - can the site fit a 19-metre truck - in checkout"</td>
+    <td>For AdBlue specifically, checkout asks the buyer site-access questions (truck access, possibly forklift). The answers are passed to the supplier on the purchase order.</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"We will be paid the shipping, then we will pay them back"</td>
+    <td>The buyer pays Chem Connect through Stripe as today. Chem Connect later reconciles with the supplier outside the platform (through Xero). No change to how Stripe is wired.</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+  <tr>
+    <td>"Just one product for now, but other suppliers want to join"</td>
+    <td>We are building this for AdBlue first, but the architecture supports adding more supplier-managed products and more suppliers in the future without rebuilding the feature.</td>
+    <td><span class="check"></span> Yes / No</td>
+  </tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">3.</span> The Feature, In Plain English</h2>
+
+<p>This work introduces three new ideas to Chem Connect. None of them replace what already exists - they sit alongside the current MacShip-based flow.</p>
+
+<h3>3.1 Supplier-managed warehouses</h3>
+<p>A warehouse can now be marked as <em>supplier-managed</em>. From a Chem Connect admin point of view, supplier-managed warehouses look similar to normal warehouses, but they have two key differences:</p>
+<ul>
+  <li>They have their own login - the supplier can sign in and see only their orders.</li>
+  <li>They have their own freight rules - we do not call MacShip for products fulfilled from a supplier-managed warehouse.</li>
+</ul>
+
+<h3>3.2 A second freight strategy</h3>
+<p>Each product is now linked to one of two freight strategies:</p>
+<ul>
+  <li><strong>MacShip freight</strong> (the current default) - applies to every existing product. No change.</li>
+  <li><strong>Supplier-managed freight</strong> (new) - applies to AdBlue and any future supplier-fulfilled product. The shipping price at checkout is calculated from the supplier's distance-based rate sheet, not from MacShip.</li>
+</ul>
+<p>The buyer does not see this distinction. They get a single shipping price on checkout the same way they do today.</p>
+
+<h3>3.3 A small supplier dashboard</h3>
+<p>The supplier gets a stripped-down version of the Chem Connect admin, showing only the orders that contain their products. From there they can:</p>
+<ul>
+  <li>See incoming orders and the buyer's delivery address.</li>
+  <li>See the answers to the site-access questions (truck access, forklift, etc.).</li>
+  <li>Enter or update an estimated delivery date.</li>
+  <li>Add internal dispatch notes (for example: "leaving Melbourne depot Tuesday").</li>
+  <li>Mark the order as dispatched or delivered.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">4.</span> Side-By-Side: Current Flow vs New Flow</h2>
+
+<p>This section compares how a normal Chem Connect order works today versus how an AdBlue order will work after this feature is built.</p>
+
+<div class="compare-grid">
+
+  <div class="compare-card left">
+    <h4><span class="badge b-current">Current</span> MacShip product (e.g. Green Acid Replacement)</h4>
+    <ol>
+      <li>Buyer adds product to cart and goes to checkout.</li>
+      <li>MacShip is called to quote freight.</li>
+      <li>Buyer pays Chem Connect via Stripe.</li>
+      <li>Purchase order is sent to one of our warehouses.</li>
+      <li>Warehouse staff dispatches the order.</li>
+      <li>MacShip provides tracking; buyer sees scan updates.</li>
+    </ol>
+  </div>
+
+  <div class="compare-card right">
+    <h4><span class="badge b-new">New</span> Supplier-managed product (e.g. AdBlue)</h4>
+    <ol>
+      <li>Buyer adds product to cart and goes to checkout.</li>
+      <li>Checkout shows extra site-access questions (truck, forklift).</li>
+      <li>Freight is quoted from the supplier's distance rate sheet, not MacShip.</li>
+      <li>Buyer pays Chem Connect via Stripe (unchanged).</li>
+      <li>Purchase order is sent to the supplier's contact, not a Chem Connect warehouse.</li>
+      <li>Supplier logs into their dashboard, enters the estimated delivery date and dispatch notes.</li>
+      <li>Buyer sees the ETA on their order page and receives an email when the supplier sets or updates it.</li>
+    </ol>
+  </div>
+
+</div>
+
+<div class="box-blue">
+  <strong>Note on tracking:</strong> Because we do not have MacShip in this flow, the supplier-managed flow does not have real-time scan-based tracking. Instead the buyer sees the supplier's stated estimated delivery date, plus any updates the supplier types in. You confirmed this is acceptable on the call.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">5.</span> The End-To-End Order Journey</h2>
+
+<p>Step-by-step, this is what an AdBlue order will look like once the feature is live.</p>
+
+<div class="flow-step">
+  <span class="step-num">1</span><h4>Buyer browses Chem Connect and adds AdBlue to their cart.</h4>
+  <p>Same product page experience as today - same images, descriptions, AUD pricing. No visible change.</p>
+</div>
+
+<div class="flow-step">
+  <span class="step-num">2</span><h4>Buyer enters their delivery postcode and address at checkout.</h4>
+  <p>Our system recognises that AdBlue is supplier-managed, looks up the buyer's distance from the supplier's freight origin, and quotes the per-litre freight cost from the supplier's rate table. MacShip is not called.</p>
+</div>
+
+<div class="flow-step">
+  <span class="step-num">3</span><h4>Checkout shows site-access questions for AdBlue.</h4>
+  <p>Because the AdBlue tanker is large, the buyer is asked questions like "Can a 19-metre truck access the delivery site?" and "Is a forklift available on site?". These questions only show up when the cart contains a product that requires them. Other products are unaffected.</p>
+</div>
+
+<div class="flow-step">
+  <span class="step-num">4</span><h4>Buyer pays through Stripe, exactly as today.</h4>
+  <p>The money lands in the Chem Connect Stripe account. No split payment, no marketplace mechanic. You reconcile with the supplier later through Xero, the same way you handle any other vendor invoice.</p>
+</div>
+
+<div class="flow-step">
+  <span class="step-num">5</span><h4>Purchase order is routed to the supplier instead of a Chem Connect warehouse.</h4>
+  <p>The supplier's nominated contact receives an email with the order details: products, quantities, buyer's delivery address, the answers to the site-access questions, and any special notes. The email also contains a deep link straight to that order inside the supplier dashboard.</p>
+</div>
+
+<div class="flow-step">
+  <span class="step-num">6</span><h4>Supplier logs into the Chem Connect supplier dashboard.</h4>
+  <p>They see only their own orders. They open the order, review the address and site-access answers, decide which depot it will dispatch from, and type in an estimated delivery date and any dispatch notes.</p>
+</div>
+
+<div class="flow-step">
+  <span class="step-num">7</span><h4>Buyer is automatically notified.</h4>
+  <p>As soon as the supplier saves the estimated delivery date, the buyer receives an email update and the date appears on their Chem Connect order page. If the supplier updates it later (for example, due to a delay), the buyer is notified again.</p>
+</div>
+
+<div class="flow-step">
+  <span class="step-num">8</span><h4>Supplier marks the order as dispatched, then delivered.</h4>
+  <p>Each status change is reflected on the buyer's order page. The order is closed in Chem Connect once it is marked delivered.</p>
+</div>
+
+<div class="flow-step">
+  <span class="step-num">9</span><h4>You reconcile with the supplier in Xero.</h4>
+  <p>Outside the platform, the same way you do today. The Chem Connect order record holds all the figures you need - product cost, freight collected, supplier identity - so the Xero entry is straightforward.</p>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">6.</span> What The Three User Groups See</h2>
+
+<p>It helps to think about this feature from each user's point of view.</p>
+
+<table>
+  <tr><th style="width: 18%;">User</th><th>What they see and do</th></tr>
+  <tr>
+    <td><strong>Buyer</strong></td>
+    <td>
+      The same Chem Connect storefront they use today. The only visible difference when ordering AdBlue is the extra site-access questions on checkout, and the fact that they see a supplier-supplied estimated delivery date instead of MacShip scan tracking.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>You (Chem Connect admin)</strong></td>
+    <td>
+      You can register a new supplier-managed warehouse, link a product to that warehouse, configure its freight rate sheet, and create a login for the supplier. After that, supplier orders flow through automatically. You can still see every order, including supplier orders, from your master admin dashboard.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Supplier</strong></td>
+    <td>
+      A focused, read-mostly dashboard that shows only their orders. They cannot see other Chem Connect orders, products, or customers. They can update ETA, dispatch notes and status on their own orders. Nothing else is exposed.
+    </td>
+  </tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">7.</span> The Freight Rate Sheet</h2>
+
+<p>You shared a distance-based rate sheet that drives the freight cost for AdBlue. The structure is straightforward:</p>
+
+<ul>
+  <li>Distance brackets in 100km steps (0-100, 101-200, 201-300, ... up to 4000+ km).</li>
+  <li>For each bracket, a price (either per-litre for bulk, or a fixed amount for packed/IBC).</li>
+  <li>Multiple columns for "bulk", "pack existing", "pack new" and "pre-/post-July rates".</li>
+</ul>
+
+<p>For now we will load only the column you confirm we should use, and ignore the rest until you tell us otherwise. The system will be built so adding extra columns or new rate cards later is a configuration change, not a redevelopment.</p>
+
+<div class="box-amber">
+  <strong>Why this matters in the brief:</strong> So you know the freight calculation is fully data-driven. If the supplier hands you an updated rate sheet next quarter, we update the configuration; we do not rewrite the feature.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">8.</span> Things This Feature Does Not Try To Do</h2>
+
+<p>To keep the scope clean and avoid surprises, here is what is explicitly not part of this feature.</p>
+
+<ul>
+  <li><strong>Real-time scan tracking.</strong> The supplier does not have a scanning network. Tracking means "an estimated delivery date the supplier types in", not GPS or barcode scans.</li>
+  <li><strong>Marketplace-style payment splits.</strong> Buyer still pays Chem Connect. We do not split the Stripe payment between Chem Connect and the supplier; reconciliation stays in Xero.</li>
+  <li><strong>Letting suppliers create or edit products.</strong> You decide which products go on the storefront, the same as today. Suppliers only see and act on their orders.</li>
+  <li><strong>Replacing MacShip.</strong> Every existing product continues to use MacShip exactly as it does today. The new path is in addition to MacShip, not instead of it.</li>
+  <li><strong>Cancelling or refunding orders from the supplier dashboard.</strong> Refunds stay with you in Stripe / the main admin.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">9.</span> Open Questions I Need You To Answer</h2>
+
+<p>These answers will lock the scope. Please write your answers in the boxes.</p>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 1</span> Which freight rate column should we use for AdBlue?</h4>
+  <p>Your sheet has six pricing columns: <em>Bulk Pre-13Jul25</em>, <em>Bulk Post-14Jul25</em>, <em>Pack Pre-13Jul25</em>, <em>Pack Post-14Jul25</em>, <em>Pack New Pre-13Jul25</em>, <em>Pack New Post-14Jul25</em>. Which one applies right now? Will we ever need to switch between them automatically?</p>
+  <div class="answer-area">Your answer:</div>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 2</span> What is the freight origin for distance calculations?</h4>
+  <p>The rate sheet is distance-based. We need a starting point to measure from. Options:
+  <br>(a) one fixed origin postcode (for example, the supplier's main depot),
+  <br>(b) the closest of several depots, picked automatically by buyer postcode,
+  <br>(c) the supplier picks the depot manually after the order arrives, and we pre-show an estimate based on a default origin.</p>
+  <div class="answer-area">Your answer:</div>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 3</span> What happens if the buyer answers "No" to the truck-access question?</h4>
+  <p>Three possible behaviours:
+  <br>(a) Show a warning but still let the order through.
+  <br>(b) Block the order and tell the buyer to contact you.
+  <br>(c) Just record the answer and let the supplier decide what to do.</p>
+  <div class="answer-area">Your answer:</div>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 4</span> What other site-access questions, beyond truck access, do you want to ask?</h4>
+  <p>You mentioned forklift availability. Anything else? (Tank type, gate access, access hours, dangerous-goods clearance, etc.)</p>
+  <div class="answer-area">Your answer:</div>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 5</span> Who is the named supplier contact for AdBlue?</h4>
+  <p>Name, email, phone. This is the person who gets the purchase order and the supplier dashboard login.</p>
+  <div class="answer-area">Your answer:</div>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 6</span> Does the supplier give one date or two?</h4>
+  <p>One field for "estimated delivery date", or two separate fields ("dispatch date" and "estimated delivery date")? Which is most useful for the buyer?</p>
+  <div class="answer-area">Your answer:</div>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 7</span> What should the supplier email and dashboard look like, branding-wise?</h4>
+  <p>Same Chem Connect look as our admin, or a more neutral white-label feel? Either is fine, just want to confirm.</p>
+  <div class="answer-area">Your answer:</div>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 8</span> Should the buyer's contact details be exposed to the supplier?</h4>
+  <p>Full contact (name, phone, email, address) is the most operationally useful for the supplier - they may need to call ahead before pumping. Confirm you are comfortable with this, or tell me what to mask.</p>
+  <div class="answer-area">Your answer:</div>
+</div>
+
+<div class="question-block">
+  <h4><span class="badge b-question">Question 9</span> Are there any additional suppliers you already know are joining?</h4>
+  <p>You mentioned other suppliers want to come onto the platform. If you can name them now, I can sanity-check the rate-sheet structure against their model too, so we don't paint ourselves into a corner.</p>
+  <div class="answer-area">Your answer:</div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">10.</span> Why This Approach Is Worth Building</h2>
+
+<ul>
+  <li><strong>Unblocks AdBlue revenue.</strong> Right now AdBlue is "coming soon" on the storefront because the platform cannot fulfill it. This feature flips it live.</li>
+  <li><strong>Keeps your existing business untouched.</strong> Every current product, every current warehouse, every current MacShip flow keeps working exactly as it does today. There is no migration risk.</li>
+  <li><strong>Built once, reused for every future supplier.</strong> Adding the next supplier (or the one after that) is a configuration job, not a development job - so the cost of growing the supplier network drops sharply after this first build.</li>
+  <li><strong>Buyers stay on Chem Connect for the whole journey.</strong> They place the order, see the ETA, get the updates, all from one place - even though the goods physically come from a third party.</li>
+  <li><strong>Suppliers do not need to learn another tool.</strong> A small focused dashboard is far easier than asking them to use Chem Connect's full admin or a separate freight portal.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">11.</span> Next Steps</h2>
+
+<ol>
+  <li>You read this document and either confirm each row in section 2, or send back corrections.</li>
+  <li>You answer the nine open questions in section 9.</li>
+  <li>I lock the feature scope based on your answers and prepare the technical implementation plan.</li>
+  <li>Once you sign off the implementation plan, I begin building.</li>
+</ol>
+
+<div class="box">
+  <strong>Reminder:</strong> Nothing in this document changes how any of your current products, warehouses or MacShip orders work. This is a brand-new path that sits alongside the existing platform. You can keep selling everything else while this is being built.
+</div>
+
+<div class="footer">
+  <p>Prepared by Sohaib for Jonny &middot; Chem Connect by CQVS &middot; April 2026</p>
+  <p>This is a feature confirmation document. Technical design, implementation plan and timing will follow once you confirm the requirements above.</p>
+</div>
+
+</body>
+</html>

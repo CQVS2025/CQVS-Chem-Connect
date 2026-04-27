@@ -1,51 +1,93 @@
-"use client"
+import type { Metadata } from "next"
 
-import { useState, useMemo } from "react"
-import { SearchX } from "lucide-react"
-import { domAnimation, LazyMotion, m, AnimatePresence } from "framer-motion"
+import { ProductsClient } from "./products-client"
 
-import { useProducts } from "@/lib/hooks/use-products"
-import { products as staticProducts, categories, regions } from "@/lib/data/products"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { CatalogueHero } from "@/components/products/catalogue-hero"
-import { FilterToolbar, type SortOption } from "@/components/products/filter-toolbar"
-import { ProductCard } from "@/components/products/product-card"
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.cqvs-chemconnect.com.au"
 
-export default function ProductsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("All")
-  const [selectedRegion, setSelectedRegion] = useState("All")
-  const [sortBy, setSortBy] = useState<SortOption>("name-asc")
-  const [inStockOnly, setInStockOnly] = useState(false)
+export const metadata: Metadata = {
+  title: "Industrial Chemicals - Buy Bulk Online Australia",
+  description:
+    "Browse 30+ bulk industrial chemicals - acids, alkalis, truck washes, agi gels, solvents. Live AUD pricing, no quote forms. 2-5 day DG-rated freight from VIC, NSW, QLD, SA, WA.",
+  alternates: { canonical: `${SITE_URL}/products` },
+  openGraph: {
+    type: "website",
+    url: `${SITE_URL}/products`,
+    siteName: "Chem Connect",
+    locale: "en_AU",
+    title: "Industrial Chemicals - Buy Bulk Online Australia · Chem Connect",
+    description:
+      "Browse 30+ bulk industrial chemicals - acids, alkalis, truck washes, agi gels, solvents. Live AUD pricing, no quote forms. 2-5 day DG-rated freight.",
+    images: [
+      {
+        url: `${SITE_URL}/images/cqvs-logo.png`,
+        width: 1200,
+        height: 630,
+        alt: "Chem Connect - Industrial Chemicals Australia",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Industrial Chemicals - Buy Bulk Online Australia · Chem Connect",
+    description:
+      "Browse 30+ bulk industrial chemicals. Live AUD pricing, GST-inclusive, DG-rated freight from 5 Australian states.",
+    images: [`${SITE_URL}/images/cqvs-logo.png`],
+  },
+}
 
-  const { data: apiProducts, isLoading } = useProducts()
+/**
+ * Shape of an active product row pulled from Supabase. Mirrors the columns
+ * the products list cares about so we don't fetch unused data.
+ */
+interface ProductRow {
+  id: string
+  name: string
+  slug: string
+  price: number
+  unit: string
+  description: string
+  manufacturer: string
+  category: string
+  classification: string
+  cas_number: string
+  packaging_sizes: string[]
+  safety_info: string
+  delivery_info: string
+  in_stock: boolean
+  stock_qty: number
+  region: string
+  image_url: string | null
+  badge: string | null
+}
 
-  const products = useMemo(() => {
-    if (apiProducts) {
-      return apiProducts.map((p) => ({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        price: p.price,
-        unit: p.unit,
-        description: p.description,
-        manufacturer: p.manufacturer,
-        category: p.category,
-        classification: p.classification,
-        casNumber: p.cas_number,
-        packagingSizes: p.packaging_sizes,
-        safetyInfo: p.safety_info,
-        deliveryInfo: p.delivery_info,
-        inStock: p.in_stock,
-        stockQty: p.stock_qty,
-        region: p.region,
-        image: p.image_url || "/images/cqvs-logo.png",
-        badge: p.badge,
-      }))
-    }
-    return staticProducts.map((p) => ({
+/**
+ * Server-side fetch of every active product. Runs at request time on the
+ * server so Googlebot and AI crawlers see a populated catalog in the HTML
+ * response - no JS execution required. 5-minute revalidation keeps the
+ * data fresh without slamming Supabase on every request.
+ */
+async function getActiveProducts() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !supabaseKey) return []
+
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/products?is_active=eq.true&select=id,name,slug,price,unit,description,manufacturer,category,classification,cas_number,packaging_sizes,safety_info,delivery_info,in_stock,stock_qty,region,image_url,badge&order=name.asc`,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
+        next: { revalidate: 300 },
+      },
+    )
+    if (!res.ok) return []
+    const rows = (await res.json()) as ProductRow[]
+
+    // Normalise Supabase snake_case + null image into the shape ProductsClient expects.
+    return rows.map((p) => ({
       id: p.id,
       name: p.name,
       slug: p.slug,
@@ -55,178 +97,22 @@ export default function ProductsPage() {
       manufacturer: p.manufacturer,
       category: p.category,
       classification: p.classification,
-      casNumber: p.casNumber,
-      packagingSizes: p.packagingSizes,
-      safetyInfo: p.safetyInfo,
-      deliveryInfo: p.deliveryInfo,
-      inStock: p.inStock,
-      stockQty: p.stockQty,
+      casNumber: p.cas_number,
+      packagingSizes: p.packaging_sizes ?? [],
+      safetyInfo: p.safety_info,
+      deliveryInfo: p.delivery_info,
+      inStock: p.in_stock,
+      stockQty: p.stock_qty,
       region: p.region,
-      image: p.image || "/images/cqvs-logo.png",
-      badge: p.badge ?? null,
+      image: p.image_url || "/images/cqvs-logo.png",
+      badge: p.badge,
     }))
-  }, [apiProducts])
-
-  const filteredProducts = useMemo(() => {
-    let result = products.filter((product) => {
-      const matchesSearch =
-        searchQuery === "" ||
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesCategory =
-        selectedCategory === "All" || product.category === selectedCategory
-      const matchesRegion =
-        selectedRegion === "All" || product.region === selectedRegion
-      const matchesStock = !inStockOnly || product.inStock
-      return matchesSearch && matchesCategory && matchesRegion && matchesStock
-    })
-
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case "price-asc":
-          return a.price - b.price
-        case "price-desc":
-          return b.price - a.price
-        case "name-asc":
-          return a.name.localeCompare(b.name)
-        case "name-desc":
-          return b.name.localeCompare(a.name)
-        default:
-          return 0
-      }
-    })
-
-    return result
-  }, [products, searchQuery, selectedCategory, selectedRegion, sortBy, inStockOnly])
-
-  const hasActiveFilters =
-    selectedCategory !== "All" ||
-    selectedRegion !== "All" ||
-    inStockOnly ||
-    searchQuery !== ""
-
-  function clearAllFilters() {
-    setSearchQuery("")
-    setSelectedCategory("All")
-    setSelectedRegion("All")
-    setInStockOnly(false)
-    setSortBy("name-asc")
+  } catch {
+    return []
   }
+}
 
-  return (
-    <LazyMotion features={domAnimation} strict>
-      {/* ① Catalogue Hero */}
-      <CatalogueHero
-        productCount={filteredProducts.length}
-        totalCount={products.length}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
-
-      {/* ③ Sticky Filter Toolbar */}
-      <FilterToolbar
-        categories={categories}
-        regions={regions}
-        selectedCategory={selectedCategory}
-        selectedRegion={selectedRegion}
-        sortBy={sortBy}
-        inStockOnly={inStockOnly}
-        onCategoryChange={setSelectedCategory}
-        onRegionChange={setSelectedRegion}
-        onSortChange={setSortBy}
-        onStockToggle={() => setInStockOnly(!inStockOnly)}
-      />
-
-      {/* ④ Product Grid */}
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Card key={i} className="overflow-hidden rounded-2xl border-border/60">
-                <Skeleton className="aspect-[5/4] rounded-b-none" />
-                <CardContent className="space-y-3 pt-5">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-5 w-16 rounded-full" />
-                    <Skeleton className="h-5 w-16 rounded-full" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <AnimatePresence mode="wait">
-            <m.div
-              key={`${selectedCategory}-${selectedRegion}-${sortBy}-${inStockOnly}-${searchQuery}`}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            >
-              {filteredProducts.map((product, index) => (
-                <m.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.3,
-                    delay: Math.min(index * 0.04, 0.24),
-                    ease: [0.25, 0.46, 0.45, 0.94],
-                  }}
-                  className="h-full"
-                >
-                  <ProductCard
-                    id={product.id}
-                    name={product.name}
-                    slug={product.slug}
-                    price={product.price}
-                    unit={product.unit}
-                    manufacturer={product.manufacturer}
-                    classification={product.classification}
-                    inStock={product.inStock}
-                    packagingSizes={product.packagingSizes}
-                    badge={product.badge}
-                    image={product.image}
-                  />
-                </m.div>
-              ))}
-            </m.div>
-          </AnimatePresence>
-        )}
-
-
-        {/* ⑤ Empty State */}
-        {!isLoading && filteredProducts.length === 0 && (
-          <m.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col items-center py-24 text-center"
-          >
-            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-border/60 bg-card">
-              <SearchX className="size-7 text-muted-foreground/50" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground">
-              No products match your filters
-            </h3>
-            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-              Try adjusting your search query or clearing some of the active
-              filters to broaden your results.
-            </p>
-            {hasActiveFilters && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-6 rounded-full"
-                onClick={clearAllFilters}
-              >
-                Clear all filters
-              </Button>
-            )}
-          </m.div>
-        )}
-      </section>
-    </LazyMotion>
-  )
+export default async function ProductsPage() {
+  const initialProducts = await getActiveProducts()
+  return <ProductsClient initialProducts={initialProducts} />
 }

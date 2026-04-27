@@ -11,7 +11,7 @@ import { z } from "zod"
 
 import { requireMarketingRole } from "@/lib/supabase/marketing-role-check"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { GhlCampaigns, GhlConversations } from "@/lib/ghl"
+import { GhlCampaigns, GhlConversations, GhlWorkflows } from "@/lib/ghl"
 import { GHLApiError } from "@/lib/ghl/errors"
 import { substituteMergeTags } from "@/lib/marketing/merge-tags"
 
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       // Attribution anchor so LCEmailStats events (opens/clicks from this
       // test email) resolve to *this* campaign instead of the most-recent
       // anchor for the same recipient. The `is_test: true` flag tells the
-      // webhook handler to skip counter bumps — we want attribution without
+      // webhook handler to skip counter bumps - we want attribution without
       // inflating the real campaign metrics before the actual send.
       await supabase.from("marketing_events").upsert(
         {
@@ -146,6 +146,31 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         meta: { channel: "sms", to_contact: parsed.data.contactId, message_id: res.messageId },
       })
       return NextResponse.json({ ok: true, messageId: res.messageId })
+    }
+
+    if (campaign.type === "ghl_workflow") {
+      if (!campaign.ghl_workflow_id) {
+        return NextResponse.json(
+          { error: "Workflow campaign is missing a GHL workflow selection" },
+          { status: 400 },
+        )
+      }
+      // "Test" for a workflow = enrol just this one contact. There's no
+      // [TEST] prefix to apply - workflow emails are authored in GHL - so the
+      // test is functionally a real enrolment for a single person.
+      await GhlWorkflows.enrollContact(contact.ghl_contact_id, campaign.ghl_workflow_id)
+      await supabase.from("marketing_audit_log").insert({
+        actor_profile_id: user?.id ?? null,
+        action: "campaign.test_sent",
+        target_type: "campaign",
+        target_id: id,
+        meta: {
+          channel: "ghl_workflow",
+          to_contact: parsed.data.contactId,
+          workflow_id: campaign.ghl_workflow_id,
+        },
+      })
+      return NextResponse.json({ ok: true, messageId: campaign.ghl_workflow_id })
     }
 
     return NextResponse.json({ error: "Unknown campaign type" }, { status: 400 })

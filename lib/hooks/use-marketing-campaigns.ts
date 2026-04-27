@@ -9,7 +9,7 @@ import {
 
 import { del, get, patch, post } from "@/lib/api/client"
 
-export type CampaignType = "email" | "sms"
+export type CampaignType = "email" | "sms" | "ghl_workflow"
 export type CampaignStatus =
   | "draft"
   | "scheduled"
@@ -17,6 +17,14 @@ export type CampaignStatus =
   | "sent"
   | "failed"
   | "cancelled"
+
+/**
+ * How body_html was rendered:
+ *  - 'plain'       - minimal wrapper, looks like a personal email.
+ *  - 'branded'     - full CQVS template (header, navy, footer card).
+ *  - 'custom_html' - user pasted full HTML; we ship it untouched.
+ */
+export type CampaignTemplateMode = "plain" | "branded" | "custom_html"
 
 export interface MarketingCampaign {
   id: string
@@ -29,6 +37,7 @@ export interface MarketingCampaign {
   preheader: string | null
   body_html: string | null
   body_text: string | null
+  template_mode: CampaignTemplateMode
   from_email: string | null
   from_name: string | null
   reply_to: string | null
@@ -40,6 +49,11 @@ export interface MarketingCampaign {
   bounced_count: number
   unsubscribed_count: number
   failed_count: number
+  // GHL workflow campaigns: enrol contacts into a workflow built in GHL.
+  ghl_workflow_id: string | null
+  ghl_workflow_name: string | null
+  enrolled_count: number
+  unenrolled_count: number
   created_at: string
   updated_at: string
 }
@@ -103,10 +117,14 @@ export interface CreateCampaignInput {
   preheader?: string
   body_html?: string
   body_text?: string
+  template_mode?: CampaignTemplateMode
   from_email?: string
   from_name?: string
   reply_to?: string
   scheduled_at?: string
+  // GHL workflow campaigns only.
+  ghl_workflow_id?: string
+  ghl_workflow_name?: string
 }
 
 export function useCreateCampaign() {
@@ -183,6 +201,47 @@ export function useTestSendCampaign() {
   })
 }
 
+export interface UnenrollResult {
+  campaignId: string
+  requested: number
+  succeeded: number
+  failed: number
+  skipped: number
+  errors?: Array<{ contactId: string; error: string }>
+}
+
+/**
+ * Removes one or more contacts from the GHL workflow a campaign enrolled
+ * them into. Accepts either explicit contact IDs or `{ all: true }` to
+ * remove every contact still enrolled under this campaign.
+ *
+ * Only meaningful for campaigns of type "ghl_workflow" - the API rejects
+ * the call otherwise.
+ */
+export function useUnenrollFromCampaign() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id: string
+      body: { contactIds: string[] } | { all: true }
+    }) => post<UnenrollResult>(`/marketing/campaigns/${id}/unenroll`, body),
+    onSuccess: (_, vars) => {
+      // Invalidate list (for enrolled_count changes), detail (stats), and
+      // analytics (recipient statuses flip to "unenrolled").
+      queryClient.invalidateQueries({ queryKey: ["marketing-campaigns"] })
+      queryClient.invalidateQueries({
+        queryKey: ["marketing-campaign", vars.id],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ["marketing-campaign-analytics", vars.id],
+      })
+    },
+  })
+}
+
 export function useCampaignPreview() {
   return useMutation({
     mutationFn: (id: string) =>
@@ -200,6 +259,8 @@ export type RecipientStatus =
   | "complained"
   | "unsubscribed"
   | "failed"
+  | "enrolled"
+  | "unenrolled"
   | "unknown"
 
 export interface CampaignRecipient {
@@ -228,6 +289,10 @@ export interface CampaignAnalyticsResponse {
     | "sent_at"
     | "scheduled_at"
     | "created_at"
+    | "ghl_workflow_id"
+    | "ghl_workflow_name"
+    | "enrolled_count"
+    | "unenrolled_count"
   >
   metrics: {
     audience: number

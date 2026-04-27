@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { FadeIn } from "@/components/shared/motion"
 import { Sparkles } from "lucide-react"
 
@@ -12,11 +13,41 @@ import { HowItWorks } from "@/components/landing/how-it-works"
 import { WhyBento } from "@/components/landing/why-bento"
 import { FinalCta } from "@/components/landing/final-cta"
 
-export const metadata = {
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.cqvs-chemconnect.com.au"
+
+export const metadata: Metadata = {
   title:
     "Chem Connect - Manufacturing-direct chemicals for concrete plants & quarries",
   description:
-    "Australian B2B chemical marketplace. Skip the middleman, see live pricing, and get bulk chemicals delivered in 2-5 days from your state. Free to join, no card required.",
+    "Australian B2B chemical marketplace. Skip the middleman, see live AUD pricing, and get bulk chemicals delivered 2-5 days from VIC, NSW, QLD, SA, WA. Free to join.",
+  alternates: { canonical: `${SITE_URL}/` },
+  openGraph: {
+    type: "website",
+    url: `${SITE_URL}/`,
+    siteName: "Chem Connect",
+    locale: "en_AU",
+    title:
+      "Chem Connect - Manufacturing-direct chemicals for concrete plants & quarries",
+    description:
+      "Australian B2B chemical marketplace. Live AUD pricing, GST-inclusive, 2-5 day DG-rated freight from 5 states.",
+    images: [
+      {
+        url: `${SITE_URL}/images/cqvs-logo.png`,
+        width: 1200,
+        height: 630,
+        alt: "Chem Connect - B2B Chemical Marketplace Australia",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title:
+      "Chem Connect - Manufacturing-direct chemicals for concrete plants & quarries",
+    description:
+      "Live AUD pricing, GST-inclusive, 2-5 day DG-rated freight from 5 Australian states.",
+    images: [`${SITE_URL}/images/cqvs-logo.png`],
+  },
 }
 
 // ============================================================

@@ -35,28 +35,43 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ campaigns: data ?? [], total: count ?? 0, page, limit })
 }
 
-const createSchema = z.object({
-  name: z.string().min(1),
-  type: z.enum(["email", "sms"]),
-  audience_filter: z
-    .object({
-      all: z.boolean().optional(),
-      tags: z.array(z.string()).optional(),
-      tagMatchAll: z.boolean().optional(),
-      state: z.string().optional(),
-      contactIds: z.array(z.string()).optional(),
-    })
-    .default({}),
-  subject: z.string().optional().nullable(),
-  preheader: z.string().optional().nullable(),
-  body_html: z.string().optional().nullable(),
-  body_text: z.string().optional().nullable(),
-  from_email: z.string().optional().nullable(),
-  from_name: z.string().optional().nullable(),
-  reply_to: z.string().optional().nullable(),
-  scheduled_at: z.string().datetime().optional().nullable(),
-  recurring_rule: z.record(z.string(), z.unknown()).optional().nullable(),
-})
+const createSchema = z
+  .object({
+    name: z.string().min(1),
+    type: z.enum(["email", "sms", "ghl_workflow"]),
+    audience_filter: z
+      .object({
+        all: z.boolean().optional(),
+        tags: z.array(z.string()).optional(),
+        tagMatchAll: z.boolean().optional(),
+        state: z.string().optional(),
+        contactIds: z.array(z.string()).optional(),
+      })
+      .default({}),
+    subject: z.string().optional().nullable(),
+    preheader: z.string().optional().nullable(),
+    body_html: z.string().optional().nullable(),
+    body_text: z.string().optional().nullable(),
+    from_email: z.string().optional().nullable(),
+    from_name: z.string().optional().nullable(),
+    reply_to: z.string().optional().nullable(),
+    scheduled_at: z.string().datetime().optional().nullable(),
+    recurring_rule: z.record(z.string(), z.unknown()).optional().nullable(),
+    // ghl_workflow campaigns: the workflow built inside GHL that every
+    // matched contact will be enrolled into on send. Name is cached at
+    // create-time so we can render the campaign list without hitting GHL
+    // (the name can still change on their side - that's fine, the ID is
+    // the source of truth).
+    ghl_workflow_id: z.string().min(1).optional().nullable(),
+    ghl_workflow_name: z.string().optional().nullable(),
+    // Distinguishes how body_html was rendered. Metadata only - the
+    // wrapping is applied client-side before save. See migration 044.
+    template_mode: z.enum(["plain", "branded", "custom_html"]).optional(),
+  })
+  .refine(
+    (v) => v.type !== "ghl_workflow" || !!v.ghl_workflow_id,
+    { message: "ghl_workflow_id is required when type is ghl_workflow", path: ["ghl_workflow_id"] },
+  )
 
 export async function POST(request: NextRequest) {
   const { error, user } = await requireMarketingRole("edit")
@@ -105,6 +120,9 @@ export async function POST(request: NextRequest) {
       reply_to: parsed.data.reply_to ?? settings["marketing.reply_to"] ?? null,
       scheduled_at: parsed.data.scheduled_at ?? null,
       recurring_rule: parsed.data.recurring_rule ?? null,
+      ghl_workflow_id: parsed.data.ghl_workflow_id ?? null,
+      ghl_workflow_name: parsed.data.ghl_workflow_name ?? null,
+      template_mode: parsed.data.template_mode ?? "plain",
       created_by: user?.id ?? null,
     })
     .select("id")

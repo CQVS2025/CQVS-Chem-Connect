@@ -50,6 +50,7 @@ const patchSchema = z.object({
   reply_to: z.string().optional().nullable(),
   audience_filter: z.record(z.string(), z.unknown()).optional(),
   scheduled_at: z.string().datetime().optional().nullable(),
+  template_mode: z.enum(["plain", "branded", "custom_html"]).optional(),
 })
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {

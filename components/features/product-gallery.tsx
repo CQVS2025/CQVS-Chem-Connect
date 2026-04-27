@@ -19,13 +19,21 @@ interface ProductGalleryProps {
   images: ProductImage[]
   fallbackImage: string
   productName: string
+  /**
+   * Optional richer alt-text base. When provided, every image's alt is
+   * built from this string instead of the bare product name - lifts SEO /
+   * Google-Images discovery signal without changing the visible UI.
+   */
+  altText?: string
 }
 
 export function ProductGallery({
   images,
   fallbackImage,
   productName,
+  altText,
 }: ProductGalleryProps) {
+  const altBase = altText ?? productName
   const [activeIndex, setActiveIndex] = useState(0)
 
   // If no images in gallery, show single fallback
@@ -34,7 +42,7 @@ export function ProductGallery({
       <div className="relative h-80 overflow-hidden rounded-xl bg-white sm:h-96 lg:h-112">
         <Image
           src={fallbackImage}
-          alt={productName}
+          alt={altBase}
           fill
           sizes="(max-width: 1024px) 100vw, 50vw"
           className="object-cover"
@@ -69,7 +77,7 @@ export function ProductGallery({
               >
                 <Image
                   src={currentImage?.image_url || fallbackImage}
-                  alt={`${productName} - Image ${activeIndex + 1}`}
+                  alt={`${altBase} - Image ${activeIndex + 1}`}
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover"
@@ -127,7 +135,7 @@ export function ProductGallery({
               >
                 <Image
                   src={img.image_url}
-                  alt={`${productName} thumbnail ${index + 1}`}
+                  alt={`${altBase} thumbnail ${index + 1}`}
                   fill
                   sizes="80px"
                   className="object-cover"

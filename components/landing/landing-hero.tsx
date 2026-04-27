@@ -80,6 +80,8 @@ export function LandingHero({ tickerProducts }: LandingHeroProps) {
                 <span className="block bg-linear-to-br from-primary via-emerald-400 to-primary bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.15)]">
                   Bulk Chemicals.
                 </span>
+                {/* Explicit space so Googlebot / AI crawlers see "Bulk Chemicals. Unbeatable Prices." in extracted text content. CSS handles the visual line break via display:block. */}
+                {" "}
                 <span className="mt-2 block whitespace-nowrap bg-linear-to-br from-emerald-400 via-primary to-emerald-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.15)]">
                   Unbeatable Prices.
                 </span>

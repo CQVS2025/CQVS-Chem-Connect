@@ -3,7 +3,8 @@
  *
  * Dispatches a campaign immediately. Enforces:
  *   - status must be draft or scheduled
- *   - required fields must be present (subject+HTML for email, body_text for SMS)
+ *   - required fields must be present (subject+HTML for email, body_text for
+ *     SMS, ghl_workflow_id for workflow campaigns)
  */
 
 import { NextResponse, type NextRequest } from "next/server"
@@ -50,6 +51,12 @@ export async function POST(_req: NextRequest, { params }: RouteParams) {
   if (campaign.type === "sms" && !campaign.body_text) {
     return NextResponse.json(
       { error: "SMS campaign is missing body_text" },
+      { status: 400 },
+    )
+  }
+  if (campaign.type === "ghl_workflow" && !campaign.ghl_workflow_id) {
+    return NextResponse.json(
+      { error: "Workflow campaign is missing a GHL workflow selection" },
       { status: 400 },
     )
   }

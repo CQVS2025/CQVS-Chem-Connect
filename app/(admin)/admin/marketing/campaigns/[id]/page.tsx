@@ -7,7 +7,10 @@ import { useQuery } from "@tanstack/react-query"
 import {
   ArrowLeft,
   ExternalLink,
+  GitBranch,
   Loader2,
+  Mail,
+  MessageCircle,
   Send,
   Trash2,
   UserCheck,
@@ -55,7 +58,7 @@ export default function CampaignDetailPage() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
-  // Live audience preview — resolves the campaign's audience_filter against
+  // Live audience preview - resolves the campaign's audience_filter against
   // the current contacts table so the Send button always shows an accurate
   // count, not the stale value stored at creation time.
   const { data: previewData, isFetching: isPreviewFetching } = useQuery({
@@ -150,21 +153,46 @@ export default function CampaignDetailPage() {
         <div className="flex-1">
           <h2 className="text-xl font-semibold tracking-tight">{campaign.name}</h2>
           <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-            <Badge variant="secondary">{campaign.type.toUpperCase()}</Badge>
+            <Badge variant="secondary" className="gap-1">
+              {campaign.type === "email" ? (
+                <Mail className="h-3 w-3" />
+              ) : campaign.type === "sms" ? (
+                <MessageCircle className="h-3 w-3" />
+              ) : (
+                <GitBranch className="h-3 w-3" />
+              )}
+              {campaign.type === "ghl_workflow"
+                ? "GHL WORKFLOW"
+                : campaign.type.toUpperCase()}
+            </Badge>
             <Badge variant="outline">{campaign.status}</Badge>
+            {campaign.type === "email" && (
+              <>
+                <span>·</span>
+                <Badge variant="outline" className="font-normal">
+                  {campaign.template_mode === "plain"
+                    ? "Plain"
+                    : campaign.template_mode === "custom_html"
+                      ? "Custom HTML"
+                      : "Branded"}
+                </Badge>
+              </>
+            )}
             <span>·</span>
             <span>{displayAudienceCount} recipients</span>
           </div>
         </div>
         {/* Deep-link to GHL. Email → Conversations inbox (see individual sent
-            emails). SMS → Messaging Analytics dashboard (real-time delivery
-            metrics that SMS protocols can't expose to us directly). */}
+            emails). SMS → Messaging Analytics dashboard. Workflow → the
+            workflow builder so Jonny can see the flow and per-run stats. */}
         <Button variant="outline" size="sm" asChild>
           <a
             href={
               campaign.type === "sms"
                 ? `https://app.gohighlevel.com/v2/location/${GHL_LOCATION_ID}/settings/phone_system?tab=messaging&childtab=messaging-analytics`
-                : `https://app.gohighlevel.com/v2/location/${GHL_LOCATION_ID}/conversations/conversations`
+                : campaign.type === "ghl_workflow" && campaign.ghl_workflow_id
+                  ? `https://app.gohighlevel.com/location/${GHL_LOCATION_ID}/workflow/${campaign.ghl_workflow_id}`
+                  : `https://app.gohighlevel.com/v2/location/${GHL_LOCATION_ID}/conversations/conversations`
             }
             target="_blank"
             rel="noreferrer"
@@ -172,7 +200,9 @@ export default function CampaignDetailPage() {
             <ExternalLink className="mr-2 h-4 w-4" />
             {campaign.type === "sms"
               ? "View SMS analytics in GoHighLevel"
-              : "View sent messages in GoHighLevel"}
+              : campaign.type === "ghl_workflow"
+                ? "Open workflow in GoHighLevel"
+                : "View sent messages in GoHighLevel"}
           </a>
         </Button>
         {isSendable && (
@@ -214,22 +244,43 @@ export default function CampaignDetailPage() {
         </Button>
       </div>
 
-      {/* Opened/Clicked intentionally hidden for SMS — the SMS protocol
+      {/* Opened/Clicked intentionally hidden for SMS - the SMS protocol
           doesn't provide read receipts or click data, so showing "0" would
-          be misleading. Email campaigns show the full 4-stat grid. */}
+          be misleading. Workflow campaigns show Enrolled instead of
+          Delivered, and defer open/click analytics to GHL (the workflow's
+          individual emails emit their own opens/clicks which GHL tracks).
+          Email campaigns show the full 4-stat grid. */}
       <div
         className={`grid gap-4 ${
-          campaign.type === "sms"
-            ? "sm:grid-cols-2"
-            : "sm:grid-cols-2 lg:grid-cols-4"
+          campaign.type === "email"
+            ? "sm:grid-cols-2 lg:grid-cols-4"
+            : campaign.type === "ghl_workflow"
+              ? "sm:grid-cols-2 lg:grid-cols-4"
+              : "sm:grid-cols-2 lg:grid-cols-3"
         }`}
       >
         <Stat label="Audience" value={displayAudienceCount} />
-        <Stat
-          label="Delivered"
-          value={campaign.delivered_count}
-          suffix={deliveredRate ? `(${deliveredRate}%)` : ""}
-        />
+        {campaign.type === "ghl_workflow" ? (
+          <>
+            <Stat
+              label="Enrolled"
+              value={campaign.enrolled_count}
+              suffix={
+                campaign.audience_count > 0
+                  ? `(${Math.round((campaign.enrolled_count / campaign.audience_count) * 100)}%)`
+                  : ""
+              }
+            />
+            <Stat label="Unenrolled" value={campaign.unenrolled_count} />
+            <Stat label="Failed" value={campaign.failed_count} />
+          </>
+        ) : (
+          <Stat
+            label="Delivered"
+            value={campaign.delivered_count}
+            suffix={deliveredRate ? `(${deliveredRate}%)` : ""}
+          />
+        )}
         {campaign.type === "email" && (
           <>
             <Stat
@@ -249,18 +300,30 @@ export default function CampaignDetailPage() {
       {isSendable && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Ready to send?</CardTitle>
+            <CardTitle className="text-sm">
+              {campaign.type === "ghl_workflow"
+                ? "Ready to enrol?"
+                : "Ready to send?"}
+            </CardTitle>
             <CardDescription>
-              Test-send first to eyeball it in a real inbox, then fire the full campaign.
+              {campaign.type === "ghl_workflow"
+                ? "Dry-run against a single contact first (they'll be enrolled for real, so pick someone on the team), then enrol the full audience."
+                : "Test-send first to eyeball it in a real inbox, then fire the full campaign."}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div>
               <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Step 1 — Test-send to one person (optional)
+                {campaign.type === "ghl_workflow"
+                  ? "Step 1 - Dry-run with one contact (optional)"
+                  : "Step 1 - Test-send to one person (optional)"}
               </p>
               <Input
-                placeholder="Search a contact to test-send to…"
+                placeholder={
+                  campaign.type === "ghl_workflow"
+                    ? "Search a contact to enrol as a dry-run…"
+                    : "Search a contact to test-send to…"
+                }
                 value={testQ}
                 onChange={(e) => setTestQ(e.target.value)}
               />
@@ -280,7 +343,11 @@ export default function CampaignDetailPage() {
                           · {c.email ?? c.phone ?? ""}
                         </span>
                       </span>
-                      <span className="text-xs text-primary">test send</span>
+                      <span className="text-xs text-primary">
+                        {campaign.type === "ghl_workflow"
+                          ? "dry run"
+                          : "test send"}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -288,7 +355,9 @@ export default function CampaignDetailPage() {
             </div>
             <div className="border-t pt-4">
               <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Step 2 — Send to full audience
+                {campaign.type === "ghl_workflow"
+                  ? "Step 2 - Enrol full audience"
+                  : "Step 2 - Send to full audience"}
               </p>
               <Button
                 size="lg"
@@ -306,12 +375,16 @@ export default function CampaignDetailPage() {
                   <Send className="mr-2 h-4 w-4" />
                 )}
                 {sendCampaign.isPending
-                  ? "Dispatching…"
+                  ? campaign.type === "ghl_workflow"
+                    ? "Enrolling…"
+                    : "Dispatching…"
                   : isPreviewFetching
                     ? "Calculating audience…"
                     : displayAudienceCount === 0
                       ? "No contacts match this audience yet"
-                      : `Send campaign to ${displayAudienceCount} contact${displayAudienceCount === 1 ? "" : "s"}`}
+                      : campaign.type === "ghl_workflow"
+                        ? `Enrol ${displayAudienceCount} contact${displayAudienceCount === 1 ? "" : "s"} into workflow`
+                        : `Send campaign to ${displayAudienceCount} contact${displayAudienceCount === 1 ? "" : "s"}`}
               </Button>
               {displayAudienceCount === 0 && (
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -356,6 +429,38 @@ export default function CampaignDetailPage() {
             <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm">
               {campaign.body_text}
             </pre>
+          </CardContent>
+        </Card>
+      )}
+
+      {campaign.type === "ghl_workflow" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <GitBranch className="h-4 w-4" />
+              Workflow
+            </CardTitle>
+            <CardDescription>
+              Email copy, waits, and branching logic are managed inside
+              GoHighLevel. On send, each selected contact is enrolled at the
+              workflow&apos;s first step - GHL handles the rest.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Name:</span>
+              <span className="font-medium">
+                {campaign.ghl_workflow_name ?? "(unknown)"}
+              </span>
+            </div>
+            {campaign.ghl_workflow_id && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Workflow ID:</span>
+                <code className="rounded bg-muted px-1.5 py-0.5">
+                  {campaign.ghl_workflow_id}
+                </code>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -405,9 +510,19 @@ export default function CampaignDetailPage() {
       <ConfirmDialog
         open={sendDialogOpen}
         onOpenChange={setSendDialogOpen}
-        title="Send this campaign now?"
-        description={`"${campaign.name}" will be dispatched to approximately ${displayAudienceCount} contact(s). Delivery can't be undone once started.`}
-        confirmLabel="Send now"
+        title={
+          campaign.type === "ghl_workflow"
+            ? "Enrol contacts into this workflow now?"
+            : "Send this campaign now?"
+        }
+        description={
+          campaign.type === "ghl_workflow"
+            ? `"${campaign.name}" will enrol approximately ${displayAudienceCount} contact(s) into the "${campaign.ghl_workflow_name ?? "selected"}" workflow. GHL will start sending workflow emails as the drip progresses.`
+            : `"${campaign.name}" will be dispatched to approximately ${displayAudienceCount} contact(s). Delivery can't be undone once started.`
+        }
+        confirmLabel={
+          campaign.type === "ghl_workflow" ? "Enrol now" : "Send now"
+        }
         onConfirm={handleSendConfirmed}
       />
       <ConfirmDialog

@@ -34,7 +34,7 @@ export default function SequencesPage() {
           <GitBranch className="h-4 w-4" /> Sequences
         </h2>
         <p className="text-sm text-muted-foreground">
-          Workflows built inside GoHighLevel. Read-only view &mdash; configure
+          Workflows built inside GoHighLevel. Read-only view - configure
           and edit them in GHL directly via the &ldquo;Open in GoHighLevel&rdquo;
           button on each card.
         </p>

@@ -8,7 +8,7 @@
  *
  * The `bodyHtml` argument is the Quill editor's HTML output, already
  * sanitised by DOMPurify on the client. We still wrap it in a presentation
- * `<td>` with our own typography styles, but we don't re-sanitise — Quill
+ * `<td>` with our own typography styles, but we don't re-sanitise - Quill
  * only produces safe tags (p, br, strong, em, a, ul, ol, li, h1-h3) and
  * the client enforces that boundary.
  */
@@ -154,6 +154,45 @@ export function buildMarketingEmailHtml(
       </td>
     </tr>
   </table>
+</body>
+</html>`
+}
+
+/**
+ * Minimal HTML wrapper for "plain mode" campaigns.
+ *
+ * Goal: render the user's body content as a normal-looking email - no CQVS
+ * header, no navy colors, no footer card. Just the typed/pasted content
+ * with a sensible system font and standard inbox-friendly typography.
+ *
+ * Why we still wrap at all: GHL's send pipeline and most inbox clients
+ * render bare fragments inconsistently (centered, oversized, etc.). A
+ * minimal `<html><body>` shell with neutral defaults is the smallest
+ * change that produces predictable rendering everywhere.
+ *
+ * Compliance footer + unsubscribe link are injected by GHL itself on the
+ * outbound side, so we don't add anything here.
+ */
+export function buildPlainEmailHtml(options: {
+  bodyHtml: string
+  preheader?: string
+}): string {
+  const { bodyHtml, preheader } = options
+  const preheaderHtml = preheader
+    ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:0;line-height:0;color:transparent;">${escapeHtml(preheader)}${"&zwnj;&nbsp;".repeat(30)}</div>`
+    : ""
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body style="margin:0;padding:0;background:#ffffff;color:#111111;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;">
+${preheaderHtml}
+<div style="max-width:640px;margin:0 auto;padding:16px;">
+${bodyHtml}
+</div>
 </body>
 </html>`
 }
