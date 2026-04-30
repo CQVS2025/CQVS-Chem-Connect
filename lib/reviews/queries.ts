@@ -2,11 +2,26 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
  * Public-facing query helpers for the product page. All return only
- * approved reviews — pending and rejected rows are filtered at the source.
+ * approved reviews (pending and rejected rows are filtered at the source).
  *
- * The ≥3-approved-reviews gate for AggregateRating JSON-LD lives at the
- * call site (see app/(marketplace)/products/[slug]/page.tsx). These
- * helpers just return the data; the gating policy is one line up.
+ * Three query shapes, each driven by a different render concern:
+ *
+ *   1. getApprovedReviewsForProduct(productId, limit)
+ *      - Verified-only. Used to feed the JSON-LD Review[] array.
+ *      - Phase 2 decision: only verified reviews go into the rich-result
+ *        schema. Public-link reviews appear on the page but are excluded
+ *        here so a competitor can't game the search rating.
+ *
+ *   2. getReviewsForDisplay(productId, limit)
+ *      - All approved (verified + public mixed by date). Used to render
+ *        the visible review cards on the product page.
+ *      - Each row carries verified_buyer so the UI can pick the right
+ *        badge ("Verified buyer" emerald vs "Reviewer" muted grey).
+ *
+ *   3. getApprovedReviewAggregate(productId)
+ *      - Verified-only count + average. Drives the headline chip near
+ *        the buy button AND the AggregateRating JSON-LD math (gated at
+ *        >=3 verified reviews on the call site).
  */
 
 export interface PublicReview {
@@ -18,6 +33,8 @@ export interface PublicReview {
   reviewer_city: string | null
   reviewer_state: string | null
   published_at: string
+  /** Phase 2: drives the badge on the card. true = green tick, false = grey. */
+  verified_buyer: boolean
   photos: { id: string; public_url: string; position: number }[]
 }
 
@@ -29,9 +46,9 @@ export interface PublicAggregate {
 }
 
 /**
- * Get up to N approved reviews for a product, newest first. The limit
- * defaults to 10 because Schema.org Review[] arrays beyond 10 are ignored
- * by Google rich-result rendering anyway.
+ * Verified-only reviews for the JSON-LD Review[] array. Up to N reviews,
+ * newest first. Default limit 10 because Google ignores Review[] beyond 10
+ * for rich-result rendering.
  */
 export async function getApprovedReviewsForProduct(
   productId: string,
@@ -41,7 +58,32 @@ export async function getApprovedReviewsForProduct(
   const { data, error } = await supabase
     .from("reviews")
     .select(
-      "id, rating, headline, body, display_name, reviewer_city, reviewer_state, published_at, review_photos(id, public_url, position)",
+      "id, rating, headline, body, display_name, reviewer_city, reviewer_state, published_at, verified_buyer, review_photos(id, public_url, position)",
+    )
+    .eq("product_id", productId)
+    .eq("status", "approved")
+    .eq("verified_buyer", true)
+    .order("published_at", { ascending: false })
+    .limit(limit)
+
+  if (error || !data) return []
+
+  return data.map((r) => mapRow(r))
+}
+
+/**
+ * All approved reviews (verified + public mixed) for the visible card list
+ * on the product page. Newest first.
+ */
+export async function getReviewsForDisplay(
+  productId: string,
+  limit = 50,
+): Promise<PublicReview[]> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase
+    .from("reviews")
+    .select(
+      "id, rating, headline, body, display_name, reviewer_city, reviewer_state, published_at, verified_buyer, review_photos(id, public_url, position)",
     )
     .eq("product_id", productId)
     .eq("status", "approved")
@@ -50,28 +92,13 @@ export async function getApprovedReviewsForProduct(
 
   if (error || !data) return []
 
-  return data.map((r) => {
-    const photos = ((r as { review_photos?: { id: string; public_url: string; position: number }[] }).review_photos ?? [])
-      .slice()
-      .sort((a, b) => a.position - b.position)
-    return {
-      id: r.id,
-      rating: r.rating,
-      headline: r.headline,
-      body: r.body,
-      display_name: r.display_name,
-      reviewer_city: r.reviewer_city,
-      reviewer_state: r.reviewer_state,
-      published_at: r.published_at,
-      photos,
-    }
-  })
+  return data.map((r) => mapRow(r))
 }
 
 /**
- * Aggregate stats across ALL approved reviews for the product (not just the
- * 10 displayed). Used for the average + count next to the buy button and
- * for the AggregateRating JSON-LD.
+ * Verified-only aggregate. Drives both the headline chip on the product
+ * page and the AggregateRating JSON-LD. Returns null when there are no
+ * verified reviews so the caller can hide the chip cleanly.
  */
 export async function getApprovedReviewAggregate(
   productId: string,
@@ -82,6 +109,7 @@ export async function getApprovedReviewAggregate(
     .select("rating")
     .eq("product_id", productId)
     .eq("status", "approved")
+    .eq("verified_buyer", true)
 
   if (error || !data || data.length === 0) return null
 
@@ -95,5 +123,38 @@ export async function getApprovedReviewAggregate(
     count: data.length,
     averageRating: Math.round((sum / data.length) * 10) / 10,
     distribution,
+  }
+}
+
+// ---------------------------------------------------------------------------
+
+interface RawReviewRow {
+  id: string
+  rating: number
+  headline: string
+  body: string
+  display_name: string
+  reviewer_city: string | null
+  reviewer_state: string | null
+  published_at: string
+  verified_buyer: boolean | null
+  review_photos?: { id: string; public_url: string; position: number }[]
+}
+
+function mapRow(r: RawReviewRow): PublicReview {
+  const photos = (r.review_photos ?? [])
+    .slice()
+    .sort((a, b) => a.position - b.position)
+  return {
+    id: r.id,
+    rating: r.rating,
+    headline: r.headline,
+    body: r.body,
+    display_name: r.display_name,
+    reviewer_city: r.reviewer_city,
+    reviewer_state: r.reviewer_state,
+    published_at: r.published_at,
+    verified_buyer: r.verified_buyer ?? true,
+    photos,
   }
 }

@@ -14,6 +14,7 @@ import { getProductBySlug, products as staticProducts } from "@/lib/data/product
 import {
   getApprovedReviewAggregate,
   getApprovedReviewsForProduct,
+  getReviewsForDisplay,
 } from "@/lib/reviews/queries"
 import { ProductReviews } from "@/components/products/product-reviews"
 import { ProductReviewsSummary } from "@/components/products/product-reviews-summary"
@@ -329,25 +330,35 @@ export default async function ProductDetailPage({
     baseUrl: SITE_URL,
   })
 
-  // Load aggregate + reviews whenever the kill switch is on. The summary
-  // chip near the buy button shows whenever there's >=1 approved review.
-  // The JSON-LD AggregateRating + Review[] only splice in at >=3 — gating
-  // the schema avoids the volatile-rating problem (one 1-star review tanks
-  // SERP CTR) and matches Google's own minimum for star-result rendering.
+  // Phase 2 split (per docs/Public-Review-Share-Link-Phase-2-Spec.html):
+  //
+  //   - aggregate  = verified-only count + average. Drives the headline
+  //                  chip near the buy button + the AggregateRating JSON-LD
+  //                  (gated at >=3 verified reviews so Google's rich-result
+  //                  threshold is met and no single 1-star review can tank
+  //                  the displayed average).
+  //   - jsonLdReviews = verified-only Review[] - feeds Google's rich-result
+  //                  Review array. Public-link reviews never go in here.
+  //   - displayReviews = ALL approved reviews (verified + public mixed) for
+  //                  the visible card list. Each card uses verified_buyer
+  //                  to pick the right badge.
   let aggregate: Awaited<ReturnType<typeof getApprovedReviewAggregate>> = null
-  let reviewList: Awaited<ReturnType<typeof getApprovedReviewsForProduct>> = []
+  let jsonLdReviews: Awaited<ReturnType<typeof getApprovedReviewsForProduct>> = []
+  let displayReviews: Awaited<ReturnType<typeof getReviewsForDisplay>> = []
 
   if (REVIEWS_KILL_SWITCH_ON) {
     aggregate = await getApprovedReviewAggregate(product.id)
-    if (aggregate && aggregate.count > 0) {
-      reviewList = await getApprovedReviewsForProduct(product.id, 10)
-    }
+    // Always load the visible cards independently of verified count - this
+    // is what enables the "0 verified, N public" branch from spec sec 9.2.
+    displayReviews = await getReviewsForDisplay(product.id, 50)
+
     if (aggregate && aggregate.count >= MIN_APPROVED_FOR_AGGREGATE_SCHEMA) {
+      jsonLdReviews = await getApprovedReviewsForProduct(product.id, 10)
       productLd.aggregateRating = aggregateRatingFragment({
         ratingValue: aggregate.averageRating,
         reviewCount: aggregate.count,
       })
-      productLd.review = reviewList.map((r) =>
+      productLd.review = jsonLdReviews.map((r) =>
         reviewFragment({
           authorName: r.display_name,
           ratingValue: r.rating,
@@ -751,7 +762,7 @@ export default async function ProductDetailPage({
         <div id="reviews" className="scroll-mt-20">
           <ProductReviews
             aggregate={aggregate}
-            reviews={reviewList}
+            reviews={displayReviews}
             productName={product.name}
           />
         </div>

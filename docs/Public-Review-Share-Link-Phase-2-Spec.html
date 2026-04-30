@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect &middot; Public Review Share Link &middot; Phase 2 Spec</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 22px; color: #1a1a2e; line-height: 1.65; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 50px; font-size: 21px; }
+  h3 { color: #1a1a2e; margin-top: 30px; font-size: 16.5px; }
+  h4 { color: #16a34a; margin-top: 20px; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .box-purple { border-left-color: #8b5cf6; background: #f5f3ff; }
+  .box-grey { border-left-color: #6b7280; background: #f3f4f6; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; text-align: center; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 44px 0; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px; vertical-align: middle; }
+  .b-locked { background: #dcfce7; color: #166534; }
+  .b-phase2 { background: #ede9fe; color: #5b21b6; }
+  .b-new { background: #fce7f3; color: #9d174d; }
+  .b-decline { background: #fee2e2; color: #991b1b; }
+  code { font-family: 'Consolas', 'Monaco', 'Courier New', monospace; background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 11.5px; color: #b91c1c; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px 16px; border-radius: 6px; font-size: 12px; overflow-x: auto; line-height: 1.55; }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  .item { border: 1px solid #e5e7eb; border-left: 4px solid #16a34a; border-radius: 6px; padding: 12px 16px; background: #fff; margin: 12px 0; }
+  .item h4 { margin-top: 0; color: #1a1a2e; text-transform: none; letter-spacing: 0; font-size: 14px; }
+  .item p, .item ul { font-size: 13px; }
+  .item-num { display: inline-block; background: #16a34a; color: #fff; font-size: 11.5px; font-weight: 700; padding: 2px 9px; border-radius: 12px; margin-right: 8px; vertical-align: middle; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 14px 0; }
+  .card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 13px 16px; background: #fff; }
+  .card h4 { margin-top: 0; }
+  .toc { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin: 20px 0; }
+  .toc ul { list-style: none; padding-left: 0; font-size: 13px; }
+  .toc li { margin: 4px 0; }
+  .toc a { color: #1d4ed8; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .flow { background: #0f172a; color: #e2e8f0; padding: 14px 18px; border-radius: 6px; font-size: 12px; line-height: 1.7; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; overflow-x: auto; white-space: pre; }
+  .pill { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; vertical-align: middle; margin-right: 4px; }
+  .pill-yes { background: #dcfce7; color: #166534; }
+  .pill-no { background: #fee2e2; color: #991b1b; }
+  @media print { body { margin: 20px; font-size: 12px; } .three-col { grid-template-columns: 1fr; } pre, .flow { white-space: pre-wrap; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 17px; color: #374151; margin-top: 16px; font-weight: 600;">Public Review Share Link &middot; Phase 2 Spec</p>
+  <p style="color: #9ca3af;">Locked design &middot; Prepared by Sohaib &middot; April 2026</p>
+</div>
+
+<div class="box">
+  <strong>Status: <span class="badge b-locked">Locked</span> <span class="badge b-phase2">Phase 2</span></strong>
+  <br><br>
+  Companion document to the main implementation plan. This feature was flagged for Phase 2 in the original Customer Reviews scope but the design wasn&rsquo;t spelled out at the time. After a round of clarifying questions with Jonny, every decision is now closed and the build can drop in cleanly when Phase 2 starts.
+</div>
+
+<div class="box-grey">
+  <strong>How this fits with prior documents:</strong>
+  <ul>
+    <li><code>docs/Reviews-and-Supplier-Fulfillment-Implementation-Plan.html</code> &ndash; defined Feature 1 (Customer Reviews) - Phase 1 already shipped.</li>
+    <li><code>docs/Chem-Connect-Customer-Reviews-Feature.html</code> &ndash; original SEO-feature recommendation that started this thread.</li>
+    <li><strong>This document</strong> &ndash; locks the Phase 2 share-link design before any Phase 2 build begins.</li>
+  </ul>
+</div>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ul>
+    <li><a href="#sec-1">1. What it does, in one sentence</a></li>
+    <li><a href="#sec-2">2. Why this is Phase 2 work</a></li>
+    <li><a href="#sec-3">3. Locked decisions (round 1 + round 2)</a></li>
+    <li><a href="#sec-4">4. The four real-world situations</a></li>
+    <li><a href="#sec-5">5. Schema additions</a></li>
+    <li><a href="#sec-6">6. Aggregate math &ndash; the key change</a></li>
+    <li><a href="#sec-7">7. Admin UI</a></li>
+    <li><a href="#sec-8">8. Public submission page</a></li>
+    <li><a href="#sec-9">9. Product page display</a></li>
+    <li><a href="#sec-10">10. Spam guards</a></li>
+    <li><a href="#sec-11">11. Build breakdown</a></li>
+    <li><a href="#sec-12">12. What this leaves out (deliberate)</a></li>
+    <li><a href="#sec-13">13. Sign-off</a></li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-1"><span class="section-num">1.</span> What it does, in one sentence</h2>
+
+<p style="font-size: 13.5px;">An admin can generate a shareable URL for a specific product. Anyone with that URL can submit a review without authentication, but the review is clearly marked as <em>&ldquo;Reviewer&rdquo;</em> rather than <em>&ldquo;Verified buyer&rdquo;</em> on the product page, and <strong>does not count toward the headline star rating or the Google rich-result aggregate</strong>. Public reviews still display on the page below the verified ones, adding texture without moving the headline number.</p>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-2"><span class="section-num">2.</span> Why this is Phase 2 work</h2>
+
+<p style="font-size: 13px;">Phase 1 ships a verified-buyer-only review flow: every approved review is tied to a real <code>order_id</code> via a magic-link token. That keeps the trust signal clean and the AggregateRating defensible. Public share links break the verified-buyer guarantee for a subset of reviews - which means they need a separate badge, separate aggregate math, and separate spam protection.</p>
+
+<p style="font-size: 13px;">None of this is hard, but layering it onto the verified-only model from day one would have made Phase 1 unnecessarily heavier. So Phase 1 ships first; Phase 2 adds the public-link path on top of the existing schema with a single migration and a small admin surface.</p>
+
+<div class="box-blue">
+  <strong>Why the design is locked now:</strong> doing the four design calls below at build time would risk a small refactor (especially the verified-only-aggregate decision, which lives at the SQL layer). Locking now means the Phase 2 build is mostly a configuration job over the Phase 1 schema.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-3"><span class="section-num">3.</span> Locked decisions (round 1 + round 2)</h2>
+
+<p style="font-size: 13.5px;">Four decisions, all closed. Three approved on the first pass; #4 was redirected by Jonny in round 2.</p>
+
+<table>
+  <thead>
+    <tr><th style="width: 40px;">#</th><th style="width: 28%;">Decision</th><th>Locked outcome</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><strong>Verified vs. unverified badge on the card</strong></td>
+      <td><span class="badge b-locked">Approved</span> Magic-link and manual-entry reviews keep the &ldquo;Verified buyer&rdquo; badge with the green tick. Public-link reviews show <em>&ldquo;Reviewer&rdquo;</em> in muted grey. The two are visually distinct so a careful reader can tell the difference at a glance.</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Default share-link settings</strong></td>
+      <td><span class="badge b-locked">Approved</span> New links default to <strong>30 days expiry / 50 uses</strong>. Both adjustable per-link at generation time. <strong>No-expiry option available</strong> for things like the email-signature link Jonny mentioned. Max-uses can also be set to unlimited per-link.</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Spam protection</strong></td>
+      <td><span class="badge b-locked">Approved</span> <strong>3 submissions per IP per hour</strong> rate limit on the public submit endpoint, plus an invisible <strong>honeypot field</strong> for bots. IP is sha256-hashed before storage - never raw.</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Star rating math</strong></td>
+      <td><span class="badge b-locked">Redirected by Jonny</span> <strong>Verified-only.</strong> The headline average shown on the product page AND the AggregateRating JSON-LD count <strong>only</strong> verified-buyer reviews. The &ge;3-review threshold for emitting JSON-LD is also verified-only. Public-link reviews appear on the page in the cards but never affect the headline number or the rich result.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="box-amber">
+  <strong>Why Jonny redirected #4:</strong> the badge protects integrity for someone reading the product page carefully, but Google scrapes the aggregate number and that&rsquo;s what most prospects see first. A competitor with a share link could move the headline rating, and a sabotaged 3.8 average is worse than no stars at all for high-trust B2B buyers. Slower SEO ramp on new products is the right trade against that exposure.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-4"><span class="section-num">4.</span> The four real-world situations this handles</h2>
+
+<table>
+  <thead>
+    <tr><th style="width: 36%;">Situation</th><th>What happens</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Genuine repeat customer who didn&rsquo;t get the auto-email</strong></td>
+      <td>Maybe they ordered before reviews shipped, or the email landed in spam. They click the share link, type their review, submit. Lands in the moderation queue. Once approved, displays as &ldquo;Reviewer&rdquo; on the product page - adds page texture but doesn&rsquo;t move the headline number.</td>
+    </tr>
+    <tr>
+      <td><strong>Verified buyer forwards link to a colleague</strong></td>
+      <td>Plant manager forwards the URL to a site supervisor. Both have used the product, both want to weigh in. Both submissions land via the same share link, both go through moderation, both display as &ldquo;Reviewer&rdquo;. Magic-link tokens (one-use, tied to one order) couldn&rsquo;t support this without complex re-issuance logic; share links handle it naturally.</td>
+    </tr>
+    <tr>
+      <td><strong>Real user who isn&rsquo;t on the order list</strong></td>
+      <td>Procurement bought the product but the actual user is a different person. They have a real opinion but no <code>order_id</code> to verify against. Submits via the share link, displays as &ldquo;Reviewer&rdquo; - honest representation: they used the product but Chem Connect can&rsquo;t prove they bought it.</td>
+    </tr>
+    <tr>
+      <td><strong>Drive-by spam / competitor sabotage</strong></td>
+      <td>Worst case. The per-IP rate limit and honeypot catch automated traffic; the admin moderation queue catches manual abuse. Even if one slips through, it can&rsquo;t move the headline rating or the rich result because public reviews are excluded from the aggregate math.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-5"><span class="section-num">5.</span> Schema additions</h2>
+
+<p style="font-size: 13px;">A single Phase 2 migration. Builds on the existing <code>046_customer_reviews.sql</code> schema; no breaking changes.</p>
+
+<pre><code>-- 048_review_share_links.sql
+
+-- 5.1 Extend the existing source enum
+alter type review_source add value if not exists 'public_link';
+
+-- 5.2 Track whether a review counts as a verified-buyer review.
+-- Magic-link / manual entries set this true; public-link entries set it false.
+-- Used by the aggregate-math layer to gate the headline rating + JSON-LD.
+alter table reviews
+  add column if not exists verified_buyer boolean not null default false;
+
+-- 5.3 Backfill existing rows. Phase 1 has only magic_link + manual sources,
+-- both of which are verified.
+update reviews
+   set verified_buyer = true
+ where source in ('magic_link', 'manual')
+   and verified_buyer = false;
+
+-- 5.4 Public share-link records
+create table review_share_links (
+  id uuid primary key default uuid_generate_v4(),
+  slug text not null unique,                -- short URL-safe string ('xj8w-2k4f')
+  product_id uuid not null references products on delete cascade,
+  created_by uuid references auth.users,
+  expires_at timestamptz,                   -- nullable: null = no expiry
+  max_uses integer,                         -- nullable: null = unlimited
+  used_count integer not null default 0,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create index review_share_links_slug_idx
+  on review_share_links (slug)
+  where is_active = true;
+
+create index review_share_links_product_id_idx
+  on review_share_links (product_id);
+
+-- 5.5 Per-IP rate-limit tracking. IP hashed before storage.
+create table review_share_submission_attempts (
+  id uuid primary key default uuid_generate_v4(),
+  ip_hash text not null,
+  share_link_id uuid references review_share_links on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index review_share_submission_attempts_ip_idx
+  on review_share_submission_attempts (ip_hash, created_at desc);
+
+-- 5.6 RLS
+alter table review_share_links enable row level security;
+alter table review_share_submission_attempts enable row level security;
+
+create policy "Admins can manage share links"
+  on review_share_links for all
+  using ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin')
+  with check ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
+
+-- Submission-attempt rows are written + read only by the service role
+-- (the public submit endpoint). No anon / authenticated access.</code></pre>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-6"><span class="section-num">6.</span> Aggregate math &ndash; the key change</h2>
+
+<p style="font-size: 13.5px;">The single piece of logic that needs careful handling. Three distinct concepts that look similar but mean different things.</p>
+
+<table>
+  <thead>
+    <tr><th style="width: 30%;">What</th><th style="width: 28%;">Source filter</th><th style="width: 16%;">Threshold</th><th>Used for</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Headline average</strong> (sticky chip near the buy button + reviews-block summary)</td>
+      <td><code>verified_buyer = true</code> AND <code>status = 'approved'</code></td>
+      <td>None - show whatever count exists</td>
+      <td>The &ldquo;4.6 &middot; 23 reviews&rdquo; pill that buyers see first.</td>
+    </tr>
+    <tr>
+      <td><strong>JSON-LD AggregateRating + Review[]</strong></td>
+      <td><code>verified_buyer = true</code> AND <code>status = 'approved'</code></td>
+      <td>&ge; 3 verified reviews</td>
+      <td>Google rich-result eligibility - the star result in search.</td>
+    </tr>
+    <tr>
+      <td><strong>Visible review cards</strong> (marquee / inline grid)</td>
+      <td>All <code>status = 'approved'</code> (verified + public mixed together)</td>
+      <td>None</td>
+      <td>The reviews section content. Public-link reviews show with the &ldquo;Reviewer&rdquo; badge.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Implementation</h3>
+
+<ul>
+  <li>Existing <code>getApprovedReviewAggregate(productId)</code> in <code>lib/reviews/queries.ts</code> &rarr; add <code>.eq('verified_buyer', true)</code> filter.</li>
+  <li>New <code>getReviewsForDisplay(productId, limit)</code> in the same file &rarr; returns ALL approved reviews regardless of source, ordered by published_at desc. Used by the product page to populate the cards.</li>
+  <li>Existing <code>getApprovedReviewsForProduct(productId, limit)</code> stays as-is (verified-only) - that one feeds the JSON-LD <code>Review[]</code> array.</li>
+</ul>
+
+<div class="box-blue">
+  <strong>Net effect on the card list:</strong> the page shows verified and public reviews intermixed by date. The verified ones have the green tick; the public ones have the muted grey badge. The headline number above the list is verified-only, so a buyer skimming the page sees an honest aggregate but still gets the full content.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-7"><span class="section-num">7.</span> Admin UI</h2>
+
+<h3>7.1 New &ldquo;Generate share link&rdquo; flow on <code>/admin/marketing/reviews</code></h3>
+
+<ul>
+  <li>New button next to <em>&ldquo;Add review manually&rdquo;</em>: <strong>&ldquo;Generate share link&rdquo;</strong>.</li>
+  <li>Opens a modal with:
+    <ul>
+      <li>Product (dropdown - required)</li>
+      <li>Expiry (radio: 7 days / 30 days / 90 days / Never - default 30 days)</li>
+      <li>Max uses (input - default 50, blank = unlimited)</li>
+      <li><em>Generate</em> button</li>
+    </ul>
+  </li>
+  <li>After generation, modal swaps to a result panel:
+    <ul>
+      <li>The generated URL: <code>https://www.cqvs-chemconnect.com.au/reviews/share/xj8w-2k4f</code></li>
+      <li>Copy-to-clipboard button</li>
+      <li>&ldquo;Open in new tab&rdquo; link to preview the public page</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>7.2 New &ldquo;Share links&rdquo; tab on the same page</h3>
+
+<p style="font-size: 13px;">Adds a fourth tab next to Pending / Approved &amp; Live / Rejected. Lists all share links the admin has generated.</p>
+
+<ul>
+  <li>Columns: slug (last 6 chars), product, created date, expiry, used / max, status (active / expired / revoked), actions.</li>
+  <li>Per-row actions:
+    <ul>
+      <li><strong>Copy URL</strong> - one-click copy of the shareable link</li>
+      <li><strong>Revoke</strong> - sets <code>is_active = false</code>; the link stops working immediately</li>
+      <li><strong>View submissions</strong> - filters the moderation queue to reviews submitted via that link</li>
+    </ul>
+  </li>
+  <li>Empty state: short copy explaining what share links are and a button to generate the first one.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-8"><span class="section-num">8.</span> Public submission page</h2>
+
+<h3>8.1 URL</h3>
+
+<p style="font-size: 13px;"><code>/reviews/share/[slug]</code></p>
+
+<h3>8.2 Server-side checks on page load</h3>
+
+<ol>
+  <li>Slug exists in <code>review_share_links</code></li>
+  <li><code>is_active = true</code></li>
+  <li><code>expires_at</code> is null or in the future</li>
+  <li><code>max_uses</code> is null or <code>used_count &lt; max_uses</code></li>
+</ol>
+
+<p style="font-size: 13px;">If any check fails, render a friendly &ldquo;This link is no longer active&rdquo; message with a link back to the product page. Same visual style as the existing magic-link expired/consumed states.</p>
+
+<h3>8.3 The form &ndash; how it differs from the magic-link form</h3>
+
+<p style="font-size: 13px;">Most of the existing form is reused. The differences are:</p>
+
+<ul>
+  <li>Product is fixed (from the slug). No dropdown.</li>
+  <li>Two extra <strong>required</strong> fields: <strong>email</strong> and <strong>company / role</strong>. These give moderation context that magic-link reviews get for free (via the order&rsquo;s buyer record).</li>
+  <li>No &ldquo;Verified buyer&rdquo; copy anywhere in the form.</li>
+  <li>Different consent line: <em>&ldquo;I confirm this is my honest opinion based on my use of the product. I understand it&rsquo;ll be displayed as a public reviewer, not a verified buyer, and won&rsquo;t count toward the product&rsquo;s star rating average.&rdquo;</em></li>
+  <li>Honeypot field: an invisible <code>&lt;input name=&quot;website&quot;&gt;</code> styled <code>display:none</code>. Bots auto-fill, humans never see it. Submissions where this field has any value are silently rejected.</li>
+</ul>
+
+<h3>8.4 On submit (POST <code>/api/reviews/share/submit</code>)</h3>
+
+<ol>
+  <li>Per-IP rate limit check: sha256-hash the IP from <code>x-forwarded-for</code>, query <code>review_share_submission_attempts</code> for the last hour. If <code>&ge; 3</code> &rarr; return <strong>HTTP 429</strong>.</li>
+  <li>Honeypot check: if the <code>website</code> field has any value, return HTTP 200 with a fake-success body but don&rsquo;t insert anything. Don&rsquo;t signal failure to bots - they shouldn&rsquo;t learn the trap is there.</li>
+  <li>Re-validate the share link is active, not expired, not over <code>max_uses</code>.</li>
+  <li>Insert into <code>reviews</code> with <code>source = 'public_link'</code>, <code>verified_buyer = false</code>, <code>status = 'pending'</code>.</li>
+  <li>Increment <code>used_count</code> on the share-link row.</li>
+  <li>Insert <code>review_share_submission_attempts</code> row for the IP.</li>
+  <li>Insert <code>review_audit_log</code> row (action <code>'submitted'</code>, source noted in <code>detail</code>).</li>
+</ol>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-9"><span class="section-num">9.</span> Product page display</h2>
+
+<p style="font-size: 13px;">When a product has BOTH verified and public reviews, here&rsquo;s how the product page renders:</p>
+
+<div class="flow">Product page:
+  Sticky stars + average chip near buy button
+    "4.7 &middot; 12 reviews"   &lt;-- verified-only count + average
+
+  Reviews section below:
+    Header chip: "4.7 &middot; 12 reviews"   &lt;-- same verified-only number
+    Review cards (intermixed by date):
+      - Marcus T., Brisbane    [Verified buyer]      &lt;-- contributed to 4.7
+      - Plant Manager, NSW     [Verified buyer]      &lt;-- contributed to 4.7
+      - Reviewer at NSW site   [Reviewer]            &lt;-- visible only
+      - Anonymous from Perth   [Verified buyer]      &lt;-- contributed to 4.7
+      ...
+
+JSON-LD:
+  AggregateRating ratingValue=4.7 reviewCount=12
+  Review[] - up to 10 most recent VERIFIED reviews</div>
+
+<h3>9.1 Badge logic</h3>
+
+<ul>
+  <li><strong>Verified</strong> - emerald pill with a <code>ShieldCheck</code> icon. Same look as today.</li>
+  <li><strong>Reviewer</strong> - muted grey pill, no icon. Tooltip on hover: <em>&ldquo;This reviewer used the product but isn&rsquo;t tied to a Chem Connect order.&rdquo;</em></li>
+</ul>
+
+<h3>9.2 Edge cases</h3>
+
+<ul>
+  <li><strong>Product has 0 verified, 5 public reviews:</strong> headline chip shows nothing (no verified average to display); cards still render with all 5 public reviews and the empty-state message above the cards (&ldquo;No verified buyer reviews yet&rdquo;). JSON-LD AggregateRating is not emitted.</li>
+  <li><strong>Product has 2 verified, 5 public reviews:</strong> headline shows &ldquo;X.Y &middot; 2 reviews&rdquo;. JSON-LD AggregateRating still NOT emitted (below the &ge;3 verified threshold). Cards show all 7.</li>
+  <li><strong>Product has 4 verified, 0 public:</strong> identical to today&rsquo;s Phase 1 behaviour. Nothing to render differently.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-10"><span class="section-num">10.</span> Spam guards (locked)</h2>
+
+<table>
+  <thead>
+    <tr><th style="width: 30%;">Guard</th><th>Spec</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Per-IP rate limit</strong></td>
+      <td>3 submissions per hour per IP, sha256-hashed before storage. Bypass returns HTTP 429.</td>
+    </tr>
+    <tr>
+      <td><strong>Honeypot field</strong></td>
+      <td><code>&lt;input name=&quot;website&quot;&gt;</code> styled <code>display:none</code>. Filled = silent reject (HTTP 200 with fake-success body).</td>
+    </tr>
+    <tr>
+      <td><strong>Email format validation</strong></td>
+      <td>Standard email regex. Plus a small disposable-email blocklist (10minutemail, mailinator, guerrillamail, tempmail, etc.). Maintained in <code>lib/reviews/disposable-emails.ts</code>; easy to extend.</td>
+    </tr>
+    <tr>
+      <td><strong>Per-link cap</strong></td>
+      <td><code>max_uses</code> ceiling on each share link. Default 50 unless admin overrides. Once hit, the link returns &ldquo;no longer active&rdquo;.</td>
+    </tr>
+    <tr>
+      <td><strong>Admin moderation</strong></td>
+      <td>Every public-link submission lands as <code>status = 'pending'</code>. Admin reviews and approves / rejects via the same queue used for magic-link reviews. Source is shown on the moderation card so admin can apply higher scrutiny to public submissions.</td>
+    </tr>
+    <tr>
+      <td><strong>Verified-only aggregate</strong> (decision #4)</td>
+      <td>Even if a public review slips moderation, it cannot move the headline rating or the Google rich-result. This is the strongest defence and the reason Jonny pushed back on the original recommendation.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-11"><span class="section-num">11.</span> Build breakdown</h2>
+
+<table>
+  <thead>
+    <tr><th style="width: 36%;">Workstream</th><th style="width: 16%;">Surface</th><th>Estimate</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Schema migration <code>048_review_share_links.sql</code> + backfill</td><td>DB</td><td>30 min</td></tr>
+    <tr><td>Update <code>getApprovedReviewAggregate</code> to filter <code>verified_buyer = true</code></td><td>Backend</td><td>15 min</td></tr>
+    <tr><td>New <code>getReviewsForDisplay</code> query (verified + public mixed)</td><td>Backend</td><td>15 min</td></tr>
+    <tr><td>Admin: &ldquo;Generate share link&rdquo; modal</td><td>Admin UI</td><td>1 hour</td></tr>
+    <tr><td>Admin: &ldquo;Share links&rdquo; tab with revoke action</td><td>Admin UI</td><td>45 min</td></tr>
+    <tr><td>Public submit page at <code>/reviews/share/[slug]</code></td><td>Frontend</td><td>1 hour</td></tr>
+    <tr><td>Public submit API route + IP rate-limit + honeypot</td><td>Backend</td><td>1 hour</td></tr>
+    <tr><td>Disposable-email blocklist module</td><td>Backend</td><td>20 min</td></tr>
+    <tr><td>Display tweaks (badge logic, tooltip, empty-state copy)</td><td>Frontend</td><td>30 min</td></tr>
+    <tr><td>Update audit log to record source on public submissions</td><td>Backend</td><td>15 min</td></tr>
+    <tr><td><strong>Total</strong></td><td>-</td><td><strong>~5 hours</strong></td></tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-12"><span class="section-num">12.</span> What this leaves out (deliberate)</h2>
+
+<p style="font-size: 13px;">These were considered and explicitly excluded from the Phase 2 scope:</p>
+
+<table>
+  <thead>
+    <tr><th style="width: 32%;">Excluded item</th><th>Why</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="badge b-decline">Out</span> Email confirmation step before public-link reviews post</td>
+      <td>Adds friction for the reviewer without enough payoff given that admin moderation already catches everything before publication. If spam volume turns out to be high in practice, this can be added in Phase 3 as a per-link toggle.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-decline">Out</span> CAPTCHA on the public submit form</td>
+      <td>Friction-cost is high for legitimate reviewers; honeypot + IP rate limit + admin moderation is sufficient at this scale. Revisit if real-world spam patterns warrant it.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-decline">Out</span> Per-product max active share links</td>
+      <td>Admin can revoke any link manually; no need to enforce a count. If admins start piling up dozens of overlapping links the moderation queue itself will surface the issue.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-decline">Out</span> Bulk-revoke / link analytics dashboard</td>
+      <td>Phase 3+ if usage warrants. The Phase 2 list view shows used / max counts which is enough to spot the active links at a glance.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-decline">Out</span> Public-link reviews counting toward the AggregateRating</td>
+      <td>Locked decision #4. Verified-only aggregate is the explicit trade for sabotage protection.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2 id="sec-13"><span class="section-num">13.</span> Sign-off</h2>
+
+<div class="box">
+  <strong>Status: <span class="badge b-locked">Locked</span></strong>
+  <br><br>
+  All four design decisions are closed. The Phase 2 build can proceed against this spec without further scope discussion. Approximate effort: 5 hours of focused work.
+  <br><br>
+  <strong>Trigger to start Phase 2 build:</strong> agreement on Phase 2 timing - this spec is ready to drop in whenever that&rsquo;s scheduled.
+</div>
+
+<div class="footer">
+  <p>Companion to the Chem Connect Customer Reviews implementation plan &middot; Phase 2 design lock &middot; Prepared by Sohaib for Jonny &middot; April 2026</p>
+  <p>This document supersedes any prior discussion of public review share links. Future scope discussion on this feature is Phase 3+.</p>
+</div>
+
+</body>
+</html>

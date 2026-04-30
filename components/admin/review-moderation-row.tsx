@@ -36,7 +36,7 @@ interface ReviewProps {
     display_name: string
     reviewer_city: string | null
     reviewer_state: string | null
-    source: "magic_link" | "manual"
+    source: "magic_link" | "manual" | "public_link"
     status: "pending" | "approved" | "rejected"
     rejection_reason: string | null
     submitted_at: string
@@ -188,6 +188,11 @@ export function ReviewModerationRow({ review }: ReviewProps) {
             {review.source === "manual" && (
               <Badge variant="secondary" className="text-[10px]">
                 Manual
+              </Badge>
+            )}
+            {review.source === "public_link" && (
+              <Badge variant="outline" className="text-[10px]">
+                Public link
               </Badge>
             )}
             {review.status === "rejected" && review.rejection_reason && (

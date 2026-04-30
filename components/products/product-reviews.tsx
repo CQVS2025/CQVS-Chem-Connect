@@ -1,4 +1,4 @@
-import { Quote, ShieldCheck, Star } from "lucide-react"
+import { Quote, ShieldCheck, Star, User } from "lucide-react"
 
 import type {
   PublicAggregate,
@@ -6,7 +6,9 @@ import type {
 } from "@/lib/reviews/queries"
 
 interface ProductReviewsProps {
+  /** Verified-only aggregate. Null when 0 verified reviews exist. */
   aggregate: PublicAggregate | null
+  /** All approved reviews (verified + public mixed by date) for display. */
   reviews: PublicReview[]
   productName: string
 }
@@ -14,28 +16,38 @@ interface ProductReviewsProps {
 /**
  * Customer reviews block for the product detail page.
  *
- * Three render branches:
- *   1. No reviews approved yet → shows the empty state ("No reviews yet -
- *      be the first").
- *   2. 1–2 approved reviews → shows the cards inline (no marquee) since
- *      a marquee with one card is silly. The AggregateRating JSON-LD is
- *      NOT emitted at this volume (gate is at 3 in the page-level code).
- *   3. ≥3 approved reviews → shows the marquee with the aggregate stars
- *      summary in the header. This is also the level at which the page
- *      emits AggregateRating + Review[] into the Product JSON-LD.
+ * Phase 2 split (per docs/Public-Review-Share-Link-Phase-2-Spec.html sec 9):
  *
- * Photos appear inline on each card with click-through to a full-size
- * lightbox (CSS-only - using a hidden checkbox toggle, no JS).
+ *   - Header chip (stars + count) is VERIFIED-ONLY. It only renders when
+ *     aggregate is non-null (>=1 verified review).
+ *   - Card list shows ALL approved reviews (verified + public mixed by
+ *     date). Each card's badge depends on review.verified_buyer:
+ *       - true  -> "Verified" emerald pill with ShieldCheck icon
+ *       - false -> "Reviewer" muted grey pill, no icon
  *
- * Server Component compatible. The marquee animation uses pure CSS
- * keyframes so there's no useEffect / observer / rAF loop.
+ * Edge-case render branches (spec sec 9.2):
+ *
+ *   1. 0 verified + 0 public  -> empty state "No reviews yet - be the first"
+ *   2. 0 verified + >=1 public -> header without chip + "No verified buyer
+ *                                 reviews yet" message + cards (all public)
+ *   3. >=1 verified + any public -> header WITH verified chip + cards
+ *
+ * Photos appear inline on each card with click-through to the full image.
+ *
+ * Server Component compatible. Marquee animation is pure CSS keyframes.
  */
 export function ProductReviews({
   aggregate,
   reviews,
   productName,
 }: ProductReviewsProps) {
-  if (reviews.length === 0 || !aggregate) {
+  const hasAnyReviews = reviews.length > 0
+  const hasVerifiedAggregate = aggregate !== null && aggregate.count > 0
+  const verifiedCount = aggregate?.count ?? 0
+  const publicCount = reviews.filter((r) => !r.verified_buyer).length
+
+  // Branch 1: nothing approved at all - the empty state.
+  if (!hasAnyReviews) {
     return (
       <section className="mt-12 border-t border-border/50 pt-10">
         <header className="mb-6">
@@ -57,14 +69,15 @@ export function ProductReviews({
     )
   }
 
-  // 1-2 reviews: simple inline grid. 3+: marquee.
+  // Branches 2 + 3: at least one review exists. Marquee at >=3 total cards
+  // for visual rhythm; inline grid below 3.
   const useMarquee = reviews.length >= 3
   const loopReviews = useMarquee ? [...reviews, ...reviews] : reviews
   const durationSeconds = Math.min(80, Math.max(24, reviews.length * 8))
 
   return (
     <section className="mt-12 border-t border-border/50 pt-10">
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
             Reviews
@@ -73,27 +86,41 @@ export function ProductReviews({
             What buyers say
           </h2>
         </div>
-        <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card px-4 py-2">
-          <div className="flex items-center gap-0.5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className={
-                  i < Math.round(aggregate.averageRating)
-                    ? "size-4 fill-amber-400 text-amber-400"
-                    : "size-4 text-muted-foreground/25"
-                }
-              />
-            ))}
+        {hasVerifiedAggregate && aggregate && (
+          <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card px-4 py-2">
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={
+                    i < Math.round(aggregate.averageRating)
+                      ? "size-4 fill-amber-400 text-amber-400"
+                      : "size-4 text-muted-foreground/25"
+                  }
+                />
+              ))}
+            </div>
+            <span className="text-sm font-medium">
+              {aggregate.averageRating.toFixed(1)}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              &middot; {aggregate.count} verified review
+              {aggregate.count === 1 ? "" : "s"}
+            </span>
           </div>
-          <span className="text-sm font-medium">
-            {aggregate.averageRating.toFixed(1)}
-          </span>
-          <span className="text-sm text-muted-foreground">
-            &middot; {aggregate.count} review{aggregate.count === 1 ? "" : "s"}
-          </span>
-        </div>
+        )}
       </header>
+
+      {/* Branch 2 banner: only public reviews exist, no verified yet.
+          Honest signal so a careful reader knows the displayed reviews
+          haven't yet contributed to a verified-buyer rating. */}
+      {!hasVerifiedAggregate && publicCount > 0 && (
+        <div className="mb-6 rounded-xl border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
+          <strong className="text-foreground">No verified buyer reviews yet.</strong>{" "}
+          The reviews below are from public reviewers - they don&rsquo;t count
+          toward the product&rsquo;s star rating average.
+        </div>
+      )}
 
       {useMarquee ? (
         <div className="reviews-marquee-container relative overflow-hidden">
@@ -131,6 +158,17 @@ export function ProductReviews({
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Footer note when both kinds are present - quietly explains the
+          mixed list without making it feel like a disclaimer. */}
+      {hasVerifiedAggregate && publicCount > 0 && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          The star rating is based on {verifiedCount} verified-buyer review
+          {verifiedCount === 1 ? "" : "s"}. The list also includes {publicCount}{" "}
+          public reviewer{publicCount === 1 ? "" : "s"} for context - those don&rsquo;t
+          contribute to the average.
+        </p>
       )}
 
       <style>{`
@@ -258,13 +296,23 @@ function ReviewCard({
             {location ? `${location} · ${formattedDate}` : formattedDate}
           </p>
         </div>
-        <span
-          className="flex flex-shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400"
-          title="Verified buyer"
-        >
-          <ShieldCheck className="size-3" />
-          Verified
-        </span>
+        {review.verified_buyer ? (
+          <span
+            className="flex flex-shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400"
+            title="Verified buyer - this reviewer placed an order with Chem Connect."
+          >
+            <ShieldCheck className="size-3" />
+            Verified
+          </span>
+        ) : (
+          <span
+            className="flex flex-shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground"
+            title="This reviewer used the product but isn't tied to a Chem Connect order. Public reviews don't count toward the star rating."
+          >
+            <User className="size-3" />
+            Reviewer
+          </span>
+        )}
       </div>
     </article>
   )
