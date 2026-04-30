@@ -12,11 +12,24 @@ import {
 
 import { getProductBySlug, products as staticProducts } from "@/lib/data/products"
 import {
-  REVIEWS_VISIBLE,
-  getReviewAggregate,
-  getReviewsForProduct,
-} from "@/lib/content/reviews"
+  getApprovedReviewAggregate,
+  getApprovedReviewsForProduct,
+} from "@/lib/reviews/queries"
 import { ProductReviews } from "@/components/products/product-reviews"
+import { ProductReviewsSummary } from "@/components/products/product-reviews-summary"
+
+// Global kill-switch — if NEXT_PUBLIC_REVIEWS_VISIBLE === "false" we don't
+// emit JSON-LD review data nor render the reviews block, regardless of how
+// many approved reviews exist. Belt + braces alongside the per-product
+// >=3-approved-reviews gate enforced below.
+const REVIEWS_KILL_SWITCH_ON =
+  process.env.NEXT_PUBLIC_REVIEWS_VISIBLE !== "false"
+
+// Minimum approved reviews before AggregateRating + Review[] are spliced
+// into the JSON-LD. Google requires >=3 to render the star result anyway,
+// and a single 1-star review pulls the rating to 1.0 across the entire
+// product — so emitting earlier is the worst of both worlds.
+const MIN_APPROVED_FOR_AGGREGATE_SCHEMA = 3
 import { JsonLd } from "@/components/seo/json-ld"
 import {
   aggregateRatingFragment,
@@ -295,9 +308,12 @@ export default async function ProductDetailPage({
     getProductImages(product.id),
   ])
 
-  // Build the Product schema, then splice in aggregateRating + review when
-  // reviews are visible (gated by NEXT_PUBLIC_REVIEWS_VISIBLE - production
-  // default is OFF; see lib/content/reviews.ts for the policy reasoning).
+  // Build the Product schema, then splice in aggregateRating + review[]
+  // when the product clears the >=3-approved-reviews gate AND the global
+  // kill switch is on (NEXT_PUBLIC_REVIEWS_VISIBLE !== "false"). One
+  // 1-star review pulls the rating to 1.0 across the product, and Google
+  // generally won't render the star result below 3 reviews — emitting the
+  // schema below the threshold is the worst of both worlds.
   const productLd: Record<string, unknown> = productSchema({
     name: product.name,
     slug: product.slug,
@@ -312,23 +328,32 @@ export default async function ProductDetailPage({
     image: product.image || "/images/cqvs-logo.png",
     baseUrl: SITE_URL,
   })
-  if (REVIEWS_VISIBLE) {
-    const aggregate = getReviewAggregate(product.slug)
-    const reviewList = getReviewsForProduct(product.slug)
-    if (aggregate) {
+
+  // Load aggregate + reviews whenever the kill switch is on. The summary
+  // chip near the buy button shows whenever there's >=1 approved review.
+  // The JSON-LD AggregateRating + Review[] only splice in at >=3 — gating
+  // the schema avoids the volatile-rating problem (one 1-star review tanks
+  // SERP CTR) and matches Google's own minimum for star-result rendering.
+  let aggregate: Awaited<ReturnType<typeof getApprovedReviewAggregate>> = null
+  let reviewList: Awaited<ReturnType<typeof getApprovedReviewsForProduct>> = []
+
+  if (REVIEWS_KILL_SWITCH_ON) {
+    aggregate = await getApprovedReviewAggregate(product.id)
+    if (aggregate && aggregate.count > 0) {
+      reviewList = await getApprovedReviewsForProduct(product.id, 10)
+    }
+    if (aggregate && aggregate.count >= MIN_APPROVED_FOR_AGGREGATE_SCHEMA) {
       productLd.aggregateRating = aggregateRatingFragment({
         ratingValue: aggregate.averageRating,
         reviewCount: aggregate.count,
       })
-    }
-    if (reviewList.length > 0) {
       productLd.review = reviewList.map((r) =>
         reviewFragment({
-          authorName: r.authorName,
+          authorName: r.display_name,
           ratingValue: r.rating,
           reviewBody: r.body,
-          datePublished: r.publishedAt,
-          reviewHeadline: r.title,
+          datePublished: r.published_at,
+          reviewHeadline: r.headline,
         }),
       )
     }
@@ -492,6 +517,15 @@ export default async function ProductDetailPage({
               <h1 className="mt-3 text-3xl font-bold tracking-tight">
                 {product.name}
               </h1>
+
+              {/* Sticky stars + count summary near the buy area. Renders
+                  nothing until at least one approved review exists. Per
+                  section 2.8 of the implementation plan. */}
+              {REVIEWS_KILL_SWITCH_ON && aggregate && aggregate.count > 0 && (
+                <div className="mt-2">
+                  <ProductReviewsSummary aggregate={aggregate} />
+                </div>
+              )}
 
               {product.packagingPrices && product.packagingPrices.length > 0 ? (
                 <div className="mt-4 space-y-2">
@@ -706,11 +740,22 @@ export default async function ProductDetailPage({
         </StaggerContainer>
       </div>
 
-      {/* Customer reviews - fully self-gating. The component renders
-          nothing if NEXT_PUBLIC_REVIEWS_VISIBLE is off, or if this
-          product has zero approved reviews. No wrapper / divider needed
-          - when it has reviews to render, it owns its own spacing. */}
-      <ProductReviews productSlug={product.slug} />
+      {/* Customer reviews - data fetched server-side above; the component
+          handles render-only logic (cards, marquee, empty state). When
+          aggregate is null OR count is 0, the empty state shows
+          "No reviews yet — be the first". The kill switch is enforced
+          here so a runtime flip skips the section without code change.
+          The id="reviews" target is what the buy-area summary chip
+          anchors to. */}
+      {REVIEWS_KILL_SWITCH_ON && (
+        <div id="reviews" className="scroll-mt-20">
+          <ProductReviews
+            aggregate={aggregate}
+            reviews={reviewList}
+            productName={product.name}
+          />
+        </div>
+      )}
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (

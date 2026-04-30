@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect — Customer Reviews: Scope Additions</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 920px; margin: 40px auto; padding: 0 20px; color: #1a1a2e; line-height: 1.65; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 50px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #16a34a; margin-top: 18px; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 12px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  ul, ol { font-size: 13px; }
+  li { margin: 5px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; text-align: center; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 40px 0; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  .item { border: 1px solid #e5e7eb; border-left: 4px solid #16a34a; border-radius: 6px; padding: 14px 18px; background: #fff; margin: 14px 0; }
+  .item h3 { margin-top: 0; color: #1a1a2e; font-size: 15px; }
+  .item-num { display: inline-block; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 12px; margin-right: 8px; vertical-align: middle; }
+  .item p, .item ul { font-size: 13px; }
+  .item ul { margin-top: 6px; padding-left: 22px; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 11.5px; color: #b91c1c; font-family: 'Courier New', monospace; }
+  .pill { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; vertical-align: middle; margin-right: 4px; }
+  .pill-must { background: #dcfce7; color: #166534; }
+  .pill-confirm { background: #dbeafe; color: #1e40af; }
+  .label-row { font-size: 11.5px; color: #6b7280; margin-bottom: 6px; }
+  .label-row strong { color: #166534; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Customer Reviews &mdash; Scope Additions for Sohaib</p>
+  <p style="color: #9ca3af;">Addendum to the Customer Reviews Feature proposal</p>
+</div>
+
+<div class="box">
+  <strong>About this document:</strong> A focused list of items to add to scope <em>before</em> Sohaib starts building the Customer Reviews feature, plus a short list of confirmations needed from him to size the work properly. Each item exists for a specific reason &mdash; SEO, ACCC compliance, abuse prevention, or operational reality &mdash; noted inline.
+</div>
+
+<hr class="divider">
+
+<!-- ========== 1. MUST-ADD TO SCOPE ========== -->
+<h2><span class="section-num">1.</span> Must-add to scope before he builds</h2>
+
+<p style="font-size: 13.5px;">Eight items. None are optional &mdash; each closes a real gap in the original proposal that would surface later either as an ACCC risk, a Google rich-result no-show, an abuse vector, or a product-page that&rsquo;s broken on day one.</p>
+
+<div class="item">
+  <h3><span class="item-num">1</span> Minimum review threshold for AggregateRating schema</h3>
+  <div class="label-row"><strong>Why:</strong> SEO &middot; rich-result eligibility &middot; rating stability</div>
+  <p>Don&rsquo;t emit the <code>aggregateRating</code> JSON-LD block until a product has at least <strong>3 approved reviews</strong>. Below that, render the page with no schema and the empty-state message.</p>
+  <p>Two reasons this matters: one 1-star review pulls the AggregateRating to 1.0 across the entire product, and Google generally won&rsquo;t render the star result below 3 reviews anyway. So emitting the schema early gives you the worst of both worlds &mdash; volatile ratings, no SERP upside.</p>
+</div>
+
+<div class="item">
+  <h3><span class="item-num">2</span> Manual review entry in the admin panel</h3>
+  <div class="label-row"><strong>Why:</strong> Seed-phase volume &middot; bridge to magic-link flow</div>
+  <p>Admin needs a way to log reviews that come in via phone, text, or email during the seed phase. Each entry must be tied to a real order ID and tagged as <strong>&ldquo;Verified buyer (manually entered)&rdquo;</strong>. Same approve / reject flow, same audit trail &mdash; just a different submission channel.</p>
+  <p>Without this, the page sits at &ldquo;No reviews yet&rdquo; until the magic-link flow has been running for 6+ months. The seed phase is what bridges that gap.</p>
+</div>
+
+<div class="item">
+  <h3><span class="item-num">3</span> Token rules &mdash; explicit specification</h3>
+  <div class="label-row"><strong>Why:</strong> Abuse prevention &middot; data integrity</div>
+  <p>The original spec mentions tokens but doesn&rsquo;t pin down the rules. Lock these four in:</p>
+  <ul>
+    <li><strong>Expiry window:</strong> 60 days from send. Token dies after that.</li>
+    <li><strong>One-use only:</strong> token invalidates the moment a review is submitted against it.</li>
+    <li><strong>Status gate:</strong> token only works if the underlying order is marked <strong>Delivered</strong> in the system &mdash; not Shipped, not Ordered.</li>
+    <li><strong>Rate limit:</strong> max 3 submission attempts per token per hour. Protects against scripted abuse if a token ever leaks.</li>
+  </ul>
+</div>
+
+<div class="item">
+  <h3><span class="item-num">4</span> Email cadence definition</h3>
+  <div class="label-row"><strong>Why:</strong> Response rate &middot; not annoying buyers</div>
+  <p>The original spec stops at the first email. The full cadence needs to be:</p>
+  <ul>
+    <li><strong>+7 days post-delivery:</strong> initial review request.</li>
+    <li><strong>+14 days post-delivery:</strong> single reminder if no submission.</li>
+    <li><strong>After that:</strong> stop. No third email.</li>
+  </ul>
+  <p>Two-touch is industry standard for B2B post-purchase. Three or more pushes response rate down and complaint rate up.</p>
+</div>
+
+<div class="item">
+  <h3><span class="item-num">5</span> Predefined rejection reason taxonomy</h3>
+  <div class="label-row"><strong>Why:</strong> ACCC compliance &middot; audit defensibility</div>
+  <p>The moderation queue must force the moderator to pick a rejection reason from a closed list:</p>
+  <ul>
+    <li><code>PII / personal info</code></li>
+    <li><code>Libel or defamatory</code></li>
+    <li><code>Off-topic</code></li>
+    <li><code>Suspected fake</code></li>
+    <li><code>Profanity</code></li>
+    <li><code>Other (free text required)</code></li>
+  </ul>
+  <p>This is the single biggest piece of evidence that rejections aren&rsquo;t rating-based. If the ACCC ever queries the moderation log, the taxonomy is what proves Chem Connect wasn&rsquo;t gating low ratings.</p>
+</div>
+
+<div class="item">
+  <h3><span class="item-num">6</span> Per-product &ldquo;reviews disabled&rdquo; flag</h3>
+  <div class="label-row"><strong>Why:</strong> Custom orders &middot; one-off SKUs</div>
+  <p>A single checkbox on the product admin page that prevents the post-delivery email from firing for that SKU. Needed for custom blends, one-off bulk orders, and any product where a public review wouldn&rsquo;t make sense.</p>
+</div>
+
+<div class="item">
+  <h3><span class="item-num">7</span> Photo upload on the submit form</h3>
+  <div class="label-row"><strong>Why:</strong> Visual social proof &middot; AI search signal</div>
+  <p>Optional, max <strong>3 images</strong>, max <strong>5MB each</strong>. Display below the review text on the product page, with a lightbox click-through.</p>
+  <p>Cement-coated trucks pre/post Green Acid Replacement is genuinely valuable visual proof &mdash; it&rsquo;s also exactly the kind of content AI search engines disproportionately weight when deciding what to cite.</p>
+</div>
+
+<div class="item">
+  <h3><span class="item-num">8</span> Review removal endpoint for Privacy Act requests</h3>
+  <div class="label-row"><strong>Why:</strong> Privacy Act 1988 compliance</div>
+  <p>If a customer asks for their review to be removed (they can, under the Privacy Act 1988), admin needs a <strong>one-click hard-delete</strong> that:</p>
+  <ul>
+    <li>Wipes the review record.</li>
+    <li>Wipes the underlying token.</li>
+    <li>Logs the deletion (moderator + timestamp + reason &ldquo;Privacy Act request&rdquo;) in the audit trail.</li>
+  </ul>
+  <p>Hard-delete &mdash; not soft-delete &mdash; is the right behaviour for a Privacy Act request. The audit log entry is the proof that the deletion happened.</p>
+</div>
+
+<hr class="divider">
+
+<!-- ========== 2. CONFIRMATIONS ========== -->
+<h2><span class="section-num">2.</span> Confirmations to get from Sohaib before scoping</h2>
+
+<p style="font-size: 13.5px;">Four open questions in the original proposal. Each one materially changes the size of the build &mdash; needs answered before quoting hours.</p>
+
+<table>
+  <thead>
+    <tr><th style="width: 240px;">Question</th><th>Why it matters</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Email send infrastructure</strong><br><span style="font-size: 11.5px; color: #6b7280;">Doc says Mailgun + GHL.</span></td>
+      <td>Is that what&rsquo;s actually wired into Chem Connect today, or is he planning to add it? If the latter, that&rsquo;s a separate scope item with its own configuration and deliverability work.</td>
+    </tr>
+    <tr>
+      <td><strong>Built vs aspirational infrastructure</strong><br><span style="font-size: 11.5px; color: #6b7280;">Doc claims schema, UI block, and AggregateRating wiring are &ldquo;already in the codebase.&rdquo;</span></td>
+      <td>Need confirmation on what&rsquo;s actually shipped vs planned. If those three pieces are still to be built, the scope of the reviews feature is materially larger than the proposal implies.</td>
+    </tr>
+    <tr>
+      <td><strong>Reviewer name display format</strong><br><span style="font-size: 11.5px; color: #6b7280;">&ldquo;Marcus T., Brisbane&rdquo; is the example used.</span></td>
+      <td>The submit form needs to let the buyer choose: full first name + initial, initials only, or &ldquo;Anonymous from {city}&rdquo;. Plus an explicit consent checkbox before submit confirming they understand the review will be public. Privacy Act and consumer-trust hygiene.</td>
+    </tr>
+    <tr>
+      <td><strong>Where reviews render on the product page</strong></td>
+      <td>Inline below the description, in a separate tab, or both? Affects the UI block design and where the AggregateRating sits visually relative to the buy button.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ========== 3. SUMMARY ========== -->
+<h2><span class="section-num">3.</span> Summary &mdash; what to send him</h2>
+
+<div class="box box-blue">
+  <strong>The ask:</strong> &ldquo;Before you start scoping the Customer Reviews build, please add the eight items in &sect;1 to the spec, and come back with answers to the four questions in &sect;2 so we can size the work properly. Most of the eight are small additions to existing flows &mdash; the photo upload (item 7) is the only one that&rsquo;s materially separate work.&rdquo;
+</div>
+
+<p style="font-size: 13px;">Items 1, 3, 4, and 5 are small spec additions &mdash; effectively zero extra build time, just clearer rules. Items 2, 6, and 8 are admin-panel surface area. Item 7 (photo upload) is the only one with meaningful image-handling, storage, and lightbox work attached.</p>
+
+<div class="footer">
+  Addendum to the Chem Connect Customer Reviews Feature proposal &middot; Scope additions and confirmations required before development begins.
+</div>
+
+</body>
+</html>

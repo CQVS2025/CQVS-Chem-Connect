@@ -91,6 +91,7 @@ export interface Database {
           safety_info: string
           delivery_info: string
           in_stock: boolean
+          reviews_enabled: boolean
           stock_qty: number
           region: string
           image_url: string | null
@@ -115,6 +116,7 @@ export interface Database {
           safety_info?: string
           delivery_info?: string
           in_stock?: boolean
+          reviews_enabled?: boolean
           stock_qty?: number
           region?: string
           image_url?: string | null
@@ -138,6 +140,7 @@ export interface Database {
           safety_info?: string
           delivery_info?: string
           in_stock?: boolean
+          reviews_enabled?: boolean
           stock_qty?: number
           region?: string
           image_url?: string | null

@@ -62,6 +62,7 @@ export interface ProductFormInitialData {
   region: string
   stock_qty: number
   in_stock: boolean
+  reviews_enabled?: boolean
   shipping_fee: number
   badge: string | null
   image_url: string | null
@@ -120,6 +121,9 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
     initial?.stock_qty?.toString() ?? "1",
   )
   const [formInStock, setFormInStock] = useState(initial?.in_stock ?? true)
+  const [formReviewsEnabled, setFormReviewsEnabled] = useState(
+    initial?.reviews_enabled ?? true,
+  )
   const [formShippingFee, setFormShippingFee] = useState(
     initial?.shipping_fee?.toString() ?? "0",
   )
@@ -163,6 +167,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
     )
     setFormStockQty(initial.stock_qty.toString())
     setFormInStock(initial.in_stock)
+    setFormReviewsEnabled(initial.reviews_enabled ?? true)
     setFormShippingFee(initial.shipping_fee.toString())
     setFormBadge(initial.badge ?? "")
     setFormPriceType(initial.price_type ?? "per_litre")
@@ -307,6 +312,7 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
       region: formRegions.includes("All") ? "All" : formRegions.join(","),
       stock_qty: parseInt(formStockQty) || 0,
       in_stock: formInStock,
+      reviews_enabled: formReviewsEnabled,
       shipping_fee: parseFloat(formShippingFee) || 0,
       badge: formBadge && formBadge !== "none" ? formBadge : null,
       price_type: formPriceType,
@@ -830,6 +836,27 @@ export function ProductForm({ mode, initial }: ProductFormProps) {
                   onChange={(e) => setFormStockQty(e.target.value)}
                   disabled={!formInStock}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label>Reviews</Label>
+                <button
+                  type="button"
+                  onClick={() => setFormReviewsEnabled(!formReviewsEnabled)}
+                  className={`flex h-10 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors ${
+                    formReviewsEnabled
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                      : "border-muted-foreground/30 bg-muted/30 text-muted-foreground"
+                  }`}
+                >
+                  {formReviewsEnabled
+                    ? "Reviews enabled"
+                    : "Reviews disabled (no post-delivery emails)"}
+                </button>
+                <p className="text-xs text-muted-foreground">
+                  Off = no review-request email fires when this product is
+                  delivered. Useful for custom blends or one-off SKUs where a
+                  public review wouldn&rsquo;t make sense.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="product-badge">Product Badge</Label>

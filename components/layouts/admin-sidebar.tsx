@@ -67,6 +67,7 @@ const navItems: NavItem[] = [
       { label: "Contacts", href: "/admin/marketing/contacts" },
       { label: "Campaigns", href: "/admin/marketing/campaigns" },
       { label: "Sequences", href: "/admin/marketing/sequences" },
+      { label: "Reviews", href: "/admin/marketing/reviews" },
       { label: "Inbox", href: "/admin/marketing/inbox" },
       { label: "Settings", href: "/admin/marketing/settings" },
     ],

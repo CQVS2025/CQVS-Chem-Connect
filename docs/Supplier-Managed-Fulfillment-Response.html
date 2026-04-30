@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Supplier-Managed Fulfillment - Jonny's Response</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 880px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 20px; }
+  h3 { color: #374151; margin-top: 28px; font-size: 16px; }
+  h4 { color: #16a34a; margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .box-purple { border-left-color: #8b5cf6; background: #f5f3ff; }
+  .box-grey { border-left-color: #6b7280; background: #f3f4f6; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 5px 0; }
+  code { font-family: 'Consolas', 'Monaco', monospace; background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 12px; color: #1a1a2e; }
+  pre { background: #1a1a2e; color: #e5e7eb; padding: 12px 16px; border-radius: 4px; font-size: 12px; overflow-x: auto; line-height: 1.5; }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 44px 0; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .b-confirmed { background: #dcfce7; color: #166534; }
+  .b-answer { background: #dbeafe; color: #1e40af; }
+  .b-action { background: #fce7f3; color: #9d174d; }
+  .b-flag { background: #fef3c7; color: #92400e; }
+  .b-tofill { background: #fee2e2; color: #991b1b; }
+  .answer-block { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin: 10px 0; border-left: 4px solid #3b82f6; }
+  .answer-block h4 { margin-top: 0; color: #1e40af; text-transform: none; letter-spacing: 0; font-size: 14px; }
+  .answer-block .recommendation { background: #f0fdf4; border-left: 3px solid #16a34a; padding: 8px 14px; margin: 10px 0 4px 0; border-radius: 3px; font-size: 13px; }
+  .answer-block .recommendation strong { color: #166534; }
+  .answer-block p { font-size: 13px; margin: 8px 0; }
+  .tofill { background: #fef2f2; border: 1px dashed #fca5a5; border-radius: 4px; padding: 10px 14px; margin: 8px 0; font-size: 13px; color: #991b1b; }
+  .flag-block { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin: 10px 0; border-left: 4px solid #8b5cf6; background: #faf9ff; }
+  .flag-block h4 { margin-top: 0; color: #6d28d9; text-transform: none; letter-spacing: 0; font-size: 14px; }
+  .flag-block p { font-size: 13px; margin: 8px 0; }
+  @media print { body { margin: 20px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 16px; color: #374151; margin-top: 16px; font-weight: 600;">Supplier-Managed Fulfillment - Response &amp; Sign-Off</p>
+  <p style="color: #9ca3af;">Jonny's response to the requirements doc | April 2026</p>
+</div>
+
+<div class="box">
+  <strong>Summary:</strong> Good document. Architecture is right, framing is right, and Section 2 lands accurately on what we discussed. All eight understanding rows are confirmed. My answers to your nine questions are below, plus some additional points that came out of looking at the freight matrix and the existing schema more closely &mdash; a few of which expand the scope before we lock.
+</div>
+
+<div class="box-amber">
+  <strong>Heads-up:</strong> Section 5 is the one to read carefully. The freight matrix has more structure than the doc assumes, and that needs to be designed in from day one if we want to avoid a rebuild later.
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">1.</span> Overall Assessment</h2>
+
+<p>Treating the supplier as a "special kind of warehouse" is the right call &mdash; and even cleaner than the doc suggests, because the existing <code>warehouses</code> table already carries everything we need. <code>contact_name</code>, <code>contact_email</code>, <code>contact_phone</code>, <code>xero_contact_id</code>, address fields, <code>is_active</code> &mdash; all there. <code>product_warehouses</code> already handles the multi-product-per-warehouse mapping, and <code>warehouse_product_pricing</code> already gives us the cost-side data we need for Xero reconciliation.</p>
+
+<p>What's <em>new</em> is essentially: a flag on warehouses, a freight strategy switch in <code>lib/macship/warehouse-selector.ts</code> (which becomes a more general router), a rate-sheet model, a few new columns on <code>orders</code> for supplier dispatch state, and the supplier dashboard. The bones already exist.</p>
+
+<p>Three things worth calling out that you got right:</p>
+
+<ul>
+  <li><strong>Buyer pays Chem Connect, we reconcile in Xero.</strong> No marketplace splits, no separate Stripe accounts. Sticks with the existing pattern.</li>
+  <li><strong>Supplier dashboard is read-mostly.</strong> Limiting what the supplier can do (no refunds, no product edits, no other customers visible) is exactly right.</li>
+  <li><strong>The new path runs alongside MacShip, not over it.</strong> Zero impact on existing products and existing orders. Non-negotiable.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">2.</span> Section 2 Confirmations</h2>
+
+<p>Running through your understanding table. All confirmed.</p>
+
+<table>
+  <tr><th style="width: 60%;">Your Understanding</th><th style="width: 40%;">My Response</th></tr>
+  <tr>
+    <td>AdBlue is fulfilled end-to-end by an external supplier. Chem Connect lists and sells the product; the supplier dispatches and delivers it.</td>
+    <td><span class="badge b-confirmed">Confirmed</span></td>
+  </tr>
+  <tr>
+    <td>For AdBlue we do not use MacShip. Freight is calculated using the supplier's per-litre, distance-based rate sheet, and the supplier organises the actual delivery.</td>
+    <td><span class="badge b-confirmed">Confirmed</span></td>
+  </tr>
+  <tr>
+    <td>For AdBlue orders, the purchase order is sent to a single supplier contact (based in Queensland), instead of to one of our Chem Connect warehouses.</td>
+    <td><span class="badge b-confirmed">Confirmed</span> &mdash; the contact slots straight into the existing <code>warehouses.contact_*</code> fields.</td>
+  </tr>
+  <tr>
+    <td>The supplier should be able to enter an estimated delivery date directly inside Chem Connect, and the buyer should see it on their order page and in email updates.</td>
+    <td><span class="badge b-confirmed">Confirmed</span> &mdash; can reuse the existing <code>orders.estimated_delivery</code> column.</td>
+  </tr>
+  <tr>
+    <td>The supplier gets a small dashboard inside Chem Connect, limited to the orders for their products, where they can update tracking, ETA, dispatch notes and status.</td>
+    <td><span class="badge b-confirmed">Confirmed</span></td>
+  </tr>
+  <tr>
+    <td>Internally we treat the supplier as a special kind of warehouse - same idea, but flagged as supplier-managed, with their own freight rules and their own login.</td>
+    <td><span class="badge b-confirmed">Confirmed</span> &mdash; <code>is_supplier_managed boolean</code> on <code>warehouses</code>.</td>
+  </tr>
+  <tr>
+    <td>For AdBlue specifically, checkout asks the buyer site-access questions (truck access, possibly forklift). The answers are passed to the supplier on the purchase order.</td>
+    <td><span class="badge b-confirmed">Confirmed</span> &mdash; expanded question list, see Q4.</td>
+  </tr>
+  <tr>
+    <td>The buyer pays Chem Connect through Stripe as today. Chem Connect later reconciles with the supplier outside the platform (through Xero). No change to how Stripe is wired.</td>
+    <td><span class="badge b-confirmed">Confirmed</span></td>
+  </tr>
+  <tr>
+    <td>We are building this for AdBlue first, but the architecture supports adding more supplier-managed products and more suppliers in the future without rebuilding the feature.</td>
+    <td><span class="badge b-confirmed">Confirmed</span> &mdash; see Section 5; the freight engine has to be a small rule engine, not a single lookup.</td>
+  </tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">3.</span> Answers to the Nine Questions</h2>
+
+<div class="answer-block">
+  <h4><span class="badge b-answer">Answer 1</span> Which freight rate column should we use for AdBlue?</h4>
+  <p><strong>Bulk (Post 14Jul25)</strong> for the tanker pump-in flow. We're well past the July 2025 cutover, so post-July rates apply. The Pack columns are not in scope for Phase 1.</p>
+  <p><em>Important caveat:</em> the freight engine must support multiple rate sheets and multiple unit types from day one, even if only Bulk goes live in Phase 1. See Section 5 &mdash; the matrix has three product variants, not one, and two different calculation models. Wiring this in later is a rebuild, not an extension.</p>
+  <div class="recommendation"><strong>Action:</strong> The freight engine reads a rate sheet keyed off product + packaging size (not just product). Phase 1 only wires the Bulk rate sheet. Pack Existing and Pack New rate sheets get added later as configuration, not code.</div>
+</div>
+
+<div class="answer-block">
+  <h4><span class="badge b-answer">Answer 2</span> Freight origin for distance calculations?</h4>
+  <p><strong>Option (c)</strong> &mdash; supplier confirms depot manually after the order arrives, with a default origin used to pre-show an estimate at checkout.</p>
+  <p>The default origin postcode lives on the supplier's <code>warehouses</code> row, in the existing <code>address_postcode</code> field. The estimate at checkout uses that postcode; the supplier can override the dispatch depot in their dashboard once the order lands. Locking in option (b) would force us to maintain depot-level stock state inside Chem Connect, which we're not equipped to do.</p>
+  <div class="recommendation"><strong>Action:</strong> Default origin = <code>warehouses.address_postcode</code> for the supplier-managed warehouse row. Final freight is reconfirmed by the supplier on dispatch. If the final number differs from the indicative quote by more than a set threshold, flag it and notify the buyer before dispatch.</div>
+</div>
+
+<div class="answer-block">
+  <h4><span class="badge b-answer">Answer 3</span> What if the buyer answers "No" to truck access?</h4>
+  <p><strong>A blend of (a) and (c).</strong> Show a warning at checkout, but still let the order through. Surface the answer prominently on the supplier dashboard so the supplier calls the buyer before dispatch.</p>
+  <p>Suggested checkout copy: <em>"Our standard delivery is a 19-metre tanker. If this truck cannot access your site, the supplier will contact you to arrange an alternative, which may involve additional cost or delay."</em></p>
+  <p>Hard-blocking the order loses sales and frustrates buyers who almost certainly have a workaround (smaller truck, different gate, scheduled access). That's a supplier conversation, not a checkout-killer.</p>
+  <div class="recommendation"><strong>Future enhancement:</strong> if/when we add packed AdBlue (IBC), a "No" to truck access could nudge the buyer toward IBC delivery instead. Conversion-saver. Not Phase 1, but worth modelling so we don't paint into a corner.</div>
+</div>
+
+<div class="answer-block">
+  <h4><span class="badge b-answer">Answer 4</span> What other site-access questions?</h4>
+  <p>For tanker pump-in, the question set should be:</p>
+  <ul>
+    <li>Can a 19-metre rigid/tanker truck access the delivery site? (already proposed)</li>
+    <li>Tank capacity and approximate empty space at time of delivery (so the supplier doesn't roll up with 5,000L for a tank that fits 3,000L)</li>
+    <li>Fill point location and approximate hose run distance from where the truck can park</li>
+    <li>Site operating hours and after-hours contact number</li>
+    <li>Site induction or sign-in requirement (yes/no, plus a free-text notes field)</li>
+    <li>Hardstand suitable for a loaded tanker (yes/no &mdash; some yards are soft)</li>
+    <li>Existing tank fitting type (camlock size, dry-break, other &mdash; supplier to confirm what fittings their hoses carry, then we offer those as options)</li>
+  </ul>
+  <p><strong>Forklift</strong>: drop from Phase 1. It's only relevant if we sell IBC AdBlue, which isn't in Phase 1. Re-introduce alongside the IBC variants.</p>
+  <div class="recommendation"><strong>Action:</strong> Site-access questions need to be configured per product or per product+packaging size, not hardcoded into checkout. Suggested approach: a <code>product_checkout_questions</code> table with <code>product_id</code>, <code>packaging_size_id</code> (nullable for "all sizes"), question text, type (yes/no, text, select), required (boolean). Answers stored on the order as <code>site_access_answers jsonb</code>. Same engine handles future supplier-specific questions.</div>
+</div>
+
+<div class="answer-block">
+  <h4><span class="badge b-answer">Answer 5</span> Named supplier contact for AdBlue?</h4>
+  <div class="tofill"><strong>[TO INSERT BEFORE SENDING]</strong> &mdash; name, email, mobile of the supplier dispatch contact. These slot straight into <code>warehouses.contact_name</code>, <code>contact_email</code>, <code>contact_phone</code> on the supplier-managed warehouse row. Confirm she's the right person for both the PO email and the dashboard login &mdash; if it's two different people (sales vs dispatch), we'll need a second user role on the dashboard.</div>
+</div>
+
+<div class="answer-block">
+  <h4><span class="badge b-answer">Answer 6</span> One date or two?</h4>
+  <p><strong>Two.</strong> Dispatch date and estimated delivery date.</p>
+  <p>Concrete plants run on tight chemical inventory. Knowing when product leaves and when it arrives lets them plan their day, decide whether to be on-site to receive it, and gives them a clearer commitment from the supplier. It's also a tighter feedback loop for me operationally &mdash; if dispatch slips, I want to know before delivery slips.</p>
+  <div class="recommendation"><strong>Action:</strong> Reuse <code>orders.estimated_delivery</code> for the supplier ETA. Add a new <code>orders.supplier_dispatch_date</code> column. Both editable by the supplier. Both visible on the buyer's order page. Both trigger an email update to the buyer when set or changed. This mirrors the pattern already used for MacShip (<code>macship_pickup_date</code>, <code>macship_eta_date</code>).</div>
+</div>
+
+<div class="answer-block">
+  <h4><span class="badge b-answer">Answer 7</span> Branding for supplier email and dashboard?</h4>
+  <p><strong>Chem Connect branded.</strong> The supplier is operationally an extension of Chem Connect from the buyer's perspective. Same look and feel as the existing admin, same colour palette, same email templates. White-label only makes sense if we eventually licence the platform to other operators &mdash; not relevant now.</p>
+</div>
+
+<div class="answer-block">
+  <h4><span class="badge b-answer">Answer 8</span> Expose buyer's full contact to the supplier?</h4>
+  <p><strong>Yes, full contact &mdash; name, phone, email, site address.</strong> The driver needs to call ahead before pumping. This is standard B2B logistics and masking it just creates operational friction.</p>
+  <p>The safeguard is contractual, not technical: I'll add a clause in the supplier agreement that the contact details aren't to be used to bypass Chem Connect for direct sales.</p>
+</div>
+
+<div class="answer-block">
+  <h4><span class="badge b-answer">Answer 9</span> Other suppliers already in the pipeline?</h4>
+  <div class="tofill"><strong>[TO INSERT BEFORE SENDING]</strong> &mdash; names of any other suppliers I want you to pressure-test the rate-sheet structure against. The point is to confirm the freight engine handles models other than per-litre &times; distance, e.g. per-pallet, weight-based, zone-based. See Section 5 for why this matters architecturally.</div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">4.</span> Things to Add to the Doc</h2>
+
+<p>Three items not mentioned in your original. None are big.</p>
+
+<div class="flag-block">
+  <h4><span class="badge b-action">Add 1</span> Optional external tracking URL on the supplier dashboard</h4>
+  <p>Some supplier carriers do issue a tracking link, even if it's just their own portal. Add a <code>orders.supplier_tracking_url</code> column (parallel to the existing <code>orders.macship_tracking_url</code>), editable by the supplier on the dashboard. If filled, surfaces as a link on the buyer's order page. Costs nothing to add now, gives buyers a richer experience when the supplier has it.</p>
+</div>
+
+<div class="flag-block">
+  <h4><span class="badge b-action">Add 2</span> Supplier SLA / stuck-order flag in admin</h4>
+  <p>What happens if the supplier doesn't enter an ETA within X hours of the order arriving? At minimum, a flag in the admin orders page showing supplier-managed orders where <code>estimated_delivery IS NULL</code> after, say, 24 hours. Visible only to admins. Eventually this could trigger an automated nudge email to the supplier, but a visible flag is enough for Phase 1.</p>
+</div>
+
+<div class="flag-block">
+  <h4><span class="badge b-action">Add 3</span> Reconciliation data on supplier-managed orders</h4>
+  <p>Most of this already exists in <code>warehouse_product_pricing</code> (cost price by warehouse + product + packaging) and <code>order_items</code> (sale price + quantity). What we need to add is the supplier-side freight cost broken out per order so Xero entries are quick:</p>
+  <ul>
+    <li><code>orders.supplier_freight_cost numeric(10, 2)</code> &mdash; what we owe the supplier for freight (which may differ from what the buyer paid for shipping if we mark up)</li>
+    <li>An admin view that aggregates: buyer-paid shipping &minus; supplier freight cost = freight margin per order</li>
+  </ul>
+  <p>This makes the supplier reconciliation report a one-query read.</p>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">5.</span> Findings From the Freight Matrix &mdash; Important</h2>
+
+<p>I went through the freight matrix carefully. The sheet is more structured than the doc assumes, and a few things need to be designed in now to avoid rework later.</p>
+
+<h3>5.1 What the matrix actually contains</h3>
+
+<table>
+  <tr><th>Column</th><th>Unit</th><th>Used for</th></tr>
+  <tr><td>Bulk (Pre-13Jul25)</td><td>$ per litre</td><td>Bulk tanker pump-in, old rate (legacy reference only)</td></tr>
+  <tr><td>Bulk (Post-14Jul25)</td><td>$ per litre</td><td><strong>Phase 1 column.</strong> Bulk tanker pump-in, current rate</td></tr>
+  <tr><td>Pack (Pre-13Jul25)</td><td>$ per consignment</td><td>Packed AdBlue (IBC), refill of customer's existing IBC, old rate</td></tr>
+  <tr><td>Pack Existing (Post-14Jul25)</td><td>$ per consignment</td><td>Packed AdBlue (IBC), refill of existing IBC, current rate</td></tr>
+  <tr><td>Pack New (Pre-13Jul25)</td><td>$ per consignment</td><td>Packed AdBlue (IBC), new IBC supplied with product, old rate</td></tr>
+  <tr><td>Pack New (Post-14Jul25)</td><td>$ per consignment</td><td>Packed AdBlue (IBC), new IBC supplied with product, current rate</td></tr>
+</table>
+
+<p>Distance is bracketed in 100km steps from 0&ndash;100 up to 3901&ndash;4000. There is also a 4001&ndash;4100 row with no rate data, which we need to clarify with the supplier (see 5.6).</p>
+
+<div class="box-amber">
+  <strong>Pack Existing vs Pack New:</strong> the price gap is consistently ~10% (e.g. $63 vs $70 at 0&ndash;100km). This is almost certainly the standard liquid-chemicals pattern of "refill existing IBC = cheaper" vs "new IBC supplied = more expensive because container is included". Worth confirming with the supplier, but it's the only structure that fits.
+</div>
+
+<h3>5.2 The freight engine has to handle two unit types</h3>
+
+<p>This is the key one. Your original doc treats freight as "look up a single column for AdBlue". The matrix has two fundamentally different calculation models:</p>
+
+<ul>
+  <li><strong>Bulk:</strong> rate per litre &times; order litres &times; distance bracket lookup</li>
+  <li><strong>Pack:</strong> flat rate per consignment &times; distance bracket lookup (does not multiply by litres)</li>
+</ul>
+
+<p>Each rate sheet needs to declare its calculation model. Each product+packaging combination needs to point to a rate sheet. The freight engine reads both.</p>
+
+<h3>5.3 Three product variants, not one</h3>
+
+<p>Even within AdBlue alone, we have:</p>
+<ol>
+  <li>Bulk pump-in (litres into a tank)</li>
+  <li>Packed AdBlue, refill of customer's existing IBC</li>
+  <li>Packed AdBlue, new IBC supplied</li>
+</ol>
+
+<p>Looking at the seed data in <code>schema.sql</code>, the existing AdBlue product already has <code>packaging_sizes</code> set to <code>{'10L Jerry Can', '200L Drum', '1000L IBC'}</code>. Realistically only the IBC sizes will use the pack rate sheets, and they need to know whether they're a refill (Pack Existing) or new container (Pack New).</p>
+
+<p>Phase 1 only goes live for variant 1. But variants 2 and 3 are very likely &mdash; not every site has a bulk tank, and IBC sales are common. If the architecture treats AdBlue as a single product with a single rate sheet, we end up rebuilding to add variants 2 and 3.</p>
+
+<h3>5.4 Suggested data model (sketch, not prescriptive)</h3>
+
+<p>To make this concrete, here's roughly the shape I'd expect. Adjust as you see fit:</p>
+
+<pre><code>-- Extend warehouses
+alter table warehouses
+  add column if not exists is_supplier_managed boolean not null default false;
+
+-- A rate sheet describes a calculation model (per-litre, flat per consignment,
+-- per-pallet, per-kg, etc.) plus its origin and active status.
+create table supplier_rate_sheets (
+  id uuid primary key default uuid_generate_v4(),
+  warehouse_id uuid not null references warehouses on delete cascade,
+  name text not null,                           -- 'AdBlue Bulk Post-14Jul25'
+  unit_type text not null,                      -- 'per_litre' | 'flat_per_consignment' | 'per_kg' | 'per_pallet'
+  origin_postcode text,                         -- defaults to warehouses.address_postcode if null
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+-- Distance brackets and rates for each rate sheet
+create table supplier_rate_sheet_brackets (
+  id uuid primary key default uuid_generate_v4(),
+  rate_sheet_id uuid not null references supplier_rate_sheets on delete cascade,
+  distance_from_km integer not null,
+  distance_to_km integer not null,
+  rate numeric(10, 4) not null
+);
+
+-- Map a product + packaging size combo to a rate sheet.
+-- packaging_size_id NULL means "applies to all sizes for this product".
+create table product_freight_rate_sheets (
+  product_id uuid not null references products on delete cascade,
+  packaging_size_id uuid references packaging_sizes on delete cascade,
+  rate_sheet_id uuid not null references supplier_rate_sheets on delete cascade,
+  primary key (product_id, packaging_size_id)
+);
+
+-- New columns on orders for the supplier-managed flow
+alter table orders
+  add column if not exists supplier_dispatch_date date,
+  add column if not exists supplier_dispatch_notes text,
+  add column if not exists supplier_tracking_url text,
+  add column if not exists supplier_freight_cost numeric(10, 2),
+  add column if not exists site_access_answers jsonb;</code></pre>
+
+<h3>5.5 Where this plugs into existing code</h3>
+
+<p>The cleanest place for the freight strategy split is <code>lib/macship/warehouse-selector.ts</code>, which becomes a more general fulfillment router. Roughly:</p>
+
+<ul>
+  <li>If the selected warehouse has <code>is_supplier_managed = false</code> &rArr; current MacShip path runs unchanged.</li>
+  <li>If <code>is_supplier_managed = true</code> &rArr; new <code>SupplierManagedStrategy</code> is invoked, which looks up the rate sheet for each cart line, computes the freight cost, and skips the MacShip quote call entirely.</li>
+</ul>
+
+<p><code>lib/orders/calculate.ts</code> already calls a warehouse selector and handles the freight number cleanly. The supplier-managed path returns a freight number the same way MacShip does &mdash; the rest of the order math (GST, processing fee, total) works without changes.</p>
+
+<h3>5.6 Open items to confirm with the supplier</h3>
+
+<ul>
+  <li><strong>Pack Existing vs Pack New meaning.</strong> Confirm it means refill of customer-owned IBC vs new IBC supplied with product. (My interpretation, not yet validated with the supplier.)</li>
+  <li><strong>4001+ km row is empty.</strong> Either the supplier doesn't service past 4000km, or the data is missing. Decide what the checkout does for buyers past that distance &mdash; block, "quote on application", or fall back to last bracket?</li>
+  <li><strong>Minimum freight charge.</strong> A small bulk drop close to the depot is still cents-per-litre at low volume. Is there a freight floor or minimum order size?</li>
+  <li><strong>Distance calculation method.</strong> Confirm we use a road-distance API (Google Distance Matrix or similar), not straight-line. And confirm the bucket logic rounds <em>up</em> to the next 100km bracket (so 350km uses the 301&ndash;400 row).</li>
+</ul>
+
+<h3>5.7 Knock-on for future suppliers (Question 9)</h3>
+
+<p>If even AdBlue alone has two calculation models (per-litre and flat), and other suppliers may use per-pallet, weight-based or zone-based pricing, the freight engine cannot be a single-column lookup. The <code>unit_type</code> field on rate sheets is the lever &mdash; it needs to support at least:</p>
+<ul>
+  <li><code>per_litre</code> &times; distance (Bulk AdBlue)</li>
+  <li><code>flat_per_consignment</code> &times; distance (Pack AdBlue)</li>
+  <li><code>per_kg</code> or <code>per_pallet</code> &times; distance, or &times; zone (likely future suppliers)</li>
+</ul>
+
+<p>This is a Phase 1 architectural decision, not a Phase 2 one. Building it in now is far cheaper than retrofitting.</p>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<h2><span class="section-num">6.</span> Updated Next Steps</h2>
+
+<ol>
+  <li>You take this response and update the requirements doc to reflect:
+    <ul>
+      <li>The expanded freight engine spec (Section 5)</li>
+      <li>The expanded site-access question list (Q4) and that questions are configurable per product+packaging</li>
+      <li>The three additional items in Section 4 (tracking URL, SLA flag, freight reconciliation column)</li>
+      <li>The schema sketch in 5.4 &mdash; refine into a real migration plan</li>
+    </ul>
+  </li>
+  <li>Confirm the four open items with the supplier (Section 5.6) so we have answers before scoping.</li>
+  <li>Send the updated doc back to me for a second sign-off, focused only on the changes &mdash; the rest is locked.</li>
+  <li>Once the updated doc is signed off, prepare the technical implementation plan: migration file(s), API contracts, dashboard wireframes, freight strategy router design, integration points with the existing <code>lib/macship</code> and <code>lib/xero</code> modules.</li>
+  <li>I sign off the implementation plan, then you start building.</li>
+</ol>
+
+<div class="box">
+  <strong>Reminder back to you:</strong> nothing here changes the principle of zero impact on existing products and existing MacShip flows. The expanded scope is all inside the new supplier-managed path, gated by <code>warehouses.is_supplier_managed</code>. Existing rows on <code>warehouses</code>, <code>product_warehouses</code>, and the MacShip integration carry on exactly as they do today.
+</div>
+
+<div class="footer">
+  <p>Jonny Harper &middot; Chem Connect by CQVS &middot; April 2026</p>
+  <p>Response to "Supplier-Managed Fulfillment - Requirements Confirmation".</p>
+</div>
+
+</body>
+</html>

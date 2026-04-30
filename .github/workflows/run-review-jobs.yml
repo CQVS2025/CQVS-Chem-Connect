@@ -1,0 +1,37 @@
+name: Run review-request emails
+
+on:
+  schedule:
+    # Daily at 09:00 UTC (= 19:00 AEST / 20:00 AEDT). Aim for late-day
+    # delivery in AU so emails land at the start of the next business day
+    # for the recipient. The +7d / +14d schedule is day-level — there's no
+    # business reason for sub-hour precision.
+    - cron: "0 9 * * *"
+  workflow_dispatch: # manual triggers from the Actions tab
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Same dual-branch guard as the campaigns workflow: scheduled triggers
+    # only fire on the default branch, the other branch is reachable via
+    # workflow_dispatch.
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Invoke run-review-jobs endpoint
+        env:
+          # Same per-branch APP_URL pattern as the campaigns workflow.
+          APP_URL: ${{ github.ref == 'refs/heads/master' && secrets.APP_URL || vars.APP_URL_DEV }}
+          # Same secret as the campaigns cron — one auth surface for all
+          # scheduled-job runners.
+          MARKETING_CRON_SECRET: ${{ secrets.MARKETING_CRON_SECRET }}
+        run: node scripts/run-review-jobs.mjs

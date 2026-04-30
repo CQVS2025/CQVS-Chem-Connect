@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect &mdash; Reviews &amp; Supplier-Managed Fulfillment Implementation Plan</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 22px; color: #1a1a2e; line-height: 1.65; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 26px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 50px; font-size: 21px; }
+  h3 { color: #1a1a2e; margin-top: 30px; font-size: 16.5px; }
+  h4 { color: #16a34a; margin-top: 20px; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 12px 16px; margin: 14px 0; border-radius: 4px; font-size: 13px; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .box-purple { border-left-color: #8b5cf6; background: #f5f3ff; }
+  .box-grey { border-left-color: #6b7280; background: #f3f4f6; }
+  ul, ol { font-size: 13px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .logo { text-align: center; margin-bottom: 30px; }
+  .logo h1 { border: none; font-size: 30px; margin-bottom: 0; }
+  .logo p { color: #6b7280; font-size: 13px; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; text-align: center; }
+  .divider { border: none; border-top: 3px solid #16a34a; margin: 44px 0; }
+  .section-num { color: #16a34a; font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px; vertical-align: middle; }
+  .b-locked { background: #dcfce7; color: #166534; }
+  .b-open { background: #fef3c7; color: #92400e; }
+  .b-new { background: #fce7f3; color: #9d174d; }
+  .b-phase1 { background: #dbeafe; color: #1e40af; }
+  .b-phase2 { background: #ede9fe; color: #5b21b6; }
+  .b-blocker { background: #fee2e2; color: #991b1b; }
+  code { font-family: 'Consolas', 'Monaco', 'Courier New', monospace; background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 11.5px; color: #b91c1c; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px 16px; border-radius: 6px; font-size: 12px; overflow-x: auto; line-height: 1.55; }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  .item { border: 1px solid #e5e7eb; border-left: 4px solid #16a34a; border-radius: 6px; padding: 12px 16px; background: #fff; margin: 12px 0; }
+  .item h4 { margin-top: 0; color: #1a1a2e; text-transform: none; letter-spacing: 0; font-size: 14px; }
+  .item p, .item ul { font-size: 13px; }
+  .item-num { display: inline-block; background: #16a34a; color: #fff; font-size: 11.5px; font-weight: 700; padding: 2px 9px; border-radius: 12px; margin-right: 8px; vertical-align: middle; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 14px 0; }
+  .card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 13px 16px; background: #fff; }
+  .card h4 { margin-top: 0; }
+  .toc { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin: 20px 0; }
+  .toc ul { list-style: none; padding-left: 0; font-size: 13px; }
+  .toc li { margin: 4px 0; }
+  .toc a { color: #1d4ed8; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .flow { background: #0f172a; color: #e2e8f0; padding: 14px 18px; border-radius: 6px; font-size: 12px; line-height: 1.7; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; overflow-x: auto; white-space: pre; }
+  .pill { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; vertical-align: middle; margin-right: 4px; }
+  .pill-yes { background: #dcfce7; color: #166534; }
+  .pill-no { background: #fee2e2; color: #991b1b; }
+  .scope-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed #e5e7eb; }
+  .scope-row:last-child { border-bottom: none; }
+  .scope-row .key { min-width: 130px; font-weight: 600; color: #166534; font-size: 12.5px; }
+  .scope-row .val { font-size: 13px; flex: 1; }
+  @media print { body { margin: 20px; font-size: 12px; } .two-col, .three-col { grid-template-columns: 1fr; } pre, .flow { white-space: pre-wrap; } }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>Chem Connect</h1>
+  <p>by CQVS</p>
+  <p style="font-size: 17px; color: #374151; margin-top: 16px; font-weight: 600;">Implementation Plan &mdash; Customer Reviews + Supplier-Managed Fulfillment</p>
+  <p style="color: #9ca3af;">Consolidated build plan | Prepared by Sohaib | April 2026</p>
+</div>
+
+<div class="box">
+  <strong>Purpose:</strong> A single, unified plan that consolidates everything we have agreed across the four prior documents &mdash; the Customer Reviews proposal and its scope-additions addendum, and the Supplier-Managed Fulfillment requirements doc and Jonny&rsquo;s response with answers and additions. This is the document I will build from. Anything not in this plan is out of scope for Phase 1.
+</div>
+
+<div class="box-grey">
+  <strong>Source documents folded into this plan:</strong>
+  <ul>
+    <li><code>docs/Chem-Connect-Customer-Reviews-Feature.html</code> &mdash; original Reviews proposal</li>
+    <li><code>docs/Chem-Connect-Customer-Reviews-Scope-Additions.html</code> &mdash; eight must-add items + four confirmations</li>
+    <li><code>docs/Supplier-Managed-Fulfillment-Requirements.html</code> &mdash; original requirements doc</li>
+    <li><code>docs/Supplier-Managed-Fulfillment-Response.html</code> &mdash; Jonny&rsquo;s sign-off, answers to Q1&ndash;Q9, freight-matrix findings, three scope additions</li>
+  </ul>
+</div>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ul>
+    <li><a href="#sec-1">1. Executive summary &amp; sequencing</a></li>
+    <li><a href="#sec-2">2. Feature A &mdash; Customer Reviews</a></li>
+    <li><a href="#sec-3">3. Feature B &mdash; Supplier-Managed Fulfillment</a></li>
+    <li><a href="#sec-4">4. Combined data-model migration list</a></li>
+    <li><a href="#sec-5">5. Open items I still need to close</a></li>
+    <li><a href="#sec-6">6. Build sequence &amp; milestones</a></li>
+    <li><a href="#sec-7">7. Risks &amp; mitigations</a></li>
+    <li><a href="#sec-8">8. Out of scope (explicit)</a></li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- 1. EXECUTIVE SUMMARY ====================================== -->
+<!-- ============================================================ -->
+<h2 id="sec-1"><span class="section-num">1.</span> Executive summary &amp; sequencing</h2>
+
+<p>Two independent features, both signed off by Jonny in principle. They share no schema, no surface, and no critical path &mdash; so they can be built in parallel or sequenced. My recommendation:</p>
+
+<table>
+  <thead>
+    <tr><th style="width: 18%;">Order</th><th style="width: 28%;">Feature</th><th>Why this order</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="badge b-phase1">Phase 1a</span></td>
+      <td>Supplier-Managed Fulfillment (AdBlue Bulk)</td>
+      <td>Unblocks revenue that&rsquo;s currently &ldquo;coming soon&rdquo; on the storefront. Bigger commercial outcome and the architectural decisions in the freight engine are time-sensitive (cheaper to build correctly now than retrofit).</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">Phase 1b</span></td>
+      <td>Customer Reviews (collection + display)</td>
+      <td>Smaller blast radius, compounding SEO benefit. Starts the moat clock &mdash; every week of collection is a week competitors can&rsquo;t copy. Ships in parallel with 1a once the existing review infrastructure is audited.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase2">Phase 2</span></td>
+      <td>Pack Existing &amp; Pack New IBC AdBlue (rate sheets only)</td>
+      <td>Pure configuration, no code, once Phase 1a&rsquo;s freight engine is in place. Re-introduces forklift questions for IBC.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase2">Phase 2</span></td>
+      <td>Reviews &mdash; admin reply-to-review &amp; advanced moderation</td>
+      <td>Nice-to-have once the collection flow has reviews to reply to.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="box-blue">
+  <strong>Non-negotiable across both features:</strong> zero impact on existing products, existing orders, the existing MacShip flow, and the existing Stripe wiring. Both new paths sit alongside what&rsquo;s already shipped, gated by clear flags (<code>warehouses.is_supplier_managed</code> for fulfillment, <code>products.reviews_enabled</code> for reviews).
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- 2. FEATURE A &mdash; REVIEWS ============================== -->
+<!-- ============================================================ -->
+<h2 id="sec-2"><span class="section-num">2.</span> Feature A &mdash; Customer Reviews</h2>
+
+<h3>2.1 Why we&rsquo;re building it &mdash; the four levers</h3>
+
+<p>Reviews aren&rsquo;t a vanity feature. On a B2B catalogue site they touch four distinct levers at once:</p>
+
+<ol>
+  <li><strong>Star ratings in Google search results.</strong> Pages with valid <code>AggregateRating</code> + real reviews render with stars, review count, and price. Industry data: 20&ndash;35% CTR uplift at the same ranking position.</li>
+  <li><strong>Citations from AI search engines.</strong> ChatGPT, Perplexity, Microsoft Copilot, Claude, and Google AI Overviews all increasingly favour pages with real reviews when answering &ldquo;where to buy {chemical}&rdquo; queries.</li>
+  <li><strong>Closing the trust gap on first visits.</strong> A handful of named verified-buyer reviews from a buyer&rsquo;s own state turns a curious visitor into an enquiry without them needing to call.</li>
+  <li><strong>A defensible moat.</strong> Reviews accumulate on Chem Connect&rsquo;s domain. Competitors can copy the catalogue, the pricing, the design &mdash; but not the review base. Every approved review widens the gap.</li>
+</ol>
+
+<h3>2.2 Locked scope &mdash; what I&rsquo;m building</h3>
+
+<p>The original proposal plus the eight must-add items from the scope addendum. Fully locked.</p>
+
+<div class="item">
+  <h4><span class="item-num">1</span> Post-delivery email trigger via Mailgun</h4>
+  <p>Fires when an order is marked <strong>Delivered</strong>, not at checkout. Two-touch cadence:</p>
+  <ul>
+    <li><strong>+7 days post-delivery:</strong> initial review request.</li>
+    <li><strong>+14 days post-delivery:</strong> single reminder if no submission.</li>
+    <li>No third email. (Two-touch is the B2B post-purchase industry standard.)</li>
+  </ul>
+  <p>Reuses the existing scheduled-campaign / GHL-marketing plumbing. The trigger event is the order status transitioning to <em>Delivered</em>.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">2</span> One-click magic link with signed token</h4>
+  <p>Token rules, locked:</p>
+  <ul>
+    <li><strong>Expiry:</strong> 60 days from send. Token dies after that.</li>
+    <li><strong>One-use only:</strong> token invalidates the moment a review is submitted against it.</li>
+    <li><strong>Status gate:</strong> token only works if the underlying order is <em>Delivered</em> &mdash; not Shipped, not Ordered.</li>
+    <li><strong>Rate limit:</strong> max 3 submission attempts per token per hour.</li>
+  </ul>
+  <p>Buyer lands on <code>/reviews/submit?token=XYZ</code> with a pre-filled form (name, product, order ID). No login required. Submits star rating + headline + body + optional photos.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">3</span> Photo upload on the submit form</h4>
+  <p>Optional, max <strong>3 images</strong>, max <strong>5MB each</strong>. Stored alongside the review. Displayed below the review text on the product page with a lightbox click-through. Photos are a high-value visual proof signal and disproportionately weighted by AI search engines when citing.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">4</span> Admin moderation queue at <code>/admin/marketing/reviews</code></h4>
+  <p>Pending reviews land in a queue. Admin sees reviewer name + verified-buyer badge, rating, body, photos, product, order ID, submission timestamp. Two actions:</p>
+  <ul>
+    <li><strong>Approve</strong> &rarr; goes live on the product page.</li>
+    <li><strong>Reject</strong> &rarr; stays in DB for audit, never displayed.</li>
+  </ul>
+  <p><strong>No edit capability.</strong> Compliance with AU Consumer Law s18 &mdash; what the buyer wrote is what gets published.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">5</span> Predefined rejection-reason taxonomy</h4>
+  <p>Rejection forces the moderator to pick from a closed list:</p>
+  <ul>
+    <li><code>PII / personal info</code></li>
+    <li><code>Libel or defamatory</code></li>
+    <li><code>Off-topic</code></li>
+    <li><code>Suspected fake</code></li>
+    <li><code>Profanity</code></li>
+    <li><code>Other (free text required)</code></li>
+  </ul>
+  <p>This is the single biggest piece of evidence that rejections aren&rsquo;t rating-based. If the ACCC ever queries the moderation log, the taxonomy is what proves Chem Connect wasn&rsquo;t gating low ratings.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">6</span> Manual review entry in the admin panel</h4>
+  <p>For reviews that come in via phone, text, or email during the seed phase. Each entry must be tied to a real order ID and tagged as <strong>&ldquo;Verified buyer (manually entered)&rdquo;</strong>. Same approve / reject queue, same rejection taxonomy, same audit trail.</p>
+  <p>Without this, product pages sit at &ldquo;No reviews yet&rdquo; for the 6+ months it takes the magic-link flow to bootstrap.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">7</span> Per-product &ldquo;reviews disabled&rdquo; flag</h4>
+  <p>A boolean (<code>products.reviews_enabled</code>, default true) on the product admin page that prevents the post-delivery email firing for that SKU. Needed for custom blends, one-off bulk orders, and any product where a public review wouldn&rsquo;t make sense.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">8</span> Privacy Act review-removal endpoint</h4>
+  <p>If a customer requests removal under the Privacy Act 1988, admin gets a one-click <strong>hard-delete</strong> action that:</p>
+  <ul>
+    <li>Wipes the review record</li>
+    <li>Wipes the underlying token</li>
+    <li>Logs the deletion (moderator + timestamp + reason &ldquo;Privacy Act request&rdquo;) in a separate <code>review_audit_log</code> table</li>
+  </ul>
+  <p>Hard-delete, not soft-delete &mdash; the audit log is the proof the deletion happened.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">9</span> Minimum-threshold gate on AggregateRating schema</h4>
+  <p>The <code>aggregateRating</code> JSON-LD block does <strong>not</strong> emit until a product has at least <strong>3 approved reviews</strong>. Below that, the page renders with no schema and the empty-state message (&ldquo;No reviews yet &mdash; be the first&rdquo;). Reasons:</p>
+  <ul>
+    <li>One 1-star review pulls the AggregateRating to 1.0 across the entire product.</li>
+    <li>Google generally won&rsquo;t render the star result below 3 reviews anyway.</li>
+  </ul>
+</div>
+
+<h3>2.3 The collection flow</h3>
+
+<div class="flow">Customer places + receives an order
+   |
+   |  (status transitions to Delivered)
+   v
+Wait 7 days (configurable via the existing scheduled-campaign engine)
+   |
+   v
+Mailgun sends the initial review request email
+   |
+   |  +14 days (if no submission yet)
+   v
+Mailgun sends the single reminder
+   |
+   |  (one-click magic link, signed token, 60-day expiry)
+   v
+.../reviews/submit?token=XYZ  --  prefilled form, optional photos
+   |
+   |  (status: pending; token consumed; rate-limit checked)
+   v
+Admin moderation queue at /admin/marketing/reviews
+   |
+   |  Approve  -->  publishes on product page
+   |  Reject   -->  taxonomy reason recorded, stays in DB, no display
+   v
+Star rating + review block live on the product page
+   +  AggregateRating + Review[] in JSON-LD (gated at >=3 approved reviews)</div>
+
+<h3>2.4 What the buyer sees on the product page</h3>
+
+<div class="three-col">
+  <div class="card">
+    <h4>Aggregate rating</h4>
+    <p style="font-size: 12.5px; margin: 0;">Star average + total review count next to the product title. Only visible (and only schema-emitted) once the product has &ge; 3 approved reviews.</p>
+  </div>
+  <div class="card">
+    <h4>Individual review cards</h4>
+    <p style="font-size: 12.5px; margin: 0;">Star rating, headline, body, reviewer name + city + state, date, &ldquo;Verified buyer&rdquo; badge, optional photos with lightbox.</p>
+  </div>
+  <div class="card">
+    <h4>Empty-state fallback</h4>
+    <p style="font-size: 12.5px; margin: 0;">If a product has fewer than 3 approved reviews, the section says &ldquo;No reviews yet &mdash; be the first&rdquo;. No broken UI, no fake placeholder.</p>
+  </div>
+</div>
+
+<h3>2.5 Compliance posture</h3>
+
+<table>
+  <thead>
+    <tr><th style="width: 240px;">Rule</th><th>How this implementation handles it</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Reviews must be from genuine buyers</strong> (Google policy + AU Consumer Law)</td>
+      <td>Magic-link tokens are tied to real order IDs and signed. A review can&rsquo;t be submitted without a valid token. Manual seed entries are tied to real order IDs and clearly tagged.</td>
+    </tr>
+    <tr>
+      <td><strong>No editing reviews</strong> (s18, AU Consumer Law)</td>
+      <td>Admin can only approve or reject &mdash; no edit capability anywhere in the moderation UI.</td>
+    </tr>
+    <tr>
+      <td><strong>No &ldquo;review gating&rdquo;</strong> (asking only happy customers)</td>
+      <td>Every delivered order with <code>reviews_enabled = true</code> triggers a request. No pre-screening for satisfaction.</td>
+    </tr>
+    <tr>
+      <td><strong>Negative reviews must not be hidden</strong></td>
+      <td>Rejection only allowed for predefined policy violations (taxonomy locked). Low-rating-only rejections are not possible &mdash; the dropdown doesn&rsquo;t offer that as a reason, and the audit log proves it.</td>
+    </tr>
+    <tr>
+      <td><strong>Audit trail for moderation</strong></td>
+      <td>Every approve / reject / hard-delete records moderator, timestamp, action, and (where applicable) reason. Immutable log table.</td>
+    </tr>
+    <tr>
+      <td><strong>Privacy Act 1988 removal</strong></td>
+      <td>Hard-delete endpoint with audit-log entry &mdash; covered in scope item 8.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.6 Schema.org wiring</h3>
+
+<p>The product detail page emits a Schema.org <code>Product</code> JSON-LD block. Once a product has &ge; 3 approved reviews, the implementation splices two extra fields into that block:</p>
+
+<div class="two-col">
+  <div class="card">
+    <h4>AggregateRating</h4>
+    <p style="font-size: 12.5px; margin: 0;">Drives the star result in Google search. Average rating, review count, best/worst rating bounds.</p>
+  </div>
+  <div class="card">
+    <h4>Review[] array</h4>
+    <p style="font-size: 12.5px; margin: 0;">Up to 10 reviews per product (newest-first). Author, rating, date, body. Picked up by ChatGPT, Perplexity, and Google AI Overviews when those crawl the page.</p>
+  </div>
+</div>
+
+<h3>2.7 Data model &mdash; Reviews</h3>
+
+<pre><code>-- Per-product flag, default ON
+alter table products
+  add column if not exists reviews_enabled boolean not null default true;
+
+-- The review submission tokens (one per delivered order line)
+create table review_tokens (
+  id uuid primary key default uuid_generate_v4(),
+  order_id uuid not null references orders on delete cascade,
+  product_id uuid not null references products on delete cascade,
+  signed_token text not null unique,
+  sent_at timestamptz not null default now(),
+  expires_at timestamptz not null,           -- sent_at + 60 days
+  consumed_at timestamptz,                   -- set when a review submits
+  attempt_count integer not null default 0,  -- rate-limit counter (per hour)
+  last_attempt_at timestamptz
+);
+
+-- Reviews themselves
+create table reviews (
+  id uuid primary key default uuid_generate_v4(),
+  product_id uuid not null references products on delete cascade,
+  order_id uuid references orders on delete set null,
+  token_id uuid references review_tokens on delete set null,
+  source text not null check (source in ('magic_link','manual')),
+  reviewer_display_name text not null,        -- format chosen at submit time, see 2.8
+  reviewer_city text,
+  reviewer_state text,
+  rating integer not null check (rating between 1 and 5),
+  headline text not null,
+  body text not null,
+  consent_given boolean not null,
+  status text not null default 'pending'
+    check (status in ('pending','approved','rejected','removed')),
+  rejection_reason text                       -- enum-checked at app layer
+    check (rejection_reason in (
+      'pii','libel','off_topic','suspected_fake','profanity','other'
+    ) or rejection_reason is null),
+  rejection_notes text,                       -- free text when 'other'
+  submitted_at timestamptz not null default now(),
+  moderated_at timestamptz,
+  moderated_by uuid references users
+);
+
+create table review_photos (
+  id uuid primary key default uuid_generate_v4(),
+  review_id uuid not null references reviews on delete cascade,
+  storage_path text not null,
+  position smallint not null check (position between 1 and 3)
+);
+
+-- Immutable audit log
+create table review_audit_log (
+  id uuid primary key default uuid_generate_v4(),
+  review_id uuid references reviews on delete set null,
+  action text not null check (action in (
+    'submitted','approved','rejected','hard_deleted','reply_added'
+  )),
+  actor_id uuid references users,
+  reason text,
+  detail jsonb,
+  created_at timestamptz not null default now()
+);</code></pre>
+
+<h3>2.8 Review-side decisions &mdash; locked</h3>
+
+<p>The four open items from the addendum are all resolved. Jonny answered &ldquo;do what&rsquo;s best&rdquo;, so the proposed defaults are now locked into scope.</p>
+
+<table>
+  <thead>
+    <tr><th style="width: 260px;">Decision</th><th>Locked outcome</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Email send infrastructure</strong></td>
+      <td><span class="badge b-locked">Locked</span> Review emails go through the same Mailgun configuration the existing GHL-style scheduled-campaign system already uses. No new ESP, no separate deliverability domain. The Mailgun-wiring audit (5.3) confirms the integration point before code; if pieces are missing they get surfaced as explicit additional scope.</td>
+    </tr>
+    <tr>
+      <td><strong>Built vs aspirational schema/UI/JSON-LD</strong></td>
+      <td><span class="badge b-locked">Locked</span> I&rsquo;ll audit the current state of the product-page review block and the <code>AggregateRating</code> JSON-LD output as the very first step (M1). Whatever isn&rsquo;t shipped becomes explicit additional scope, not &ldquo;glue work&rdquo;.</td>
+    </tr>
+    <tr>
+      <td><strong>Reviewer name display format</strong></td>
+      <td><span class="badge b-locked">Locked</span> The submit form offers four options: <em>Full first + initial</em> (default, e.g. &ldquo;Marcus T.&rdquo;), <em>Initials only</em> (&ldquo;M. T.&rdquo;), <em>Anonymous from {city}</em>, or <em>Reviewer at {industry/role}, {state}</em> (e.g. &ldquo;Plant Manager, NSW concrete plant&rdquo;). The fourth option is added per Jonny&rsquo;s clarification &mdash; B2B reviewers in small industries often won&rsquo;t put their personal name on a supplier&rsquo;s public site, so a role-based form opens up reviews that would otherwise be lost. An explicit consent checkbox &mdash; &ldquo;I understand my review will be displayed publicly on the Chem Connect product page&rdquo; &mdash; is required to enable submit.</td>
+    </tr>
+    <tr>
+      <td><strong>Where reviews render on the product page</strong></td>
+      <td><span class="badge b-locked">Locked</span> Inline below the description <em>and</em> a sticky summary (stars + count) next to the buy button. No separate tab &mdash; tabs hide content from both AI crawlers and from buyers who don&rsquo;t click them. Single-page render is best for both SEO and conversion.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.9 Reviews build breakdown</h3>
+
+<table>
+  <thead>
+    <tr><th style="width: 30%;">Workstream</th><th style="width: 12%;">Surface</th><th>Detail</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Schema audit + migration</td><td>DB</td><td>Inspect existing reviews infrastructure; write/extend migrations for new tables in 2.7.</td></tr>
+    <tr><td>Token issuance + Mailgun trigger</td><td>Backend</td><td>On order &rarr; Delivered transition, schedule the +7d send. On +14d, schedule reminder if no submission. Skip both if <code>reviews_enabled = false</code>.</td></tr>
+    <tr><td>Public submit page</td><td>Frontend</td><td><code>/reviews/submit?token=XYZ</code> &mdash; prefilled form, photo upload, name-format selector, consent checkbox.</td></tr>
+    <tr><td>Token validation</td><td>Backend</td><td>Signature, expiry, one-use, status gate, rate limit. All four enforced server-side.</td></tr>
+    <tr><td>Moderation queue</td><td>Admin</td><td><code>/admin/marketing/reviews</code> &mdash; list, filter, approve, reject (with taxonomy), photos preview.</td></tr>
+    <tr><td>Manual entry form</td><td>Admin</td><td>For phone/text/email reviews. Tied to an order ID; tagged as <em>manually entered</em>.</td></tr>
+    <tr><td>Hard-delete + audit log</td><td>Admin</td><td>Privacy Act removal endpoint with mandatory audit-log entry.</td></tr>
+    <tr><td>Product page render</td><td>Frontend</td><td>Aggregate stars + count, review cards, photo lightbox, empty state.</td></tr>
+    <tr><td>JSON-LD splice</td><td>Frontend / SSR</td><td><code>AggregateRating</code> + <code>Review[]</code> emitted only when &ge; 3 approved reviews.</td></tr>
+    <tr><td>Per-product flag UI</td><td>Admin</td><td>Single checkbox on the product admin page.</td></tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- 3. FEATURE B &mdash; FULFILLMENT =========================== -->
+<!-- ============================================================ -->
+<h2 id="sec-3"><span class="section-num">3.</span> Feature B &mdash; Supplier-Managed Fulfillment</h2>
+
+<h3>3.1 Why we&rsquo;re building it</h3>
+
+<p>AdBlue is currently &ldquo;coming soon&rdquo; on the storefront because the existing fulfillment pipeline (Stripe &rarr; MacShip &rarr; CC warehouse &rarr; MacShip tracking) doesn&rsquo;t fit a supplier-fulfilled, tanker pump-in product. This feature adds a second fulfillment path so:</p>
+
+<ul>
+  <li>External suppliers can be onboarded as a special kind of warehouse, with their own freight rules and their own login.</li>
+  <li>The freight engine quotes from the supplier&rsquo;s distance-bracketed rate sheet rather than calling MacShip.</li>
+  <li>The supplier sees only their orders, can update ETA and dispatch state, and the buyer is notified through Chem Connect.</li>
+  <li>Adding the next supplier becomes a configuration job, not a development job.</li>
+</ul>
+
+<p>All eight understanding rows in section 2 of the requirements doc are <strong>confirmed</strong> by Jonny. The architecture lands cleanly on the existing <code>warehouses</code>, <code>product_warehouses</code>, and <code>warehouse_product_pricing</code> tables.</p>
+
+<h3>3.2 Locked answers to Q1&ndash;Q9</h3>
+
+<table>
+  <thead>
+    <tr><th style="width: 30px;">#</th><th style="width: 30%;">Question</th><th>Answer (locked)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Which freight rate column for AdBlue?</td>
+      <td><strong>Bulk (Post-14Jul25).</strong> Phase 1 only. The freight engine must support multiple rate sheets and multiple unit types from day one (see 3.5).</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Freight origin for distance calculations?</td>
+      <td><strong>Option (c).</strong> Default origin = <code>warehouses.address_postcode</code> for the supplier-managed warehouse row, used to pre-show an estimate at checkout. Supplier confirms final dispatch depot in the dashboard. If the recalculated freight differs from the indicative quote by more than a configurable threshold, flag it and notify the buyer before dispatch.</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Buyer answers &ldquo;No&rdquo; to truck access?</td>
+      <td><strong>Blend of (a) + (c).</strong> Show a warning at checkout, let the order through, surface the answer prominently on the supplier dashboard so the supplier calls the buyer before dispatch. Suggested copy locked: <em>&ldquo;Our standard delivery is a 19-metre tanker. If this truck cannot access your site, the supplier will contact you to arrange an alternative, which may involve additional cost or delay.&rdquo;</em></td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Other site-access questions?</td>
+      <td>Expanded list locked &mdash; see 3.4. Forklift dropped from Phase 1 (re-introduced for IBC variants in Phase 2).</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Named supplier contact?</td>
+      <td><span class="badge b-locked">Locked</span> Captured at warehouse-creation time via the supplier-managed warehouse form &mdash; not pre-supplied by Jonny. The form collects N supplier users (name, email, mobile, role flags) per warehouse, so single-person and multi-person suppliers are both handled without rebuild. See 3.6.7 for the schema and 3.9 for what each role sees.</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>One date or two?</td>
+      <td><strong>Two.</strong> <code>orders.supplier_dispatch_date</code> (new) + <code>orders.estimated_delivery</code> (reused). Both editable by the supplier, both visible to the buyer, both trigger a buyer email when set or changed.</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Branding for supplier email + dashboard?</td>
+      <td><strong>Chem Connect branded.</strong> Same colour palette, same email templates, same admin look-and-feel.</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>Expose buyer&rsquo;s full contact to supplier?</td>
+      <td><strong>Yes &mdash; full contact</strong> (name, phone, email, site address). Driver needs to call ahead before pumping. Safeguard is contractual (clause in the supplier agreement preventing direct-sales bypass), not technical.</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>Other suppliers in the pipeline?</td>
+      <td><span class="badge b-locked">Locked</span> No other suppliers named at this stage. The freight engine&rsquo;s <code>unit_type</code> field already covers <code>per_litre</code>, <code>flat_per_consignment</code>, <code>per_kg</code>, <code>per_pallet</code>, and <code>per_zone</code> &mdash; the five most common B2B freight models. Adding a future supplier is a configuration job (load their rate sheet), not a code change.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>3.3 Locked scope &mdash; components I&rsquo;m building</h3>
+
+<p>Every component below is locked. Each maps to one or more migrations in 3.6 and one or more workstreams in 3.12. Same format as the Reviews scope (2.2) so the build surface is comparable.</p>
+
+<div class="item">
+  <h4><span class="item-num">1</span> Supplier-managed warehouse type</h4>
+  <p>An existing <code>warehouses</code> row can be flagged as supplier-managed via <code>is_supplier_managed = true</code>. This single flag drives every downstream behaviour change &mdash; freight strategy, PO routing, dashboard scoping, buyer order-page surface. Existing warehouses are unaffected (default is <code>false</code>).</p>
+  <p>Created from an admin form that captures: warehouse name, address (origin postcode for distance lookups), one or more supplier users (component 2), and the rate-sheet links (component 3).</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">2</span> Multi-user supplier model</h4>
+  <p>N users per supplier-managed warehouse via the <code>warehouse_users</code> junction table. Each user has role flags:</p>
+  <ul>
+    <li><code>receives_po_emails</code> &mdash; whether this user gets the purchase-order email when an order arrives</li>
+    <li><code>can_update_orders</code> &mdash; whether this user can edit dispatch state from the dashboard</li>
+    <li><code>is_primary_contact</code> &mdash; flagged for admin reference</li>
+  </ul>
+  <p>AdBlue Phase 1 = one user, all flags true (Jonny confirmed). Architecture handles future suppliers with separate sales/dispatch staff without code changes.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">3</span> Freight engine &mdash; rate sheets + brackets</h4>
+  <p>Each supplier-managed warehouse has one or more rate sheets. Each rate sheet declares its <code>unit_type</code> (<code>per_litre</code>, <code>flat_per_consignment</code>, <code>per_kg</code>, <code>per_pallet</code>, <code>per_zone</code>) and is composed of distance brackets (0&ndash;100km, 101&ndash;200km, &hellip; up to 4000+km) with a rate per bracket.</p>
+  <p>Phase 1 wires a single rate sheet: <em>AdBlue Bulk Post-14Jul25</em> with <code>unit_type = per_litre</code>. Pack Existing and Pack New rate sheets are loaded as configuration (no code) in Phase 2.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">4</span> Product-to-rate-sheet mapping</h4>
+  <p>The <code>product_freight_rate_sheets</code> table maps each <em>product + packaging size</em> combination to a rate sheet. <code>packaging_size_id NULL</code> means &ldquo;applies to all sizes for this product&rdquo;. Phase 1 wires AdBlue Bulk to the AdBlue Bulk Post-14Jul25 sheet; other AdBlue packaging sizes get their mappings added in Phase 2.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">5</span> Distance + bracket lookup at checkout</h4>
+  <p>Postcode &rarr; road distance via Google Distance Matrix API (not straight-line). Round <em>up</em> to the next 100km bracket (so 350km uses the 301&ndash;400 row). Result is cached per (origin, destination) for the order&rsquo;s lifetime to control API cost.</p>
+  <p>The freight number returned to the cart = <em>rate per unit &times; quantity (where applicable) &times; bracket lookup</em>. It feeds <code>lib/orders/calculate.ts</code> the same way MacShip&rsquo;s freight number does today &mdash; the rest of the order math (GST, processing fee, total) needs no changes.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">6</span> Configurable site-access question engine</h4>
+  <p>The <code>product_checkout_questions</code> table defines questions per <em>product + packaging size</em>. Each question has a <code>question_key</code>, label, <code>question_type</code> (<code>yes_no</code>, <code>text</code>, <code>number</code>, <code>select</code>), optional options (for select), required flag, and display order. Answers are stored as <code>orders.site_access_answers jsonb</code>.</p>
+  <p>Phase 1 ships with the seven AdBlue Bulk questions in 3.4 wired up. Phase 2 adds forklift + tank-fitting questions for IBC. Future supplier-specific questions are configuration, not code.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">7</span> Truck-access warning at checkout</h4>
+  <p>If the buyer answers &ldquo;No&rdquo; to the 19-metre truck access question, the checkout shows a warning but lets the order through. The locked copy:</p>
+  <p style="margin-left: 16px; font-style: italic; color: #4b5563; border-left: 3px solid #d1d5db; padding-left: 12px;">&ldquo;Our standard delivery is a 19-metre tanker. If this truck cannot access your site, the supplier will contact you to arrange an alternative, which may involve additional cost or delay.&rdquo;</p>
+  <p>The &ldquo;No&rdquo; answer is surfaced prominently on the supplier dashboard so the supplier calls the buyer before dispatch. Hard-blocking the order would lose sales unnecessarily &mdash; almost every site has a workaround.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">8</span> PO email to supplier on order placement</h4>
+  <p>When a buyer pays for an order containing a supplier-managed product, the system sends a purchase-order email to every <code>warehouse_users</code> row with <code>receives_po_emails = true</code>. Email includes:</p>
+  <ul>
+    <li>Buyer name, full delivery address, contact phone and email</li>
+    <li>Products and quantities</li>
+    <li>All site-access answers (truck access, tank capacity, fill point, hours, induction, hardstand, fittings)</li>
+    <li>Order ID and a deep link straight into the order detail page in the supplier dashboard</li>
+  </ul>
+  <p>Email is Chem Connect-branded and routed through the same Mailgun config the rest of the platform uses.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">9</span> Supplier dashboard (scoped, read-mostly)</h4>
+  <p>A dedicated dashboard surface, Chem Connect-branded, scoped to the supplier&rsquo;s warehouses only. The supplier sees:</p>
+  <ul>
+    <li>A list of their warehouses&rsquo; orders with filters (status, date)</li>
+    <li>Order detail with full address, site-access answers, products and quantities</li>
+    <li>Editable fields: <code>supplier_dispatch_date</code>, <code>estimated_delivery</code>, <code>supplier_dispatch_notes</code>, <code>supplier_tracking_url</code>, status</li>
+  </ul>
+  <p>The supplier <strong>cannot</strong> see other Chem Connect orders, products, or customers, cannot edit products, and cannot refund or cancel.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">10</span> Two-date model (dispatch + ETA)</h4>
+  <p>The supplier sets two dates &mdash; <code>orders.supplier_dispatch_date</code> (new) for when goods leave the depot, and <code>orders.estimated_delivery</code> (reused) for when they arrive on site. Both editable any time, both visible to the buyer, both fire a buyer notification when set or changed.</p>
+  <p>Two dates is what Jonny asked for &mdash; concrete plants run on tight chemical inventory and need dispatch and arrival as separate planning signals.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">11</span> Optional external tracking URL</h4>
+  <p>If the supplier&rsquo;s carrier has its own portal, the supplier pastes a tracking URL into the order. <code>orders.supplier_tracking_url</code> stores it; the buyer order page surfaces it as a link if present. No tracking URL = the dispatch date + ETA + notes are the buyer&rsquo;s only signal.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">12</span> Buyer order page &mdash; supplier-fulfillment surface</h4>
+  <p>For supplier-managed orders, the buyer order page replaces the MacShip scan-tracking surface with: dispatch date, ETA, dispatch notes (if any), and the optional tracking URL. Layout matches the existing MacShip surface so the buyer doesn&rsquo;t feel a regression.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">13</span> Buyer notifications on date set / change</h4>
+  <p>The buyer receives an email when:</p>
+  <ul>
+    <li>The supplier first sets the dispatch date</li>
+    <li>The supplier first sets the ETA</li>
+    <li>The supplier changes either date later (e.g. delay)</li>
+  </ul>
+  <p>Each email links back to the order page. No extra emails on dispatch-notes or tracking-URL changes &mdash; those just update silently on the page.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">14</span> Admin SLA / stuck-order flag</h4>
+  <p>The admin orders page surfaces a flag for supplier-managed orders where <code>estimated_delivery IS NULL</code> after a configurable threshold (default 24 hours from order placement). Visible only to admins; not surfaced to the buyer. Phase 1 = flag-only. Phase 2 layers automated supplier nudge emails on top.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">15</span> Reconciliation view (full margin per order)</h4>
+  <p>An admin-only view aggregates per supplier-managed order:</p>
+  <ul>
+    <li>Sale price (from <code>order_items</code>)</li>
+    <li>Product cost (from existing <code>warehouse_product_pricing</code>, joined on warehouse + product + packaging size)</li>
+    <li>Buyer-paid shipping (from order totals)</li>
+    <li>Supplier freight cost (from <code>orders.supplier_freight_cost</code>, settable by admin)</li>
+    <li><strong>Full margin = sale price &minus; product cost &minus; supplier freight cost</strong></li>
+  </ul>
+  <p>Per Jonny&rsquo;s clarification: freight margin alone is half a tool &mdash; the Xero entries need full margin (sale &minus; product cost &minus; freight) so this view drives all reconciliation in one query rather than two. <code>warehouse_product_pricing</code> already carries cost per warehouse + product + packaging, so this is an extension of the same query, not a new data source.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">16</span> Variance check on dispatch</h4>
+  <p>When the supplier marks an order ready to dispatch, the system recalculates freight using the supplier&rsquo;s confirmed origin depot. If the recalculated number differs from the buyer-quoted number by more than a configurable threshold, the order is flagged for admin review and the buyer is notified before dispatch.</p>
+  <p><strong>Default threshold (locked):</strong> 10% or $100, whichever is greater. Configurable later from the admin settings if usage shows the default is too tight or too loose.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">17</span> Mixed-cart blocker (with usage counter)</h4>
+  <p>Phase 1 explicitly blocks mixed carts &mdash; a single checkout cannot contain both a MacShip product and a supplier-managed product. The cart shows a clear message asking the buyer to split into two orders.</p>
+  <p><strong>Counter (added per Jonny&rsquo;s request):</strong> every time the block fires, log a row to a small <code>mixed_cart_block_events</code> table capturing timestamp, user (if logged in), and the SKU pair that triggered it. Admin sees a count + recent-events list on a dedicated metrics tile. The point is to size Phase 2: if it fires twice a quarter we leave it; if it fires twice a week we prioritise unbundling.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">18</span> Phase-1 storefront visibility for AdBlue</h4>
+  <p>The seeded AdBlue product currently has four packaging sizes: <em>10L Jerry Can</em>, <em>200L Drum</em>, <em>1000L IBC</em>, and Bulk. Phase 1 only wires the Bulk freight path. To avoid a half-broken UX where the buyer can pick a packaging size with no working freight quote, the other three sizes are <strong>hidden from the public product page</strong> in Phase 1.</p>
+  <p>Implementation: a per-packaging-size <code>is_visible_on_storefront boolean</code> flag (default true), set to false for the three non-Bulk AdBlue sizes during the Phase 1 deployment. Phase 2 flips them back on once the Pack Existing / Pack New rate sheets are loaded and forklift / tank-fitting questions are wired.</p>
+</div>
+
+<h3>3.4 Site-access questions (configurable per product+packaging)</h3>
+
+<p>Locked question set for AdBlue Bulk Phase 1:</p>
+
+<ul>
+  <li>Can a 19-metre rigid/tanker truck access the delivery site? <em>(yes/no)</em></li>
+  <li>Tank capacity and approximate empty space at time of delivery <em>(numeric, litres)</em></li>
+  <li>Fill point location and approximate hose run distance from where the truck can park <em>(text + numeric)</em></li>
+  <li>Site operating hours and after-hours contact number <em>(text)</em></li>
+  <li>Site induction or sign-in requirement <em>(yes/no + free text notes)</em></li>
+  <li>Hardstand suitable for a loaded tanker <em>(yes/no)</em></li>
+  <li>Existing tank fitting type <em>(select &mdash; options derived from supplier&rsquo;s hose fittings, see 3.11)</em></li>
+</ul>
+
+<p>Forklift availability dropped from Phase 1, re-introduced when Pack Existing / Pack New IBC variants ship in Phase 2.</p>
+
+<p><strong>Architectural note:</strong> these questions are configured in a <code>product_checkout_questions</code> table (see 3.6), not hardcoded into checkout. The same engine handles future supplier-specific or product-specific question sets without code changes.</p>
+
+<h3>3.5 The freight engine &mdash; the architectural centrepiece</h3>
+
+<div class="box-amber">
+  <strong>Why this matters:</strong> Even within AdBlue alone, the freight matrix has two fundamentally different calculation models &mdash; per-litre &times; distance for Bulk, flat-per-consignment &times; distance for Pack. Other suppliers will likely add per-pallet, weight-based, and zone-based pricing. A single-column lookup is not enough, and retrofitting that later is a rebuild.
+</div>
+
+<p>The freight engine is built around three primitives:</p>
+
+<table>
+  <thead>
+    <tr><th style="width: 28%;">Primitive</th><th>Role</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>supplier_rate_sheets</code></td>
+      <td>Each rate sheet declares its <code>unit_type</code> (per_litre, flat_per_consignment, per_kg, per_pallet, etc.), its origin postcode, and active status.</td>
+    </tr>
+    <tr>
+      <td><code>supplier_rate_sheet_brackets</code></td>
+      <td>Distance brackets (e.g. 0&ndash;100km, 101&ndash;200km, &hellip;) and the rate per bracket.</td>
+    </tr>
+    <tr>
+      <td><code>product_freight_rate_sheets</code></td>
+      <td>Maps a product + packaging size combination to a rate sheet. <code>packaging_size_id NULL</code> = applies to all sizes for that product.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>Phase 1 vs Phase 2 rate sheets</h4>
+
+<table>
+  <thead>
+    <tr><th>Rate sheet</th><th>Unit type</th><th>Phase</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>AdBlue Bulk Post-14Jul25</td><td><code>per_litre</code></td><td><span class="badge b-phase1">Phase 1</span></td></tr>
+    <tr><td>AdBlue Pack Existing Post-14Jul25</td><td><code>flat_per_consignment</code></td><td><span class="badge b-phase2">Phase 2 (config only)</span></td></tr>
+    <tr><td>AdBlue Pack New Post-14Jul25</td><td><code>flat_per_consignment</code></td><td><span class="badge b-phase2">Phase 2 (config only)</span></td></tr>
+  </tbody>
+</table>
+
+<h4>Where it plugs into existing code</h4>
+
+<p>The cleanest place for the strategy split is <code>lib/macship/warehouse-selector.ts</code>, which becomes a more general fulfillment router:</p>
+
+<ul>
+  <li>If the selected warehouse has <code>is_supplier_managed = false</code> &rarr; current MacShip path runs unchanged.</li>
+  <li>If <code>is_supplier_managed = true</code> &rarr; new <code>SupplierManagedStrategy</code> is invoked, which looks up the rate sheet for each cart line, computes the freight cost, and skips the MacShip quote call entirely.</li>
+</ul>
+
+<p><code>lib/orders/calculate.ts</code> already calls a warehouse selector and handles the freight number cleanly. The supplier-managed path returns a freight number the same way MacShip does &mdash; the rest of the order math (GST, processing fee, total) works without changes.</p>
+
+<h3>3.6 Data model &mdash; Fulfillment</h3>
+
+<pre><code>-- 3.6.1 Extend warehouses with the supplier-managed flag
+alter table warehouses
+  add column if not exists is_supplier_managed boolean not null default false;
+
+-- 3.6.2 Rate sheets (per supplier-managed warehouse)
+create table supplier_rate_sheets (
+  id uuid primary key default uuid_generate_v4(),
+  warehouse_id uuid not null references warehouses on delete cascade,
+  name text not null,                            -- 'AdBlue Bulk Post-14Jul25'
+  unit_type text not null check (unit_type in (
+    'per_litre','flat_per_consignment','per_kg','per_pallet','per_zone'
+  )),
+  origin_postcode text,                          -- defaults to warehouses.address_postcode if null
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+-- 3.6.3 Distance brackets and rates
+create table supplier_rate_sheet_brackets (
+  id uuid primary key default uuid_generate_v4(),
+  rate_sheet_id uuid not null references supplier_rate_sheets on delete cascade,
+  distance_from_km integer not null,
+  distance_to_km integer not null,
+  rate numeric(10, 4) not null
+);
+
+-- 3.6.4 Map product+packaging to a rate sheet
+create table product_freight_rate_sheets (
+  product_id uuid not null references products on delete cascade,
+  packaging_size_id uuid references packaging_sizes on delete cascade,
+  rate_sheet_id uuid not null references supplier_rate_sheets on delete cascade,
+  primary key (product_id, packaging_size_id)
+);
+
+-- 3.6.5 Configurable site-access questions
+create table product_checkout_questions (
+  id uuid primary key default uuid_generate_v4(),
+  product_id uuid not null references products on delete cascade,
+  packaging_size_id uuid references packaging_sizes on delete cascade,
+  question_key text not null,                    -- 'truck_access_19m', 'tank_capacity', etc.
+  label text not null,
+  question_type text not null check (question_type in (
+    'yes_no','text','number','select'
+  )),
+  options jsonb,                                  -- for 'select' type
+  required boolean not null default false,
+  display_order smallint not null default 0
+);
+
+-- 3.6.6 New columns on orders for the supplier-managed flow
+alter table orders
+  add column if not exists supplier_dispatch_date date,
+  add column if not exists supplier_dispatch_notes text,
+  add column if not exists supplier_tracking_url text,
+  add column if not exists supplier_freight_cost numeric(10, 2),
+  add column if not exists site_access_answers jsonb;
+
+-- 3.6.7 Multi-user supplier model (N users per supplier-managed warehouse)
+-- Junction table so a supplier-managed warehouse can have one user
+-- (single-person supplier) or several (e.g. separate sales / dispatch).
+-- Role flags decide who receives PO emails and who can update orders.
+create table warehouse_users (
+  id uuid primary key default uuid_generate_v4(),
+  warehouse_id uuid not null references warehouses on delete cascade,
+  user_id uuid not null references users on delete cascade,
+  receives_po_emails boolean not null default true,
+  can_update_orders boolean not null default true,
+  is_primary_contact boolean not null default false,
+  created_at timestamptz not null default now(),
+  unique (warehouse_id, user_id)
+);
+-- The supplier dashboard scopes each user to the warehouses listed in
+-- this table; PO emails are sent to all users with receives_po_emails = true.</code></pre>
+
+<h3>3.7 Three additions from Jonny&rsquo;s response (now folded into components 11, 14, 15)</h3>
+
+<div class="item">
+  <h4><span class="item-num">A</span> Optional external tracking URL on the supplier dashboard</h4>
+  <p>Some carriers issue a tracking link, even just to their own portal. <code>orders.supplier_tracking_url</code> column (parallel to <code>orders.macship_tracking_url</code>), editable by the supplier on the dashboard. If filled, surfaces as a link on the buyer&rsquo;s order page.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">B</span> Supplier SLA / stuck-order flag in admin</h4>
+  <p>Admin orders page surfaces a flag for supplier-managed orders where <code>estimated_delivery IS NULL</code> after a configurable threshold (default 24 hours from order arriving with the supplier). Visible only to admins. Eventually trigger an automated nudge to the supplier &mdash; not Phase 1, flag-only is enough to start.</p>
+</div>
+
+<div class="item">
+  <h4><span class="item-num">C</span> Reconciliation data on supplier-managed orders</h4>
+  <p><code>orders.supplier_freight_cost numeric(10, 2)</code> &mdash; what we owe the supplier for freight (may differ from buyer-paid shipping if there&rsquo;s a markup). An admin view aggregates: <em>buyer-paid shipping &minus; supplier freight cost = freight margin per order.</em> Makes the Xero reconciliation report a one-query read.</p>
+</div>
+
+<h3>3.8 The end-to-end order journey (the application flow)</h3>
+
+<p>Step-by-step, this is what runs in the application from the moment a buyer adds AdBlue to their cart to the moment the order closes. Every step references the relevant component number from 3.3.</p>
+
+<div class="flow">  Buyer adds AdBlue (Bulk, X litres) to cart on the storefront
+     |
+     |  same product page experience as today
+     v
+  Buyer enters delivery postcode at checkout
+     |
+     |  fulfillment router checks the product's warehouse:
+     |    is_supplier_managed = true  -->  SupplierManagedStrategy   [comp 1]
+     |    is_supplier_managed = false -->  current MacShip path (unchanged)
+     v
+  SupplierManagedStrategy runs:                                       [comp 3-5]
+     1. Look up product_freight_rate_sheets to find rate sheet
+        (AdBlue Bulk -> 'AdBlue Bulk Post-14Jul25', unit_type per_litre)
+     2. Distance Matrix API: postcode -> road km, cached
+     3. Round km up to next 100km bracket
+     4. freight = rate per litre x order litres x bracket lookup
+     5. Skip MacShip quote entirely
+     v
+  Checkout renders site-access questions for AdBlue Bulk             [comp 6]
+     - 7 questions (truck access, tank capacity, fill point, hours,
+       induction, hardstand, fittings)
+     - 'No' to truck access -> warning copy, order still proceeds    [comp 7]
+     v
+  Buyer pays Chem Connect via Stripe (unchanged)
+     |
+     |  order is_supplier_managed = true is persisted
+     |  site_access_answers stored as jsonb on the order
+     v
+  PO email fires to all warehouse_users with                         [comp 8]
+  receives_po_emails = true:
+     - buyer name, address, phone, email
+     - products + quantities
+     - site-access answers
+     - deep link into the supplier dashboard order detail page
+     v
+  Supplier logs into the Chem Connect-branded dashboard              [comp 9]
+     - sees only their warehouse(s) orders
+     - opens this order, reviews address + answers
+     - if hardstand/truck/etc. flagged 'No', calls the buyer first
+     - picks dispatch depot, sets:
+         supplier_dispatch_date  (new date)                          [comp 10]
+         estimated_delivery      (reused date)
+         supplier_dispatch_notes (free text)
+         supplier_tracking_url   (optional)                          [comp 11]
+     v
+  Buyer is automatically notified                                    [comp 13]
+     - email on first dispatch_date set
+     - email on first ETA set
+     - email on any subsequent date change
+     - order page shows dispatch_date / ETA / notes / tracking link  [comp 12]
+     v
+  Variance check on dispatch                                         [comp 16]
+     - supplier-confirmed depot -> recalculate freight
+     - if delta > threshold, flag for admin + notify buyer
+     v
+  Admin SLA flag (in parallel, runs throughout)                      [comp 14]
+     - if estimated_delivery IS NULL after 24h, flag in admin orders
+     v
+  Supplier marks dispatched -> delivered. Order closes.
+     v
+  Admin reconciliation in Xero                                       [comp 15]
+     - read view: buyer-paid shipping minus supplier_freight_cost
+       per order, aggregated by supplier
+     - one-query export, manual Xero entry as today</div>
+
+<div class="box-blue">
+  <strong>Mixed-cart guard:</strong> If a buyer tries to add a MacShip product and a supplier-managed product to the same cart in Phase 1, the cart blocks with a clear &ldquo;Please split into two orders&rdquo; message (component 17). Phase 2 revisits if the use case actually emerges.
+</div>
+
+<h3>3.9 What the three user groups see</h3>
+
+<p>Each side of the platform gets a distinct surface. None of them overlap, and the supplier deliberately sees the smallest slice.</p>
+
+<div class="three-col">
+  <div class="card">
+    <h4>Buyer</h4>
+    <p style="font-size: 12.5px;"><strong>Same Chem Connect storefront as today.</strong> The visible differences when ordering AdBlue (Bulk):</p>
+    <ul style="font-size: 12.5px;">
+      <li>Extra site-access questions on checkout (component 6)</li>
+      <li>Truck-access warning if they answer &ldquo;No&rdquo; (component 7)</li>
+      <li>Cart blocks if they mix supplier-managed + MacShip products in one checkout (component 17)</li>
+      <li>Order page shows supplier dispatch date + ETA + notes + optional tracking URL instead of MacShip scan tracking (component 12)</li>
+      <li>Email notifications when the supplier sets / changes dispatch date or ETA (component 13)</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Admin (Jonny)</h4>
+    <p style="font-size: 12.5px;"><strong>Sees everything &mdash; including supplier orders &mdash; from the master admin.</strong> Net new admin work this feature adds:</p>
+    <ul style="font-size: 12.5px;">
+      <li>Supplier-managed warehouse creation form (components 1, 2)</li>
+      <li>Rate-sheet + bracket configuration UI (components 3, 4)</li>
+      <li>Site-access question configuration UI (component 6)</li>
+      <li>Per-warehouse supplier user management (component 2)</li>
+      <li>SLA stuck-order flag in the orders list (component 14)</li>
+      <li>Reconciliation view: buyer-paid shipping vs supplier_freight_cost margin (component 15)</li>
+      <li>Variance-check review surface (component 16)</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Supplier</h4>
+    <p style="font-size: 12.5px;"><strong>A focused, scoped, read-mostly dashboard.</strong> Sees only their warehouse&rsquo;s orders. They can:</p>
+    <ul style="font-size: 12.5px;">
+      <li>Browse + filter their orders</li>
+      <li>Open an order and see address, contact details, site-access answers, products, quantities</li>
+      <li>Set / update <code>supplier_dispatch_date</code>, <code>estimated_delivery</code>, <code>supplier_dispatch_notes</code>, <code>supplier_tracking_url</code></li>
+      <li>Mark order dispatched / delivered</li>
+    </ul>
+    <p style="font-size: 12.5px;">They <strong>cannot</strong> see other warehouses, edit products, refund, or cancel.</p>
+  </div>
+</div>
+
+<div class="box-blue">
+  <strong>Multi-user note:</strong> a supplier-managed warehouse can have N users (sales / dispatch / ops) via the <code>warehouse_users</code> junction table. Each user&rsquo;s role flags decide whether they receive PO emails (<code>receives_po_emails</code>) and whether they can update orders (<code>can_update_orders</code>). <strong>For AdBlue Phase 1, Jonny confirmed it&rsquo;s one person handling both PO receipt and dispatch updates &mdash; so one <code>warehouse_users</code> row with all flags true.</strong> The junction table is in place from day 1 so future suppliers with separate sales/dispatch staff are a configuration job, not a code change.
+</div>
+
+<h3>3.10 Compliance &amp; operational safeguards</h3>
+
+<ul>
+  <li><strong>Buyer pays Chem Connect.</strong> No marketplace splits, no separate Stripe accounts. Reconciliation in Xero, same as today.</li>
+  <li><strong>Supplier sees buyer contact details.</strong> Contractual safeguard: clause in the supplier agreement preventing direct-sales bypass.</li>
+  <li><strong>No refunds, no product edits, no cancellations from the supplier dashboard.</strong> Refund / cancel actions stay with admin.</li>
+  <li><strong>Freight quote vs final cost variance.</strong> If the supplier&rsquo;s recalculated freight differs from the indicative quote by more than a configurable threshold, flag the order and notify the buyer before dispatch.</li>
+  <li><strong>Audit trail on supplier dashboard actions.</strong> Every change to dispatch_date / ETA / status records actor + timestamp.</li>
+</ul>
+
+<h3>3.11 Open items I still need to confirm with the supplier</h3>
+
+<table>
+  <thead>
+    <tr><th style="width: 32%;">Item</th><th>Why it matters</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Pack Existing vs Pack New meaning</strong></td>
+      <td>My interpretation: refill of customer-owned IBC vs new IBC supplied with product. Phase 2 rate-sheet labelling depends on confirming this. The ~10% price gap in the matrix fits that interpretation.</td>
+    </tr>
+    <tr>
+      <td><strong>4001+ km row is empty</strong></td>
+      <td>Either the supplier doesn&rsquo;t service past 4000km or the data is missing. Decide what checkout does: block, &ldquo;quote on application&rdquo;, or fall back to last bracket.</td>
+    </tr>
+    <tr>
+      <td><strong>Minimum freight charge / minimum order size</strong></td>
+      <td>A small bulk drop close to the depot is still cents-per-litre at low volume. Need a freight floor or minimum order size from the supplier.</td>
+    </tr>
+    <tr>
+      <td><strong>Distance calculation method</strong></td>
+      <td>Confirm road-distance API (Google Distance Matrix or similar), not straight-line. Confirm bucket logic rounds <em>up</em> to the next 100km bracket (so 350km uses the 301&ndash;400 row).</td>
+    </tr>
+    <tr>
+      <td><strong>Supplier hose fitting types</strong></td>
+      <td>The &ldquo;tank fitting type&rdquo; site-access question needs the supplier&rsquo;s hose fittings as the option set.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>3.12 Fulfillment build breakdown</h3>
+
+<table>
+  <thead>
+    <tr><th style="width: 30%;">Workstream</th><th style="width: 12%;">Surface</th><th>Detail</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Migrations 3.6.1&ndash;3.6.6</td><td>DB</td><td>Schema in 3.6. Auditable as one feature migration set.</td></tr>
+    <tr><td>Freight strategy router</td><td>Backend</td><td>Refactor <code>lib/macship/warehouse-selector.ts</code> &rarr; general fulfillment router. <code>SupplierManagedStrategy</code> implementation. <code>lib/orders/calculate.ts</code> consumes the same freight number.</td></tr>
+    <tr><td>Distance + bracket lookup</td><td>Backend</td><td>Postcode &rarr; road distance via Distance Matrix API. Round up to the next 100km bracket. Cache results per (origin, destination) for the order&rsquo;s lifetime.</td></tr>
+    <tr><td>Site-access question engine</td><td>Frontend / Backend</td><td>Render conditional questions on checkout based on <code>product_checkout_questions</code>. Store answers as <code>orders.site_access_answers jsonb</code>.</td></tr>
+    <tr><td>PO email to supplier</td><td>Backend</td><td>On order placement for a supplier-managed warehouse, email the configured supplier contact with all order data + dashboard deep link.</td></tr>
+    <tr><td>Supplier dashboard</td><td>Admin (scoped)</td><td>List supplier&rsquo;s orders. Order detail. Edit dispatch_date / ETA / dispatch_notes / tracking_url / status. Read-only on everything else.</td></tr>
+    <tr><td>Supplier user role</td><td>Auth</td><td>New role + permission scope. Final shape pending audit of the existing roles model (Section 5).</td></tr>
+    <tr><td>Buyer notifications</td><td>Backend</td><td>On dispatch_date or ETA set/changed, send buyer email and update the order page.</td></tr>
+    <tr><td>Buyer order page</td><td>Frontend</td><td>Show dispatch_date, ETA, tracking URL when present. Replace MacShip scan tracking surface for supplier orders.</td></tr>
+    <tr><td>Admin SLA flag</td><td>Admin</td><td>List flag for orders where ETA is null past a threshold. Configurable threshold.</td></tr>
+    <tr><td>Reconciliation view</td><td>Admin</td><td>One-query view: buyer-paid shipping minus supplier_freight_cost = margin per order, aggregated by supplier.</td></tr>
+    <tr><td>Variance check</td><td>Backend</td><td>If supplier&rsquo;s recalculated freight differs from quote by &gt; threshold, flag and notify.</td></tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- 4. COMBINED MIGRATION LIST ================================ -->
+<!-- ============================================================ -->
+<h2 id="sec-4"><span class="section-num">4.</span> Combined data-model migration list</h2>
+
+<p>All schema changes across both features, in the order I&rsquo;d expect them to ship.</p>
+
+<table>
+  <thead>
+    <tr><th style="width: 50px;">#</th><th style="width: 30%;">Migration</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>M1</td><td><code>warehouses.is_supplier_managed</code></td><td>Flag the supplier-managed warehouse path.</td></tr>
+    <tr><td>M2</td><td><code>supplier_rate_sheets</code> + <code>supplier_rate_sheet_brackets</code></td><td>Freight engine core.</td></tr>
+    <tr><td>M3</td><td><code>product_freight_rate_sheets</code></td><td>Map products+packaging to rate sheets.</td></tr>
+    <tr><td>M4</td><td><code>product_checkout_questions</code></td><td>Configurable site-access question engine.</td></tr>
+    <tr><td>M5</td><td>New columns on <code>orders</code></td><td>supplier_dispatch_date, supplier_dispatch_notes, supplier_tracking_url, supplier_freight_cost, site_access_answers.</td></tr>
+    <tr><td>M6</td><td><code>products.reviews_enabled</code></td><td>Per-product opt-out flag for reviews.</td></tr>
+    <tr><td>M7</td><td><code>review_tokens</code></td><td>Magic-link tokens with expiry, one-use, status-gate, rate-limit fields.</td></tr>
+    <tr><td>M8</td><td><code>reviews</code> + <code>review_photos</code></td><td>Review records + image attachments.</td></tr>
+    <tr><td>M9</td><td><code>review_audit_log</code></td><td>Immutable moderation + Privacy-Act-deletion audit.</td></tr>
+    <tr><td>M10</td><td><code>packaging_sizes.is_visible_on_storefront</code></td><td>Per-packaging-size storefront visibility flag. Phase 1 hides AdBlue&rsquo;s 10L Jerry Can / 200L Drum / 1000L IBC; Phase 2 flips them on (component 18).</td></tr>
+    <tr><td>M11</td><td><code>mixed_cart_block_events</code></td><td>Counter table for mixed-cart blocks (component 17). Logged at trigger time so Phase 2 prioritisation has data behind it.</td></tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- 5. OPEN ITEMS ============================================= -->
+<!-- ============================================================ -->
+<h2 id="sec-5"><span class="section-num">5.</span> Open items I still need to close</h2>
+
+<p>Things that don&rsquo;t block locking the plan, but do block starting code.</p>
+
+<h3>5.1 Resolved with Jonny (round 1 + round 2)</h3>
+
+<p>Round 1 closed the four prior open items. Round 2 (Jonny&rsquo;s approval reply) folded in five small clarifications. All recorded here for the audit trail.</p>
+
+<p style="font-size: 13px; color: #6b7280; margin-top: 18px;"><strong>Round 1 &mdash; original open items</strong></p>
+
+<table>
+  <thead>
+    <tr><th style="width: 32%;">Item</th><th>Resolution</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Q5 &mdash; supplier contact details</strong></td>
+      <td><span class="badge b-locked">Resolved</span> Not pre-supplied. Captured at warehouse-creation time via the new supplier-managed warehouse form. Slots into <code>warehouses.contact_*</code> and the <code>warehouse_users</code> rows.</td>
+    </tr>
+    <tr>
+      <td><strong>Sales vs dispatch contact</strong></td>
+      <td><span class="badge b-locked">Resolved</span> AdBlue Phase 1 = same person for PO and dispatch (one <code>warehouse_users</code> row). Architecture still supports N users per supplier-managed warehouse via the junction table with role flags (<code>receives_po_emails</code>, <code>can_update_orders</code>) so multi-person suppliers in future are configuration, not code. See 3.6.7.</td>
+    </tr>
+    <tr>
+      <td><strong>Q9 &mdash; other suppliers in the pipeline</strong></td>
+      <td><span class="badge b-locked">Resolved</span> No other suppliers named at this stage. Freight engine&rsquo;s <code>unit_type</code> field already covers <code>per_litre</code>, <code>flat_per_consignment</code>, <code>per_kg</code>, <code>per_pallet</code>, <code>per_zone</code>. Future suppliers are a configuration job.</td>
+    </tr>
+    <tr>
+      <td><strong>Four review-side defaults (section 2.8)</strong></td>
+      <td><span class="badge b-locked">Resolved</span> Jonny: &ldquo;do what&rsquo;s best&rdquo; &mdash; proposed defaults locked. Email via existing Mailgun, audit of existing review infrastructure as M1, three name-format options + consent checkbox (extended to four in round 2), inline render + sticky summary (no tabs).</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="font-size: 13px; color: #6b7280; margin-top: 26px;"><strong>Round 2 &mdash; clarifications from Jonny&rsquo;s approval reply (28 April 2026)</strong></p>
+
+<table>
+  <thead>
+    <tr><th style="width: 32%;">Clarification</th><th>Resolution</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Reconciliation view = full margin</strong></td>
+      <td><span class="badge b-locked">Folded in</span> Component 15 updated. View now shows sale price &minus; product cost &minus; supplier freight cost. Product cost joins to the existing <code>warehouse_product_pricing</code> table.</td>
+    </tr>
+    <tr>
+      <td><strong>AdBlue Phase-1 packaging visibility</strong></td>
+      <td><span class="badge b-locked">Folded in</span> New component 18 added. The three non-Bulk AdBlue packaging sizes are hidden from the storefront in Phase 1 via a new <code>packaging_sizes.is_visible_on_storefront</code> flag (migration M10). Phase 2 flips them on.</td>
+    </tr>
+    <tr>
+      <td><strong>Variance threshold default</strong></td>
+      <td><span class="badge b-locked">Folded in</span> Component 16 default locked at <strong>10% or $100, whichever is greater</strong>. Configurable from admin settings later.</td>
+    </tr>
+    <tr>
+      <td><strong>Fourth reviewer name format</strong></td>
+      <td><span class="badge b-locked">Folded in</span> Section 2.8 updated. Added <em>&ldquo;Reviewer at {industry/role}, {state}&rdquo;</em> &mdash; e.g. &ldquo;Plant Manager, NSW concrete plant&rdquo;. Opens up B2B reviews from buyers who won&rsquo;t put their name on a public site.</td>
+    </tr>
+    <tr>
+      <td><strong>Mixed-cart block counter</strong></td>
+      <td><span class="badge b-locked">Folded in</span> Component 17 extended. New <code>mixed_cart_block_events</code> table (migration M11) logs each trigger with timestamp, user, and SKU pair. Admin sees count + recent events to size Phase 2 priority.</td>
+    </tr>
+    <tr>
+      <td><strong>Q5 supplier contact handover</strong></td>
+      <td><span class="badge b-locked">Confirmed</span> Jonny will provide AdBlue dispatch contact (name, email, mobile) during the M1 window. Slots into <code>warehouses.contact_*</code> + the single <code>warehouse_users</code> row.</td>
+    </tr>
+    <tr>
+      <td><strong>Q9 framing on unit_types</strong></td>
+      <td><span class="badge b-locked">Confirmed</span> No other suppliers named at this stage. Five-unit-type architecture (per_litre, flat_per_consignment, per_kg, per_pallet, per_zone) confirmed correct.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>5.2 Awaiting AdBlue supplier</h3>
+
+<ul>
+  <li>Pack Existing vs Pack New definition (refill vs new IBC).</li>
+  <li>4001+ km behaviour (block / quote-on-application / last-bracket fallback).</li>
+  <li>Minimum freight charge or minimum order size.</li>
+  <li>Distance calculation method (road-distance API + round-up bucket logic).</li>
+  <li>Hose fitting types (option set for the &ldquo;tank fitting type&rdquo; site-access question).</li>
+</ul>
+
+<h3>5.3 Implementation audits I&rsquo;ll run before scoping hours</h3>
+
+<ul>
+  <li>Existing review infrastructure &mdash; product-page review block, AggregateRating JSON-LD, schema. Verify what&rsquo;s shipped vs aspirational.</li>
+  <li>Mailgun + GHL scheduled-campaign system &mdash; verify the Delivered-event trigger surface.</li>
+  <li>Existing roles model &mdash; confirm extension point for the supplier dashboard user role.</li>
+  <li>Existing <code>lib/macship/warehouse-selector.ts</code> &mdash; confirm the refactor surface for the new fulfillment router.</li>
+  <li>Existing <code>orders</code> column conventions &mdash; the response doc proposes reusing <code>estimated_delivery</code>; verify it&rsquo;s available and unused for MacShip.</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- 6. BUILD SEQUENCE ========================================= -->
+<!-- ============================================================ -->
+<h2 id="sec-6"><span class="section-num">6.</span> Build sequence &amp; milestones</h2>
+
+<table>
+  <thead>
+    <tr><th style="width: 14%;">Milestone</th><th style="width: 28%;">Deliverable</th><th>Detail</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="badge b-phase1">M1</span></td>
+      <td>Audits + supplier-side question closure + AdBlue contact handover</td>
+      <td>Run the audits in 5.3 (review infra, Mailgun, roles model, warehouse-selector, orders columns). Send the supplier-side questions in 5.2 to the AdBlue supplier and capture answers. Receive AdBlue dispatch contact (name, email, mobile) from Jonny per round-2 confirmation. No code yet.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M2</span></td>
+      <td>Fulfillment migrations</td>
+      <td>Migrations M1&ndash;M5. Schema lands behind the <code>is_supplier_managed</code> flag &mdash; zero impact on existing rows.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M3</span></td>
+      <td>Freight engine</td>
+      <td>Refactor warehouse-selector into the fulfillment router. Implement <code>SupplierManagedStrategy</code>. Distance Matrix API integration. Bracket lookup.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M4</span></td>
+      <td>Checkout + site-access questions</td>
+      <td><code>product_checkout_questions</code> rendering on checkout. Conditional warnings (truck access). Answers stored on the order.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M5</span></td>
+      <td>Supplier dashboard</td>
+      <td>Auth role, scoped order list, order detail, dispatch_date / ETA / notes / tracking_url editing. PO email out + dashboard deep link in.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M6</span></td>
+      <td>Buyer-side surface</td>
+      <td>Order page renders dispatch_date / ETA / tracking_url for supplier orders. Buyer email on set/change. SLA stuck-order flag in admin.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M7</span></td>
+      <td>Reconciliation view</td>
+      <td>Admin view for buyer-paid shipping vs supplier_freight_cost margin. Variance check on dispatch.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M8</span></td>
+      <td>AdBlue Bulk goes live</td>
+      <td>Phase 1a complete.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M9</span></td>
+      <td>Reviews migrations</td>
+      <td>Migrations M6&ndash;M9.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M10</span></td>
+      <td>Token issuance + Mailgun cadence</td>
+      <td>+7d / +14d emails on Delivered transition. Token signing + validation. Rate-limit + status-gate.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M11</span></td>
+      <td>Submit page + moderation queue</td>
+      <td>Public submit page with photo upload and consent. Admin queue with taxonomy and Privacy Act delete.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M12</span></td>
+      <td>Product page render + JSON-LD</td>
+      <td>Inline reviews block + sticky summary. AggregateRating + Review[] gated at &ge; 3 approved.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase1">M13</span></td>
+      <td>Reviews go live</td>
+      <td>Phase 1b complete.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase2">M14</span></td>
+      <td>AdBlue Pack rate sheets</td>
+      <td>Configuration only &mdash; load Pack Existing + Pack New sheets, link to IBC packaging sizes, re-introduce forklift question.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase2">M15</span></td>
+      <td>Reviews follow-ups</td>
+      <td>Admin reply-to-review surface, advanced moderation tooling, automated nudges to suppliers on stuck orders.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- 7. RISKS ================================================== -->
+<!-- ============================================================ -->
+<h2 id="sec-7"><span class="section-num">7.</span> Risks &amp; mitigations</h2>
+
+<table>
+  <thead>
+    <tr><th style="width: 28%;">Risk</th><th style="width: 32%;">Impact</th><th>Mitigation</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Existing review infrastructure isn&rsquo;t as built as the original proposal implies</td>
+      <td>Reviews build estimate balloons; &ldquo;glue work&rdquo; becomes &ldquo;greenfield work&rdquo;</td>
+      <td>Audit upfront (M1). Surface as explicit additional scope before locking hours.</td>
+    </tr>
+    <tr>
+      <td>Distance calculation API choice has cost / accuracy tradeoffs</td>
+      <td>Either inaccurate freight (lost margin) or expensive per-quote API calls</td>
+      <td>Use Google Distance Matrix, cache results per (origin, destination) for the order&rsquo;s lifetime, and round up to bracket boundaries (which absorbs minor inaccuracy).</td>
+    </tr>
+    <tr>
+      <td>Supplier doesn&rsquo;t respond to PO emails reliably</td>
+      <td>Orders sit in limbo, buyer trust erodes</td>
+      <td>SLA stuck-order flag in admin (component 14 / 3.7 item B). Phase 2 adds automated supplier nudges.</td>
+    </tr>
+    <tr>
+      <td>Mixed-cart orders (one MacShip product + one supplier product)</td>
+      <td>Two freight numbers, two POs, confusing checkout</td>
+      <td>Phase 1 decision: block mixed carts at checkout with a clear message. Phase 2 (post-launch) revisit if the use case actually emerges.</td>
+    </tr>
+    <tr>
+      <td>Supplier sees buyer contact details and uses them for direct sales</td>
+      <td>Lost margin, lost trust with buyers</td>
+      <td>Contractual safeguard in supplier agreement (per Q8). No technical masking.</td>
+    </tr>
+    <tr>
+      <td>One-star &ldquo;troll&rdquo; review tanks AggregateRating early in a product&rsquo;s life</td>
+      <td>SERP CTR drop from a volatile rating</td>
+      <td>Threshold gate (&ge; 3 approved reviews) on JSON-LD. Manual seed entry to bridge the gap.</td>
+    </tr>
+    <tr>
+      <td>Magic-link token leaks via email forwarding</td>
+      <td>Fraudulent reviews under a real customer&rsquo;s name</td>
+      <td>One-use, status-gated, 60-day expiry, 3 attempts/hour rate limit. All four enforced server-side.</td>
+    </tr>
+    <tr>
+      <td>ACCC scrutiny on moderation decisions</td>
+      <td>Regulator finds rejection patterns are rating-correlated</td>
+      <td>Closed rejection-reason taxonomy. Immutable audit log. Approve-or-reject only &mdash; no edit. The audit log is the defence.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- 8. OUT OF SCOPE =========================================== -->
+<!-- ============================================================ -->
+<h2 id="sec-8"><span class="section-num">8.</span> Out of scope (explicit)</h2>
+
+<p>Things deliberately not in this plan, so there&rsquo;s no ambiguity.</p>
+
+<h3>Reviews</h3>
+<ul>
+  <li>Admin reply-to-review surface (Phase 2).</li>
+  <li>Importing reviews from third-party platforms (ProductReview.com.au, Google Reviews, etc.).</li>
+  <li>Review voting (&ldquo;was this helpful?&rdquo;).</li>
+  <li>Review-based product Q&amp;A.</li>
+  <li>Review aggregation across product variants/sizes (Phase 1 = one review set per product SKU).</li>
+  <li>Incentivised reviews (discounts in exchange for reviews) &mdash; explicitly avoided for AU compliance.</li>
+</ul>
+
+<h3>Fulfillment</h3>
+<ul>
+  <li>Marketplace-style Stripe payment splits.</li>
+  <li>Real-time scan-based tracking (the supplier doesn&rsquo;t have a scanning network).</li>
+  <li>Letting suppliers create or edit products.</li>
+  <li>Letting suppliers refund or cancel orders from the dashboard.</li>
+  <li>Replacing MacShip on any existing product.</li>
+  <li>Mixed-cart orders combining MacShip and supplier-managed products in a single checkout (Phase 1 blocks; revisit Phase 2 only if needed).</li>
+  <li>Multi-depot stock management inside Chem Connect (the supplier picks the depot in their dashboard, we don&rsquo;t track depot-level inventory).</li>
+  <li>Pack Existing and Pack New IBC AdBlue (Phase 2 &mdash; configuration only).</li>
+</ul>
+
+<hr class="divider">
+
+<div class="box">
+  <strong>Sign-off:</strong> All Jonny-side items are resolved &mdash; the plan is locked from his side. Build can start as soon as M1 audits complete and the five supplier-side items in 3.11 come back from the AdBlue supplier (those resolve in parallel with M1&ndash;M3 and don&rsquo;t block the start of the build).
+</div>
+
+<div class="footer">
+  <p>Prepared by Sohaib for Jonny &middot; Chem Connect by CQVS &middot; April 2026</p>
+  <p>Consolidated implementation plan covering the Customer Reviews and Supplier-Managed Fulfillment features. Supersedes the four prior briefs for the purposes of build scope.</p>
+</div>
+
+</body>
+</html>

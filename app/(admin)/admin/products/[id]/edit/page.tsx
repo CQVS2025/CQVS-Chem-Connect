@@ -23,6 +23,7 @@ interface ProductDetail {
   region: string
   stock_qty: number
   in_stock: boolean
+  reviews_enabled?: boolean
   shipping_fee: number | null
   badge: string | null
   image_url: string | null
@@ -81,6 +82,7 @@ export default function EditProductPage({
     region: data.region,
     stock_qty: data.stock_qty,
     in_stock: data.in_stock,
+    reviews_enabled: data.reviews_enabled ?? true,
     shipping_fee: data.shipping_fee ?? 0,
     badge: data.badge,
     image_url: data.image_url,
