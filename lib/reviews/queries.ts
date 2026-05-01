@@ -22,6 +22,12 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
  *      - Verified-only count + average. Drives the headline chip near
  *        the buy button AND the AggregateRating JSON-LD math (gated at
  *        >=3 verified reviews on the call site).
+ *
+ * All three swallow errors and return empty / null on failure. This is
+ * deliberate so a static prerender that runs without DB env vars (e.g.
+ * a Vercel Preview build with secrets only set in Production) doesn't
+ * crash the build - the page just renders without reviews data and
+ * Next.js will revalidate at request time once it can reach the DB.
  */
 
 export interface PublicReview {
@@ -54,21 +60,26 @@ export async function getApprovedReviewsForProduct(
   productId: string,
   limit = 10,
 ): Promise<PublicReview[]> {
-  const supabase = createServiceRoleClient()
-  const { data, error } = await supabase
-    .from("reviews")
-    .select(
-      "id, rating, headline, body, display_name, reviewer_city, reviewer_state, published_at, verified_buyer, review_photos(id, public_url, position)",
-    )
-    .eq("product_id", productId)
-    .eq("status", "approved")
-    .eq("verified_buyer", true)
-    .order("published_at", { ascending: false })
-    .limit(limit)
+  try {
+    const supabase = createServiceRoleClient()
+    const { data, error } = await supabase
+      .from("reviews")
+      .select(
+        "id, rating, headline, body, display_name, reviewer_city, reviewer_state, published_at, verified_buyer, review_photos(id, public_url, position)",
+      )
+      .eq("product_id", productId)
+      .eq("status", "approved")
+      .eq("verified_buyer", true)
+      .order("published_at", { ascending: false })
+      .limit(limit)
 
-  if (error || !data) return []
-
-  return data.map((r) => mapRow(r))
+    if (error || !data) return []
+    return data.map((r) => mapRow(r))
+  } catch {
+    // Missing env vars at static-prerender time, transient network, etc.
+    // The page renders without reviews and revalidates at request time.
+    return []
+  }
 }
 
 /**
@@ -79,20 +90,23 @@ export async function getReviewsForDisplay(
   productId: string,
   limit = 50,
 ): Promise<PublicReview[]> {
-  const supabase = createServiceRoleClient()
-  const { data, error } = await supabase
-    .from("reviews")
-    .select(
-      "id, rating, headline, body, display_name, reviewer_city, reviewer_state, published_at, verified_buyer, review_photos(id, public_url, position)",
-    )
-    .eq("product_id", productId)
-    .eq("status", "approved")
-    .order("published_at", { ascending: false })
-    .limit(limit)
+  try {
+    const supabase = createServiceRoleClient()
+    const { data, error } = await supabase
+      .from("reviews")
+      .select(
+        "id, rating, headline, body, display_name, reviewer_city, reviewer_state, published_at, verified_buyer, review_photos(id, public_url, position)",
+      )
+      .eq("product_id", productId)
+      .eq("status", "approved")
+      .order("published_at", { ascending: false })
+      .limit(limit)
 
-  if (error || !data) return []
-
-  return data.map((r) => mapRow(r))
+    if (error || !data) return []
+    return data.map((r) => mapRow(r))
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -103,26 +117,30 @@ export async function getReviewsForDisplay(
 export async function getApprovedReviewAggregate(
   productId: string,
 ): Promise<PublicAggregate | null> {
-  const supabase = createServiceRoleClient()
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("rating")
-    .eq("product_id", productId)
-    .eq("status", "approved")
-    .eq("verified_buyer", true)
+  try {
+    const supabase = createServiceRoleClient()
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("rating")
+      .eq("product_id", productId)
+      .eq("status", "approved")
+      .eq("verified_buyer", true)
 
-  if (error || !data || data.length === 0) return null
+    if (error || !data || data.length === 0) return null
 
-  const distribution: PublicAggregate["distribution"] = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-  for (const r of data) {
-    const k = r.rating as 1 | 2 | 3 | 4 | 5
-    if (k >= 1 && k <= 5) distribution[k] += 1
-  }
-  const sum = data.reduce((acc, r) => acc + (r.rating as number), 0)
-  return {
-    count: data.length,
-    averageRating: Math.round((sum / data.length) * 10) / 10,
-    distribution,
+    const distribution: PublicAggregate["distribution"] = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+    for (const r of data) {
+      const k = r.rating as 1 | 2 | 3 | 4 | 5
+      if (k >= 1 && k <= 5) distribution[k] += 1
+    }
+    const sum = data.reduce((acc, r) => acc + (r.rating as number), 0)
+    return {
+      count: data.length,
+      averageRating: Math.round((sum / data.length) * 10) / 10,
+      distribution,
+    }
+  } catch {
+    return null
   }
 }
 
