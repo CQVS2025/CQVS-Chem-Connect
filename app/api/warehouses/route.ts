@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/supabase/admin-check"
+import { syncWarehouseContactToXero } from "@/lib/xero/sync"
 
 // GET /api/warehouses - list warehouses (public reads active ones)
 export async function GET() {
@@ -49,6 +50,10 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  if (data?.id && data.xero_contact_id && data.contact_email) {
+    await syncWarehouseContactToXero(data.id)
   }
 
   return NextResponse.json(data, { status: 201 })

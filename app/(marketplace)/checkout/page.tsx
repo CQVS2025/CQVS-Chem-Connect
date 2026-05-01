@@ -175,6 +175,8 @@ interface MacshipQuoteResult {
   } | null
   eta_date?: string | null
   eta_business_days?: number | null
+  quote_shape?: "parcel" | "pallet" | null
+  is_dg?: boolean | null
 }
 
 interface DeliveryAddress {
@@ -462,6 +464,8 @@ function CheckoutForm({
           macship_service_name: macshipQuote?.service_name ?? null,
           macship_eta_date: macshipQuote?.eta_date ?? null,
           macship_eta_business_days: macshipQuote?.eta_business_days ?? null,
+          macship_quote_shape: macshipQuote?.quote_shape ?? null,
+          macship_is_dg: macshipQuote?.is_dg ?? null,
         })
 
         // PO path always returns a full Order row; narrow the union.
@@ -541,6 +545,8 @@ function CheckoutForm({
           macship_service_name: macshipQuote?.service_name ?? null,
           macship_eta_date: macshipQuote?.eta_date ?? null,
           macship_eta_business_days: macshipQuote?.eta_business_days ?? null,
+          macship_quote_shape: macshipQuote?.quote_shape ?? null,
+          macship_is_dg: macshipQuote?.is_dg ?? null,
         })
 
         // The Stripe path returns a StripeCheckoutSession, not a full Order.

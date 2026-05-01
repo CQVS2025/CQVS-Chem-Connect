@@ -4,11 +4,16 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getStripeServer } from "@/lib/stripe"
 import { notifyAdminNewOrder } from "@/lib/email/notifications"
 import { sendEmail, getAdminEmail } from "@/lib/email/send"
-import { isMacShipConfigured, createConsignment } from "@/lib/macship/client"
+import {
+  isMacShipConfigured,
+  createConsignment,
+  type MachshipItem,
+} from "@/lib/macship/client"
 import { getOrderPickupDate } from "@/lib/macship/lead-time"
 import {
   buildConsolidatedCart,
   buildCapacityMap,
+  buildParcelCart,
 } from "@/lib/macship/pallet-consolidation"
 import {
   calculateOrder,
@@ -380,29 +385,61 @@ export async function POST(request: NextRequest) {
               }
         const orderCapacityMap = buildCapacityMap(orderPackagingSizesData ?? [])
 
-        const machshipItems = buildConsolidatedCart(
-          calc.orderItems.map((oi) => {
-            const product = calc.productMap.get(oi.product_id)
-            return {
-              product_name: product?.name ?? oi.product_name,
-              packaging_size_name: oi.packaging_size,
-              packaging_size_id: oi.packaging_size_id,
-              quantity: oi.quantity,
-            }
-          }),
-          orderCapacityMap,
-        )
+        const consolidationInput = calc.orderItems.map((oi) => {
+          const product = calc.productMap.get(oi.product_id)
+          return {
+            product_name: product?.name ?? oi.product_name,
+            packaging_size_name: oi.packaging_size,
+            packaging_size_id: oi.packaging_size_id,
+            quantity: oi.quantity,
+          }
+        })
+
+        // Match the item shape that won the customer's quote. The quote
+        // endpoint tries parcel-first; if it picked a parcel-only carrier
+        // (e.g. Aramex Parcel), creating the consignment with pallet items
+        // makes Machship return "No prices were found" because that carrier
+        // can't price pallets.
+        const quoteShape: "parcel" | "pallet" =
+          body.macship_quote_shape === "parcel" ? "parcel" : "pallet"
+        const parcelItems =
+          quoteShape === "parcel"
+            ? buildParcelCart(consolidationInput, orderCapacityMap)
+            : null
+        const machshipItems: MachshipItem[] =
+          parcelItems && parcelItems.length > 0
+            ? parcelItems
+            : buildConsolidatedCart(consolidationInput, orderCapacityMap)
 
         const carrierId = body.macship_carrier_id
           ? parseInt(body.macship_carrier_id, 10)
           : null
-        const isDg = calc.orderItems.some((oi) =>
-          isDgClassification(
-            calc.productMap.get(oi.product_id)?.classification,
-          ),
-        )
+        const isDg =
+          body.macship_is_dg === true ||
+          calc.orderItems.some((oi) =>
+            isDgClassification(
+              calc.productMap.get(oi.product_id)?.classification,
+            ),
+          )
 
-        if (carrierId && !Number.isNaN(carrierId) && machshipItems.length > 0) {
+        if (isDg) {
+          // The quote endpoint doesn't filter for DG-capable carriers and we
+          // don't yet collect per-product DG metadata (UN number, packing
+          // group, container type, etc.) required by Machship's DG endpoint.
+          // Skip auto-consignment so admin books it manually in MacShip with
+          // the correct DG paperwork.
+          console.warn(
+            `[orders] DG order ${order.order_number} - skipping auto-consignment, book manually in MacShip`,
+          )
+          macshipData = {
+            ...macshipData,
+            failed: true,
+          }
+        } else if (
+          carrierId &&
+          !Number.isNaN(carrierId) &&
+          machshipItems.length > 0
+        ) {
           const despatchDateLocal = `${pickupResult.pickupDate}T08:00:00`
           const consignmentResult = await createConsignment({
             despatchDateTimeLocal: despatchDateLocal,
@@ -435,7 +472,7 @@ export async function POST(request: NextRequest) {
                 : undefined,
             // Machship question 7 = "Hydraulic Tailgate required".
             questionIds: body.forklift_available === false ? [7] : [],
-            dgsDeclaration: isDg,
+            dgsDeclaration: false,
             items: machshipItems,
           })
 

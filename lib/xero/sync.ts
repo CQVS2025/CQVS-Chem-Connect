@@ -144,6 +144,69 @@ export async function syncProfileToXero(profileId: string): Promise<string | nul
 }
 
 /**
+ * Push warehouse contact details (email, phone) onto an existing Xero contact.
+ *
+ * Called when an admin saves a warehouse with a Xero Contact ID configured.
+ * Without an EmailAddress on the supplier contact, Xero's PO email endpoint
+ * returns a 404 and the warehouse never gets notified.
+ *
+ * Best-effort: failures are logged to xero_sync_log but do not block the
+ * warehouse save.
+ */
+export async function syncWarehouseContactToXero(
+  warehouseId: string,
+): Promise<void> {
+  const supabase = createServiceRoleClient()
+
+  const { data: warehouse } = await supabase
+    .from("warehouses")
+    .select(
+      "id, name, xero_contact_id, contact_name, contact_email, contact_phone",
+    )
+    .eq("id", warehouseId)
+    .single()
+
+  if (!warehouse?.xero_contact_id || !warehouse?.contact_email) return
+
+  const xero = await getXeroClient()
+  if (!xero) return
+
+  const fields: Partial<XeroContactInput> = {
+    EmailAddress: warehouse.contact_email,
+    ...(warehouse.contact_phone
+      ? {
+          Phones: [
+            { PhoneType: "DEFAULT", PhoneNumber: warehouse.contact_phone },
+          ],
+        }
+      : {}),
+  }
+
+  try {
+    await xero.updateContactById(warehouse.xero_contact_id, fields)
+    await logXeroSync({
+      entityType: "contact",
+      entityId: warehouseId,
+      action: "sync",
+      status: "success",
+      xeroId: warehouse.xero_contact_id,
+      request: fields,
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error"
+    await logXeroSync({
+      entityType: "contact",
+      entityId: warehouseId,
+      action: "sync",
+      status: "error",
+      xeroId: warehouse.xero_contact_id,
+      errorMessage: message,
+      request: fields,
+    })
+  }
+}
+
+/**
  * Create a Xero invoice for a PO order.
  *
  * Steps:
@@ -620,10 +683,38 @@ export async function createXeroPurchaseOrderForOrder(
     // Email the PO to the warehouse so they get notified automatically.
     // PO is AUTHORISED — warehouse can act on it immediately, no manual
     // approval required in Xero.
+    //
+    // Push the latest warehouse contact details (email/phone) onto the Xero
+    // contact first. Xero returns 404 on the email endpoint when the supplier
+    // contact has no EmailAddress, so this self-heals the common case where
+    // the warehouse was wired up with just a Xero Contact ID.
+    await syncWarehouseContactToXero(warehouse.id)
     try {
       await xero.emailPurchaseOrder(po.PurchaseOrderID)
+      await logXeroSync({
+        entityType: "purchase_order_email",
+        entityId: orderId,
+        action: "send",
+        status: "success",
+        xeroId: po.PurchaseOrderID,
+      })
     } catch (emailErr) {
+      const message =
+        emailErr instanceof Error ? emailErr.message : "Unknown error"
+      // Xero returns 404 with empty body when the supplier contact has no
+      // EmailAddress set. Hint at the likely cause so admins can fix it.
+      const hint = /\(404\):\s*$/.test(message)
+        ? " - The warehouse's Xero contact likely has no email address set. Save the warehouse with a contact email to push it to Xero."
+        : ""
       console.warn("[Xero] PO created but email to warehouse failed:", emailErr)
+      await logXeroSync({
+        entityType: "purchase_order_email",
+        entityId: orderId,
+        action: "send",
+        status: "error",
+        xeroId: po.PurchaseOrderID,
+        errorMessage: message + hint,
+      })
     }
 
     return {

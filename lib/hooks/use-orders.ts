@@ -38,6 +38,8 @@ interface CreateOrderInput {
   macship_service_name?: string | null
   macship_eta_date?: string | null
   macship_eta_business_days?: number | null
+  macship_quote_shape?: "parcel" | "pallet" | null
+  macship_is_dg?: boolean | null
 }
 
 interface FinalizeOrderInput {

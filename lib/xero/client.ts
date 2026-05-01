@@ -533,6 +533,10 @@ export interface XeroClient {
   findContactByEmail(email: string): Promise<{ ContactID: string } | null>
   createContact(input: XeroContactInput): Promise<{ ContactID: string }>
   upsertContactByEmail(input: XeroContactInput): Promise<{ ContactID: string }>
+  updateContactById(
+    contactId: string,
+    fields: Partial<Omit<XeroContactInput, "ContactID">>,
+  ): Promise<{ ContactID: string }>
   createInvoice(input: XeroInvoiceInput): Promise<{
     InvoiceID: string
     InvoiceNumber: string
@@ -598,6 +602,21 @@ export async function getXeroClient(): Promise<XeroClient | null> {
       }
     }
     return createContact(input)
+  }
+
+  async function updateContactById(
+    contactId: string,
+    fields: Partial<Omit<XeroContactInput, "ContactID">>,
+  ): Promise<{ ContactID: string }> {
+    const data = await xeroRequest<{
+      Contacts: Array<{ ContactID: string }>
+    }>(creds!, "/Contacts", {
+      method: "POST",
+      body: {
+        Contacts: [{ ContactID: contactId, ...fields } as XeroContactInput],
+      },
+    })
+    return data.Contacts[0]
   }
 
   async function createInvoice(input: XeroInvoiceInput) {
@@ -721,6 +740,7 @@ export async function getXeroClient(): Promise<XeroClient | null> {
     findContactByEmail,
     createContact,
     upsertContactByEmail,
+    updateContactById,
     createInvoice,
     createPurchaseOrder,
     approvePurchaseOrder,

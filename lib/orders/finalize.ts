@@ -15,11 +15,16 @@ import {
 import { sendReceiptEmail } from "@/lib/email/receipt-email"
 import { sendEmail, getAdminEmail } from "@/lib/email/send"
 import { autoAddStampsForOrder } from "@/lib/utils/auto-stamp"
-import { isMacShipConfigured, createConsignment } from "@/lib/macship/client"
+import {
+  isMacShipConfigured,
+  createConsignment,
+  type MachshipItem,
+} from "@/lib/macship/client"
 import { getOrderPickupDate } from "@/lib/macship/lead-time"
 import {
   buildConsolidatedCart,
   buildCapacityMap,
+  buildParcelCart,
 } from "@/lib/macship/pallet-consolidation"
 
 // Finalize a card order after Stripe confirms the PaymentIntent.
@@ -78,6 +83,8 @@ export type FinalizePayload = CalculateOrderInput & {
   macship_service_name?: string | null
   macship_eta_date?: string | null
   macship_eta_business_days?: number | null
+  macship_quote_shape?: "parcel" | "pallet" | null
+  macship_is_dg?: boolean | null
 }
 
 export type FinalizeResult =
@@ -731,28 +738,43 @@ async function runMacshipConsignment(args: {
             }
       const orderCapacityMap = buildCapacityMap(orderPackagingSizesData ?? [])
 
-      const machshipItems = buildConsolidatedCart(
-        orderItems.map((oi) => {
-          const product = productMap.get(oi.product_id)
-          return {
-            product_name: product
-              ? (product as { id: string; name?: string }).name ??
-                oi.product_name
-              : oi.product_name,
-            packaging_size_name: oi.packaging_size,
-            packaging_size_id: oi.packaging_size_id,
-            quantity: oi.quantity,
-          }
-        }),
-        orderCapacityMap,
-      )
+      const consolidationInput = orderItems.map((oi) => {
+        const product = productMap.get(oi.product_id)
+        return {
+          product_name: product
+            ? (product as { id: string; name?: string }).name ??
+              oi.product_name
+            : oi.product_name,
+          packaging_size_name: oi.packaging_size,
+          packaging_size_id: oi.packaging_size_id,
+          quantity: oi.quantity,
+        }
+      })
+
+      // Match the item shape that won the customer's quote. The quote
+      // endpoint tries parcel-first; if it picked a parcel-only carrier
+      // (e.g. Aramex Parcel), creating the consignment with pallet items
+      // makes Machship return "No prices were found" because that carrier
+      // can't price pallets.
+      const quoteShape: "parcel" | "pallet" =
+        payload.macship_quote_shape === "parcel" ? "parcel" : "pallet"
+      const parcelItems =
+        quoteShape === "parcel"
+          ? buildParcelCart(consolidationInput, orderCapacityMap)
+          : null
+      const machshipItems: MachshipItem[] =
+        parcelItems && parcelItems.length > 0
+          ? parcelItems
+          : buildConsolidatedCart(consolidationInput, orderCapacityMap)
 
       const carrierId = payload.macship_carrier_id
         ? parseInt(payload.macship_carrier_id, 10)
         : null
-      const isDg = orderItems.some((oi) =>
-        isDgClassification(productMap.get(oi.product_id)?.classification),
-      )
+      const isDg =
+        payload.macship_is_dg === true ||
+        orderItems.some((oi) =>
+          isDgClassification(productMap.get(oi.product_id)?.classification),
+        )
 
       // Fetch customer profile for shipping address contact fields.
       const { data: userProfile } = await supabase
@@ -774,7 +796,21 @@ async function runMacshipConsignment(args: {
             .maybeSingle()
         : { data: userProfile }
 
-      if (carrierId && !Number.isNaN(carrierId) && machshipItems.length > 0) {
+      if (isDg) {
+        // The quote endpoint doesn't filter for DG-capable carriers and we
+        // don't yet collect per-product DG metadata (UN number, packing
+        // group, container type, etc.) required by Machship's DG endpoint.
+        // Skip auto-consignment so admin books it manually in MacShip with
+        // the correct DG paperwork.
+        console.warn(
+          `[finalize] DG order ${order.order_number} - skipping auto-consignment, book manually in MacShip`,
+        )
+        macshipData = { ...macshipData, failed: true }
+      } else if (
+        carrierId &&
+        !Number.isNaN(carrierId) &&
+        machshipItems.length > 0
+      ) {
         const despatchDateLocal = `${pickupResult.pickupDate}T08:00:00`
         const consignmentResult = await createConsignment({
           despatchDateTimeLocal: despatchDateLocal,
@@ -807,7 +843,7 @@ async function runMacshipConsignment(args: {
               : undefined,
           // Machship question 7 = "Hydraulic Tailgate required".
           questionIds: payload.forklift_available === false ? [7] : [],
-          dgsDeclaration: isDg,
+          dgsDeclaration: false,
           items: machshipItems,
         })
 

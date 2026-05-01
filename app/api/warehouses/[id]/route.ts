@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/supabase/admin-check"
+import { syncWarehouseContactToXero } from "@/lib/xero/sync"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -33,6 +34,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  if (data?.id && data.xero_contact_id && data.contact_email) {
+    await syncWarehouseContactToXero(data.id)
   }
 
   return NextResponse.json(data)
