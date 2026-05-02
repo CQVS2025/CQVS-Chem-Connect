@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { finalizeStripeOrder } from "@/lib/orders/finalize"
+import {
+  runWithIntegrationContext,
+  updateIntegrationContext,
+} from "@/lib/integration-log"
+import { randomUUID } from "node:crypto"
 
 // POST /api/orders/finalize
 //
@@ -13,7 +18,14 @@ import { finalizeStripeOrder } from "@/lib/orders/finalize"
 // so whichever fires first wins; the loser short-circuits via the
 // idempotency check on stripe_payment_intent_id.
 export async function POST(request: NextRequest) {
+  return runWithIntegrationContext({ correlationId: randomUUID() }, () =>
+    handleFinalize(request),
+  )
+}
+
+async function handleFinalize(request: NextRequest) {
   try {
+    updateIntegrationContext({ metadata: { entry: "orders.finalize" } })
     const supabase = await createServerSupabaseClient()
 
     const {
@@ -24,6 +36,8 @@ export async function POST(request: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    updateIntegrationContext({ userId: user.id })
 
     const body = await request.json()
     const paymentIntentId: string | undefined = body.payment_intent_id
@@ -73,6 +87,11 @@ export async function POST(request: NextRequest) {
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: result.status })
     }
+
+    updateIntegrationContext({
+      orderId: result.orderId,
+      metadata: { order_number: result.orderNumber },
+    })
 
     // Return the fresh order so the client can navigate to it.
     const { data: order } = await serviceClient

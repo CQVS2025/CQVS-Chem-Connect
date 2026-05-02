@@ -21,6 +21,7 @@ import {
   Warehouse,
   LogOut,
   Truck,
+  Activity,
 } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/client"
@@ -77,6 +78,7 @@ const navItems: NavItem[] = [
   { label: "Warehouses", href: "/admin/warehouses", icon: Warehouse },
   { label: "Xero", href: "/admin/xero", icon: LinkIcon },
   { label: "MacShip", href: "/admin/macship", icon: Truck },
+  { label: "Integration Logs", href: "/admin/integration-logs", icon: Activity },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ]
 

@@ -19,6 +19,11 @@ import {
   calculateOrder,
   type CalculateOrderInput,
 } from "@/lib/orders/calculate"
+import {
+  runWithIntegrationContext,
+  updateIntegrationContext,
+} from "@/lib/integration-log"
+import { randomUUID } from "node:crypto"
 
 function isDgClassification(
   classification: string | null | undefined,
@@ -149,6 +154,12 @@ export async function GET(request: NextRequest) {
 // (server-to-server safety net). This prevents orphan orders + side
 // effects for declined cards.
 export async function POST(request: NextRequest) {
+  return runWithIntegrationContext({ correlationId: randomUUID() }, () =>
+    handleCreateOrder(request),
+  )
+}
+
+async function handleCreateOrder(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
 
@@ -163,6 +174,11 @@ export async function POST(request: NextRequest) {
         { status: 401 },
       )
     }
+
+    updateIntegrationContext({
+      userId: user.id,
+      metadata: { entry: "orders.create" },
+    })
 
     const body = await request.json()
     const calcInput: CalculateOrderInput = {
@@ -270,6 +286,14 @@ export async function POST(request: NextRequest) {
     if (orderError) {
       return NextResponse.json({ error: orderError.message }, { status: 500 })
     }
+
+    // From here on, every Xero/MacShip call in this scope is tagged with
+    // the new order's id. Admin can pull /admin/integration-logs?order=...
+    // to see the full per-order trail.
+    updateIntegrationContext({
+      orderId: order.id,
+      metadata: { order_number: order.order_number },
+    })
 
     const { error: itemsError } = await supabase.from("order_items").insert(
       calc.orderItems.map((oi) => ({

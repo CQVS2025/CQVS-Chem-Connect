@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { CheckCircle2, XCircle, Loader2, RefreshCw, AlertTriangle, Truck, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -349,13 +350,23 @@ export default function AdminMacShipPage() {
       {/* Recent Activity Log */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Recent MacShip Activity
-          </CardTitle>
-          <CardDescription>
-            Last 20 orders with MacShip consignments - creation, dispatch, and tracking status.
-          </CardDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Recent MacShip Activity
+              </CardTitle>
+              <CardDescription>
+                Last 20 orders with MacShip consignments - creation, dispatch, and tracking status.
+              </CardDescription>
+            </div>
+            <Link
+              href="/admin/integration-logs?integration=macship"
+              className="text-xs text-blue-600 hover:underline shrink-0"
+            >
+              View detailed logs →
+            </Link>
+          </div>
         </CardHeader>
         <CardContent>
           {loadingActivity ? (

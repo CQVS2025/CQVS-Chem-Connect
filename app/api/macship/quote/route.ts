@@ -12,6 +12,12 @@ import {
   buildCapacityMap,
   buildParcelCart,
 } from "@/lib/macship/pallet-consolidation"
+import {
+  runWithIntegrationContext,
+  updateIntegrationContext,
+  logIntegrationEvent,
+} from "@/lib/integration-log"
+import { randomUUID } from "node:crypto"
 
 // ============================================================
 // Helpers
@@ -31,6 +37,15 @@ function isDgProduct(classification: string | null | undefined): boolean {
 // ============================================================
 
 export async function POST(request: NextRequest) {
+  // Each quote attempt gets its own correlation_id so every Machship
+  // call in this scope (warehouse select, getRoutes parcel-first, getRoutes
+  // pallet fallback) is linkable in /admin/integration-logs.
+  return runWithIntegrationContext({ correlationId: randomUUID() }, () =>
+    handleQuote(request),
+  )
+}
+
+async function handleQuote(request: NextRequest) {
   try {
     const body = await request.json()
     const {
@@ -84,12 +99,39 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createServerSupabaseClient()
 
+    // Tag every Machship call in this scope with the customer + cart
+    // context so admin can answer "why didn't this customer's quote work"
+    // by filtering /admin/integration-logs by user_id.
+    const {
+      data: { user: quoteUser },
+    } = await supabase.auth.getUser()
+    if (quoteUser?.id) {
+      updateIntegrationContext({ userId: quoteUser.id })
+    }
+    updateIntegrationContext({
+      metadata: {
+        delivery_postcode,
+        delivery_state,
+        delivery_city,
+        items_count: cart_items.length,
+        forklift_available,
+      },
+    })
+
     // 1. Select best warehouse
     let selectedWarehouse: Awaited<ReturnType<typeof selectWarehouse>> | null = null
     try {
       selectedWarehouse = await selectWarehouse(cart_items, delivery_postcode, supabase)
     } catch (err) {
       console.error("[MacShip quote] selectWarehouse failed:", err)
+      await logIntegrationEvent({
+        integration: "macship",
+        action: "quote.warehouse_select_failed",
+        status: "error",
+        errorCategory: "business",
+        errorCode: "NO_WAREHOUSE",
+        errorMessage: err instanceof Error ? err.message : String(err),
+      })
       return NextResponse.json({
         serviceable: false,
         shipping_amount: null,
@@ -278,6 +320,36 @@ export async function POST(request: NextRequest) {
     }
 
     if (!routesResponse.routes || routesResponse.routes.length === 0) {
+      // The customer just got "not serviceable" with a generic message.
+      // Without this row admin had no way to find out *why* — the prod
+      // incident (carrier not configured on Machship account) hit here
+      // and was invisible. We capture the request + the request_id so
+      // anyone can paste it into Machship support.
+      await logIntegrationEvent({
+        integration: "macship",
+        action: "quote.zero_routes",
+        status: "error",
+        errorCategory: "carrier_config",
+        errorCode: "QUOTE_ZERO_ROUTES",
+        errorMessage:
+          "Quote returned zero routes after both parcel and pallet attempts. " +
+          "Likely causes: (1) MachShip account has no carriers configured for this lane " +
+          "(contact MachShip support), (2) item dimensions exceed all available carrier limits, " +
+          "(3) destination postcode/suburb mismatch.",
+        endpoint: "/apiv2/routes/returnroutes",
+        metadata: {
+          warehouse_id: selectedWarehouse.warehouse.id,
+          warehouse_name: selectedWarehouse.warehouse.name,
+          warehouse_postcode: selectedWarehouse.warehouse.address_postcode,
+          delivery_postcode,
+          delivery_state,
+          delivery_city,
+          item_shape_attempted: itemShape,
+          parcel_attempted: parcelItems !== null,
+          pallet_attempted: true,
+          machship_request_id: routesResponse.id,
+        },
+      })
       return NextResponse.json({
         serviceable: false,
         shipping_amount: null,
@@ -297,6 +369,23 @@ export async function POST(request: NextRequest) {
     const bestRoute = routesResponse.routes.reduce((best, r) =>
       r.consignmentTotal.totalSellPrice < best.consignmentTotal.totalSellPrice ? r : best,
     routesResponse.routes[0])
+
+    // Successful quote breadcrumb — pairs with the finalize/consignment
+    // rows downstream so admin can reconstruct what was quoted vs booked.
+    await logIntegrationEvent({
+      integration: "macship",
+      action: "quote.success",
+      status: "success",
+      metadata: {
+        carrier_id: bestRoute.carrier.id,
+        carrier_name: bestRoute.carrier.displayName ?? bestRoute.carrier.name,
+        service_name: bestRoute.carrierService?.name ?? null,
+        quote_shape: itemShape,
+        is_dg: isDG,
+        total: bestRoute.consignmentTotal.totalSellPrice,
+        machship_request_id: routesResponse.id,
+      },
+    })
 
     // Build surcharge breakdown for transparent pricing
     const allSurcharges = [
@@ -353,6 +442,18 @@ export async function POST(request: NextRequest) {
     })
   } catch (err) {
     console.error("[MacShip quote] error:", err)
+    // The xeroRequest/machshipRequest wrappers already logged the
+    // outbound HTTP failure (with full request/response). This event row
+    // adds the *quote-level* outcome so admin sees a single "quote failed"
+    // entry alongside the lower-level call rows in the same correlation.
+    await logIntegrationEvent({
+      integration: "macship",
+      action: "quote.unhandled_error",
+      status: "error",
+      errorCategory: "unknown",
+      errorCode: "QUOTE_HANDLER_FAILED",
+      errorMessage: err instanceof Error ? err.message : String(err),
+    })
     return NextResponse.json({
       serviceable: false,
       shipping_amount: null,

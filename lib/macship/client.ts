@@ -9,6 +9,12 @@
  * Swagger reference: https://api.machship.com/swagger/v2/swagger.json
  */
 
+import {
+  classifyMachshipResponse,
+  classifyNetworkError,
+  logIntegrationCall,
+} from "@/lib/integration-log"
+
 // ============================================================
 // Configuration
 // ============================================================
@@ -317,21 +323,109 @@ async function machshipRequest<T>(
 ): Promise<T> {
   const { baseUrl, token } = getConfig()
   const url = `${baseUrl}${path}`
+  const startedAt = Date.now()
 
-  const res = await fetch(url, {
-    method,
-    headers: {
-      // Machship uses a custom `token` header, NOT Authorization: Bearer
-      token,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method,
+      headers: {
+        // Machship uses a custom `token` header, NOT Authorization: Bearer
+        token,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    })
+  } catch (netErr) {
+    const classified = classifyNetworkError(netErr)
+    await logIntegrationCall({
+      integration: "macship",
+      endpoint: path,
+      method,
+      httpStatus: 0,
+      durationMs: Date.now() - startedAt,
+      status: "error",
+      errorCategory: classified.category,
+      errorCode: classified.code,
+      errorMessage: classified.message,
+      requestPayload: body,
+    })
+    throw new MacShipError(0, `Machship ${method} ${path} network error: ${classified.message}`)
+  }
 
+  // 204 No Content (e.g. some PUT updates) — log success and return.
+  if (res.status === 204) {
+    await logIntegrationCall({
+      integration: "macship",
+      endpoint: path,
+      method,
+      httpStatus: 204,
+      durationMs: Date.now() - startedAt,
+      status: "success",
+      requestPayload: body,
+    })
+    return undefined as T
+  }
+
+  const text = await res.text()
+  let parsed: unknown = null
+  let parseFailed = false
+  if (text.length > 0) {
+    try {
+      parsed = JSON.parse(text)
+    } catch {
+      // Non-JSON response. We DON'T short-circuit here — for a 401 with
+      // body "Unauthorized" we still want to classify as AUTH_TOKEN_INVALID
+      // rather than NON_JSON_RESPONSE. The non-2xx branch below handles
+      // status-driven classification correctly even with parsed=null.
+      parseFailed = true
+    }
+  }
+
+  // 2xx with garbage body — that's the only case where the body itself
+  // is the bug. Surface it explicitly.
+  if (parseFailed && res.ok) {
+    const errMsg = `Machship ${method} ${path} returned non-JSON 2xx body: ${text.slice(0, 200)}`
+    await logIntegrationCall({
+      integration: "macship",
+      endpoint: path,
+      method,
+      httpStatus: res.status,
+      durationMs: Date.now() - startedAt,
+      status: "error",
+      errorCategory: "unknown",
+      errorCode: "NON_JSON_RESPONSE",
+      errorMessage: errMsg,
+      requestPayload: body,
+      responseBodyText: text,
+    })
+    throw new MacShipError(res.status, errMsg, text)
+  }
+
+  // Non-2xx ----------------------------------------------------------
   if (!res.ok) {
-    const text = await res.text()
+    const classified =
+      classifyMachshipResponse({ status: res.status, body: parsed, rawText: text }) ?? {
+        category: "unknown" as const,
+        code: `HTTP_${res.status}`,
+        message: text || `Machship responded with ${res.status}`,
+      }
     console.error(`[Machship ${method} ${path}] failed (${res.status}):`, text)
+    await logIntegrationCall({
+      integration: "macship",
+      endpoint: path,
+      method,
+      httpStatus: res.status,
+      durationMs: Date.now() - startedAt,
+      status: "error",
+      errorCategory: classified.category,
+      errorCode: classified.code,
+      errorMessage: classified.message,
+      requestPayload: body,
+      responsePayload: parsed,
+      responseBodyText: text,
+    })
     throw new MacShipError(
       res.status,
       `Machship ${method} ${path} failed (${res.status}): ${text}`,
@@ -339,18 +433,79 @@ async function machshipRequest<T>(
     )
   }
 
-  if (res.status === 204) return undefined as T
+  // 2xx --------------------------------------------------------------
+  // Machship's BaseDomainEntityV2 envelope can include a populated
+  // errors[] array even on a 200 OK — that's how getRoutes signals
+  // "your account isn't configured for this lane" or "no rate cards".
+  // unwrap() will throw, but we also log the soft failure here so it
+  // shows up in admin even when the caller catches.
+  const envelope = parsed as MachshipResponse<unknown> | null
+  const hasEnvelopeErrors =
+    !!envelope &&
+    Array.isArray(envelope.errors) &&
+    envelope.errors.length > 0
 
-  const text = await res.text()
-  try {
-    return JSON.parse(text) as T
-  } catch {
-    throw new MacShipError(
-      res.status,
-      `Machship ${method} ${path} returned non-JSON: ${text}`,
-      text,
-    )
+  if (hasEnvelopeErrors) {
+    const classified = classifyMachshipResponse({
+      status: res.status,
+      body: parsed,
+      rawText: text,
+    })
+    await logIntegrationCall({
+      integration: "macship",
+      endpoint: path,
+      method,
+      httpStatus: res.status,
+      durationMs: Date.now() - startedAt,
+      // 'warning' rather than 'error' because the HTTP layer succeeded;
+      // the call site decides whether this is fatal (e.g. unwrap throws).
+      status: "warning",
+      errorCategory: classified?.category ?? "business",
+      errorCode: classified?.code ?? "PROVIDER_REJECTED",
+      errorMessage: classified?.message ?? "Machship returned errors[] on 200 OK",
+      requestPayload: body,
+      responsePayload: parsed,
+    })
+  } else {
+    await logIntegrationCall({
+      integration: "macship",
+      endpoint: path,
+      method,
+      httpStatus: res.status,
+      durationMs: Date.now() - startedAt,
+      status: "success",
+      requestPayload: body,
+      // Don't dump huge route lists into every log row — keep just enough
+      // to confirm "real response received". Caller-driven detail logging
+      // can be done at the call site (see quote endpoint).
+      responsePayload: summarizeForLog(parsed),
+    })
   }
+
+  return parsed as T
+}
+
+/**
+ * Trim very large Machship envelopes (route lists especially) before
+ * persisting. We keep enough to identify the response without bloating
+ * the log table — full payloads are still in console for live debugging.
+ */
+function summarizeForLog(parsed: unknown): unknown {
+  if (parsed == null) return null
+  const env = parsed as { object?: unknown; errors?: unknown[] }
+  const obj = env.object as { id?: string; routes?: unknown[] } | undefined
+  if (obj && Array.isArray(obj.routes)) {
+    return {
+      ...env,
+      object: {
+        ...obj,
+        routesCount: obj.routes.length,
+        // Keep only the first route to give triage a sample.
+        routes: obj.routes.slice(0, 1),
+      },
+    }
+  }
+  return parsed
 }
 
 /** Unwrap the BaseDomainEntityV2 envelope returned by most endpoints */

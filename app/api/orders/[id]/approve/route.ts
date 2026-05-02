@@ -3,6 +3,8 @@ import { requireAdmin } from "@/lib/supabase/admin-check"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendEmail } from "@/lib/email/send"
 import { sendReceiptEmail } from "@/lib/email/receipt-email"
+import { runWithIntegrationContext } from "@/lib/integration-log"
+import { randomUUID } from "node:crypto"
 
 async function approveOrder(
   request: NextRequest,
@@ -172,5 +174,15 @@ export async function POST(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
-  return approveOrder(request, context, ["pending_approval"])
+  // Tag this approval flow so its Xero invoice + PO calls share a
+  // correlation_id and end up linked to order_id in the log.
+  const { id } = await context.params
+  return runWithIntegrationContext(
+    {
+      correlationId: randomUUID(),
+      orderId: id,
+      metadata: { entry: "orders.approve" },
+    },
+    () => approveOrder(request, { params: Promise.resolve({ id }) }, ["pending_approval"]),
+  )
 }

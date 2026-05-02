@@ -15,6 +15,14 @@
  */
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import {
+  classifyNetworkError,
+  classifyXeroError,
+  classifyXeroEmailEndpoint404,
+  extractXeroRateHeaders,
+  logIntegrationCall,
+  logIntegrationEvent,
+} from "@/lib/integration-log"
 
 const XERO_API_BASE = "https://api.xero.com/api.xro/2.0"
 const XERO_TOKEN_URL = "https://identity.xero.com/connect/token"
@@ -384,11 +392,32 @@ export async function getActiveCredentials(): Promise<XeroCredentialsRow | null>
 
       if (updateError) {
         console.error("Failed to persist refreshed Xero token:", updateError)
+        await logXeroSync({
+          entityType: "connection",
+          action: "token_refresh",
+          status: "error",
+          errorMessage: `Persist refreshed token failed: ${updateError.message}`,
+        })
         return null
       }
+      await logXeroSync({
+        entityType: "connection",
+        action: "token_refresh",
+        status: "success",
+      })
       return updated as XeroCredentialsRow
     } catch (err) {
+      // Refresh failures are CRITICAL — once the refresh token is rejected
+      // (or the 60-day window expires), every subsequent Xero call will
+      // fail until an admin re-connects. Log it visibly.
+      const message = err instanceof Error ? err.message : String(err)
       console.error("Xero token refresh failed:", err)
+      await logXeroSync({
+        entityType: "connection",
+        action: "token_refresh",
+        status: "error",
+        errorMessage: `Xero token refresh failed: ${message}. Admin needs to reconnect at /admin/xero.`,
+      })
       return null
     }
   }
@@ -424,19 +453,48 @@ async function xeroRequest<T>(
     url.searchParams.set("summarizeErrors", "false")
   }
 
-  const res = await fetch(url.toString(), {
-    method,
-    headers: {
-      Authorization: `Bearer ${creds.access_token}`,
-      "Xero-tenant-id": creds.tenant_id,
-      Accept: "application/json",
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  })
+  const startedAt = Date.now()
 
+  let res: Response
+  try {
+    res = await fetch(url.toString(), {
+      method,
+      headers: {
+        Authorization: `Bearer ${creds.access_token}`,
+        "Xero-tenant-id": creds.tenant_id,
+        Accept: "application/json",
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    })
+  } catch (netErr) {
+    const classified = classifyNetworkError(netErr)
+    await logIntegrationCall({
+      integration: "xero",
+      endpoint: path,
+      method,
+      httpStatus: 0,
+      durationMs: Date.now() - startedAt,
+      status: "error",
+      errorCategory: classified.category,
+      errorCode: classified.code,
+      errorMessage: classified.message,
+      requestPayload: options.body,
+    })
+    throw new XeroApiError(
+      0,
+      `Xero ${method} ${path} network error: ${classified.message}`,
+      classified.message,
+      null,
+      classified.message,
+    )
+  }
+
+  const rateHeaders = extractXeroRateHeaders(res.headers)
+  const text = await res.text()
+
+  // -- Non-2xx ---------------------------------------------------------
   if (!res.ok) {
-    const text = await res.text()
     let err: XeroErrorResponse | null = null
     try {
       err = JSON.parse(text)
@@ -448,8 +506,30 @@ async function xeroRequest<T>(
     const fullMessage = validationDetail
       ? `${baseMessage} - ${validationDetail}`
       : baseMessage
-    // Log full payload to terminal for debugging
+
+    // Special-case: empty 404 from /Email endpoints is almost always
+    // "contact has no email"; surface that as its own code.
+    const isEmailEndpoint = /\/(?:Invoices|PurchaseOrders)\/[^/]+\/Email$/i.test(path)
+    const classified =
+      res.status === 404 && isEmailEndpoint && text.trim().length === 0
+        ? classifyXeroEmailEndpoint404(text)
+        : classifyXeroError(res.status, err, text)
+
     console.error(`[Xero ${method} ${path}] failed (${res.status}):`, text)
+    await logIntegrationCall({
+      integration: "xero",
+      endpoint: path,
+      method,
+      httpStatus: res.status,
+      durationMs: Date.now() - startedAt,
+      status: "error",
+      errorCategory: classified.category,
+      errorCode: classified.code,
+      errorMessage: classified.message,
+      requestPayload: options.body,
+      responseBodyText: text,
+      responseHeaders: rateHeaders,
+    })
     throw new XeroApiError(
       res.status,
       `Xero ${method} ${path} failed (${res.status}): ${fullMessage}`,
@@ -459,17 +539,29 @@ async function xeroRequest<T>(
     )
   }
 
-  // ============================================================
-  // Critical: with summarizeErrors=false, Xero returns HTTP 200 even
-  // when validation fails on a record, with HasErrors=true and an
-  // all-zeros ID. We must detect this and throw an error so callers
-  // don't store the bogus ID and trigger downstream failures.
-  // ============================================================
-  const text = await res.text()
+  // -- 2xx --------------------------------------------------------------
+  // With summarizeErrors=false, Xero returns HTTP 200 even when validation
+  // fails on a record, with HasErrors=true and an all-zeros ID. We must
+  // detect this and throw so callers don't store the bogus ID.
+
   let data: unknown
   try {
-    data = JSON.parse(text)
+    data = text.length === 0 ? null : JSON.parse(text)
   } catch {
+    await logIntegrationCall({
+      integration: "xero",
+      endpoint: path,
+      method,
+      httpStatus: res.status,
+      durationMs: Date.now() - startedAt,
+      status: "error",
+      errorCategory: "unknown",
+      errorCode: "NON_JSON_RESPONSE",
+      errorMessage: `Non-JSON response from Xero: ${text.slice(0, 200)}`,
+      requestPayload: options.body,
+      responseBodyText: text,
+      responseHeaders: rateHeaders,
+    })
     throw new XeroApiError(
       res.status,
       `Xero ${method} ${path} returned non-JSON response: ${text}`,
@@ -479,8 +571,6 @@ async function xeroRequest<T>(
     )
   }
 
-  // Check every top-level record collection (Invoices, Contacts, etc.)
-  // for HasErrors flags or ValidationErrors arrays.
   const recordKeys = [
     "Invoices",
     "Contacts",
@@ -488,7 +578,7 @@ async function xeroRequest<T>(
     "CreditNotes",
     "Payments",
   ]
-  const dataObj = data as Record<string, unknown>
+  const dataObj = (data ?? {}) as Record<string, unknown>
   for (const key of recordKeys) {
     const records = dataObj[key]
     if (!Array.isArray(records)) continue
@@ -507,6 +597,20 @@ async function xeroRequest<T>(
           .map((v) => v.Message)
           .filter(Boolean)
           .join(" | ")
+        await logIntegrationCall({
+          integration: "xero",
+          endpoint: path,
+          method,
+          httpStatus: res.status,
+          durationMs: Date.now() - startedAt,
+          status: "error",
+          errorCategory: "validation",
+          errorCode: "RECORD_VALIDATION_FAILED",
+          errorMessage: messages || "Record validation failed",
+          requestPayload: options.body,
+          responsePayload: data,
+          responseHeaders: rateHeaders,
+        })
         throw new XeroApiError(
           res.status,
           `Xero ${method} ${path} record validation failed: ${messages || "Unknown error"}`,
@@ -521,6 +625,18 @@ async function xeroRequest<T>(
       }
     }
   }
+
+  await logIntegrationCall({
+    integration: "xero",
+    endpoint: path,
+    method,
+    httpStatus: res.status,
+    durationMs: Date.now() - startedAt,
+    status: "success",
+    requestPayload: options.body,
+    responsePayload: data,
+    responseHeaders: rateHeaders,
+  })
 
   return data as T
 }
@@ -821,6 +937,19 @@ export async function switchActiveTenant(params: {
 /**
  * Log a Xero sync attempt for admin visibility / debugging.
  */
+/**
+ * Higher-level "what we did with Xero" event log.
+ *
+ * Distinct from xeroRequest's auto-logging: that captures one row per
+ * outbound HTTP call. logXeroSync captures one row per *workflow step*
+ * (contact synced, invoice attached, PO emailed, token refreshed, etc.) —
+ * the level that's useful for an admin scanning recent activity.
+ *
+ * Writes to the unified integration_log so /admin/integration-logs and
+ * the existing /admin/xero view can pull from one place.
+ *
+ * Best-effort: never blocks the calling flow.
+ */
 export async function logXeroSync(entry: {
   entityType: string
   entityId?: string | null
@@ -831,19 +960,49 @@ export async function logXeroSync(entry: {
   request?: unknown
   response?: unknown
 }): Promise<void> {
+  // Map status to the unified table's allowed values (which include 'warning').
+  const status: "success" | "error" = entry.status
+
+  // Best-effort error categorization for events. Keeping it conservative:
+  // if the caller already passed an error string we infer the bucket from
+  // recognizable substrings; otherwise leave null.
+  let errorCategory: "auth" | "validation" | "business" | "network" | null = null
+  let errorCode: string | null = null
+  if (entry.errorMessage) {
+    const m = entry.errorMessage
+    if (/AuthenticationUnsuccessful|Unauthorized|token refresh/i.test(m)) {
+      errorCategory = "auth"
+      errorCode = "AUTH_FAILURE"
+    } else if (/ValidationException|already assigned|validation failed/i.test(m)) {
+      errorCategory = "validation"
+      errorCode = "VALIDATION_FAILED"
+    } else if (/no email|EmailAddress|warehouse.*Xero contact/i.test(m)) {
+      errorCategory = "business"
+      errorCode = "PO_CONTACT_NO_EMAIL"
+    } else if (/fetch failed|ENOTFOUND|ECONNREFUSED/i.test(m)) {
+      errorCategory = "network"
+      errorCode = "NET_FETCH_FAILED"
+    }
+  }
+
   try {
-    const supabase = createServiceRoleClient()
-    await supabase.from("xero_sync_log").insert({
-      entity_type: entry.entityType,
-      entity_id: entry.entityId ?? null,
+    await logIntegrationEvent({
+      integration: "xero",
+      // Keep the bare action so the existing /admin/xero UI renders
+      // "{entity_type} - {action}" (e.g. "invoice - create") just like
+      // the legacy xero_sync_log shape.
       action: entry.action,
-      status: entry.status,
-      xero_id: entry.xeroId ?? null,
-      error_message: entry.errorMessage ?? null,
-      request_payload: (entry.request as object) ?? null,
-      response_payload: (entry.response as object) ?? null,
+      status,
+      entityType: entry.entityType,
+      entityId: entry.entityId ?? null,
+      xeroId: entry.xeroId ?? null,
+      errorCategory,
+      errorCode,
+      errorMessage: entry.errorMessage ?? null,
+      requestPayload: entry.request,
+      responsePayload: entry.response,
     })
   } catch (err) {
-    console.error("Failed to write xero_sync_log:", err)
+    console.error("Failed to write integration_log (xero event):", err)
   }
 }

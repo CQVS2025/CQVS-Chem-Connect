@@ -337,11 +337,21 @@ function AdminXeroPageInner() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Sync Activity</CardTitle>
-          <CardDescription>
-            Last 50 sync attempts. Failures here usually indicate a Xero API or
-            data issue.
-          </CardDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <CardTitle>Recent Sync Activity</CardTitle>
+              <CardDescription>
+                Last 50 sync attempts. Failures here usually indicate a Xero API or
+                data issue.
+              </CardDescription>
+            </div>
+            <Link
+              href="/admin/integration-logs?integration=xero"
+              className="text-xs text-blue-600 hover:underline shrink-0"
+            >
+              View detailed logs →
+            </Link>
+          </div>
         </CardHeader>
         <CardContent>
           {logs.length === 0 ? (

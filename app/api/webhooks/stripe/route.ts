@@ -4,6 +4,11 @@ import { getStripeServer } from "@/lib/stripe"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendPaymentFailedEmail } from "@/lib/email/notifications"
 import { finalizeStripeOrder } from "@/lib/orders/finalize"
+import {
+  runWithIntegrationContext,
+  updateIntegrationContext,
+} from "@/lib/integration-log"
+import { randomUUID } from "node:crypto"
 
 // Stripe webhook - server-to-server, no user session.
 //
@@ -14,6 +19,16 @@ import { finalizeStripeOrder } from "@/lib/orders/finalize"
 //
 // All other event types fall through to a logged no-op.
 export async function POST(request: NextRequest) {
+  return runWithIntegrationContext(
+    {
+      correlationId: randomUUID(),
+      metadata: { entry: "stripe.webhook" },
+    },
+    () => handleStripeWebhook(request),
+  )
+}
+
+async function handleStripeWebhook(request: NextRequest) {
   try {
     const body = await request.text()
     const signature = request.headers.get("stripe-signature")
@@ -72,6 +87,11 @@ export async function POST(request: NextRequest) {
           break
         }
 
+        updateIntegrationContext({
+          userId: session.user_id,
+          metadata: { stripe_pi: paymentIntent.id },
+        })
+
         const result = await finalizeStripeOrder({
           supabase,
           userId: session.user_id,
@@ -79,6 +99,13 @@ export async function POST(request: NextRequest) {
           paymentIntent,
           sessionRow: session,
         })
+
+        if (result.ok) {
+          updateIntegrationContext({
+            orderId: result.orderId,
+            metadata: { order_number: result.orderNumber },
+          })
+        }
 
         if (!result.ok) {
           console.error(
