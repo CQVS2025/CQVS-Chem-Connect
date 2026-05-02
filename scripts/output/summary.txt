@@ -1,0 +1,22 @@
+GHL bounce export - run at 2026-05-01T23:33:44.596Z
+Location: FQ5OnSrbC8BdZbTnWvp8
+
+Total contacts scanned:  764
+Tier 1 (safe to delete): 80
+Tier 2 (needs review):   0
+Total flagged:           80
+
+Match reason breakdown:
+    80  validEmail=false
+
+Output files:
+  /Users/ghufran/Data/jonny/CQVS-Chem-Connect/scripts/output/bounced-tier1-high-confidence.csv
+  /Users/ghufran/Data/jonny/CQVS-Chem-Connect/scripts/output/bounced-tier2-needs-review.csv
+  /Users/ghufran/Data/jonny/CQVS-Chem-Connect/scripts/output/all-contacts-debug.json
+
+Send Tier 1 CSV to client with note: "These are confirmed bad addresses,
+safe to delete or tag do_not_send."
+
+Send Tier 2 CSV to client with note: "These addresses have DND set - could
+be bounces (auto-suppressed) OR contacts who unsubscribed legitimately.
+Please review and flag any rows you'd like to keep before I delete them."
