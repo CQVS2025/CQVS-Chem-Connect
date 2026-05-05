@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { Suspense, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { domAnimation, LazyMotion, m } from "framer-motion"
 import {
@@ -136,6 +136,35 @@ function OrderCardSkeleton() {
 }
 
 export default function OrdersPage() {
+  // useSearchParams forces this page out of static prerender unless its
+  // consumer is wrapped in <Suspense>. Wrap the inner component so the
+  // outer page can still be statically generated.
+  return (
+    <Suspense fallback={<OrdersPageFallback />}>
+      <OrdersPageInner />
+    </Suspense>
+  )
+}
+
+function OrdersPageFallback() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Order History</h1>
+        <p className="mt-1 text-muted-foreground">
+          View and track all your past and current orders.
+        </p>
+      </div>
+      <div className="grid gap-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <OrderCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function OrdersPageInner() {
   const { data: orders, isLoading, error } = useOrders()
   const params = useSearchParams()
   // Buyer-notification emails (supplier dispatch / ETA / variance)
