@@ -96,11 +96,15 @@ function LoginForm() {
           .eq("id", user.id)
           .single()
 
-        const isAdmin = profile?.role === "admin"
+        const role = profile?.role
+        const isAdmin = role === "admin"
+        const isSupplier = role === "supplier"
         if (redirectTo === "/dashboard" && isAdmin) {
           destination = "/admin"
+        } else if (redirectTo === "/dashboard" && isSupplier) {
+          destination = "/supplier"
         } else if (!redirectTo || redirectTo === "/dashboard") {
-          destination = isAdmin ? "/admin" : "/dashboard"
+          destination = isAdmin ? "/admin" : isSupplier ? "/supplier" : "/dashboard"
         }
       }
 

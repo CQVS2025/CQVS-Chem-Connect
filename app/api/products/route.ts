@@ -14,10 +14,17 @@ export async function GET(request: NextRequest) {
   const sort = searchParams.get("sort")
   const includePricing = searchParams.get("includePricing") === "true"
   const includeInactive = searchParams.get("include_inactive") === "true"
+  // Phase 1 component 18: hide AdBlue's deferred packaging sizes from the
+  // public storefront. Admin tools pass ?include_hidden=true to see all.
+  const includeHidden = searchParams.get("include_hidden") === "true"
 
-  const selectClause = includePricing
-    ? `*, packaging_prices:product_packaging_prices(*, packaging_size:packaging_sizes(*))`
-    : "*"
+  // Always join packaging_prices + packaging_size so the catalogue tile
+  // chips, AddToCart selectors, and detail page see the SAME filtered
+  // set of available sizes. Without this join the listing falls back to
+  // the legacy `products.packaging_sizes` text array, which drifts
+  // whenever admin toggles is_available or edits a product.
+  const selectClause =
+    "*, packaging_prices:product_packaging_prices(*, packaging_size:packaging_sizes(*))"
 
   let query = supabase.from("products").select(selectClause)
 
@@ -61,6 +68,62 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Two-layer visibility filter (skip both when admin asks for hidden):
+  //   1. product_packaging_prices.is_available = false → this PRODUCT
+  //      doesn't ship in this container (per-product opt-out, used for
+  //      AdBlue Phase 1 to hide non-Bulk sizes only for AdBlue, leaving
+  //      every other product's IBC / Drum / Jerry Can untouched).
+  //   2. packaging_sizes.is_visible_on_storefront = false → the
+  //      container type is retired across the catalogue (global).
+  //
+  // We rewrite the legacy `packaging_sizes` text array (used by the
+  // catalogue tile chips) with names sourced from the visible price
+  // rows. Falls back to the original text array if a product has no
+  // price rows yet (older products not migrated to per-size pricing).
+  if (Array.isArray(data)) {
+    for (const p of data as Array<{
+      packaging_sizes?: string[]
+      packaging_prices?: Array<{
+        is_available?: boolean
+        packaging_size?: {
+          name?: string
+          sort_order?: number | null
+          is_visible_on_storefront?: boolean
+        } | null
+      }>
+    }>) {
+      const visiblePrices = (p.packaging_prices ?? []).filter(
+        (pp) =>
+          (includeHidden || pp.is_available !== false) &&
+          (includeHidden ||
+            pp.packaging_size?.is_visible_on_storefront !== false),
+      )
+
+      // Rewrite packaging_sizes from the filtered price rows so tile
+      // chips, AddToCart, and detail page all stay in sync.
+      if (visiblePrices.length > 0) {
+        p.packaging_sizes = visiblePrices
+          .slice()
+          .sort(
+            (a, b) =>
+              (a.packaging_size?.sort_order ?? 0) -
+              (b.packaging_size?.sort_order ?? 0),
+          )
+          .map((pp) => pp.packaging_size?.name)
+          .filter((n): n is string => !!n)
+      }
+      // else: keep the legacy text array (fallback for un-migrated products)
+
+      if (includePricing) {
+        p.packaging_prices = visiblePrices
+      } else {
+        // Caller didn't ask for full pricing - strip the join out of
+        // the response to keep the payload light.
+        delete p.packaging_prices
+      }
+    }
   }
 
   return NextResponse.json(data)

@@ -91,6 +91,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Block admin / supplier accounts from purchasing.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+    const role = (profile as { role?: string } | null)?.role
+    if (role === "admin" || role === "supplier") {
+      return NextResponse.json(
+        {
+          error:
+            "Ordering is for customer accounts only. Sign out and create a separate customer account with a different email.",
+          role,
+        },
+        { status: 403 },
+      )
+    }
+
     const body = await request.json()
     const { product_id, quantity, packaging_size, packaging_size_id } = body
 

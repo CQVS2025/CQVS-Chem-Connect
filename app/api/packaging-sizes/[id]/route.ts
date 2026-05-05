@@ -32,6 +32,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         ? body.unit_weight_kg
         : null
   }
+  if (body.is_visible_on_storefront !== undefined) {
+    updatePayload.is_visible_on_storefront = !!body.is_visible_on_storefront
+  }
 
   const { data, error } = await supabase
     .from("packaging_sizes")

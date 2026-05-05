@@ -10,6 +10,8 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "create-admin": "tsx scripts/create-admin.ts",
     "ghl:test": "tsx scripts/ghl-connection-test.ts",
     "ghl:sync": "tsx scripts/ghl-initial-contact-sync.ts",
@@ -53,6 +55,7 @@
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@vitest/expect": "^4.1.5",
     "dotenv": "^17.3.1",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.1.7",
@@ -62,6 +65,7 @@
     "shadcn": "^4.1.0",
     "tailwindcss": "^4.2.1",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
   }
 }

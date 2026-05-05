@@ -1,4 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { classifyCart } from "@/lib/fulfillment/router"
+import { quoteSupplierManagedFreight } from "@/lib/fulfillment/supplier-strategy"
+import type { FulfillmentWarehouse } from "@/lib/fulfillment/types"
+import { getBusinessSettings } from "@/lib/settings/business"
 
 // Shared order-total + item-snapshot calculation used by both checkout paths:
 //   - PO orders go straight from request body -> insert -> side effects.
@@ -9,10 +13,6 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 // creation and the final order total at finalize time are guaranteed to
 // agree (modulo stable input data between the two calls).
 
-const GST_RATE = 0.1
-const STRIPE_FEE_PERCENT = 0.0175
-const STRIPE_FEE_FIXED = 0.3
-const STRIPE_FEE_GST = 0.1
 const FREE_FREIGHT_CAP = 500
 const TRUCK_WASH_SLUGS = ["truck-wash-standard", "truck-wash-premium"]
 
@@ -26,6 +26,7 @@ export interface CalculateOrderInput {
     unit_price: number
   }>
   delivery_address_state?: string | null
+  delivery_address_postcode?: string | null
   first_order_choice?: string | null
   first_order_truck_wash?: string | null
   macship_quote_amount?: number | null
@@ -89,6 +90,7 @@ interface WarehouseInfo {
   name: string
   contact_phone: string | null
   contact_email: string | null
+  is_supplier_managed?: boolean
 }
 
 export type CalculateOrderResult =
@@ -99,6 +101,9 @@ export type CalculateOrderResult =
       containerCostMap: Map<string, number>
       selectedWarehouse: WarehouseInfo | null
       orderItems: OrderItemSnapshot[]
+      isSupplierManaged: boolean
+      supplierFreightAmount: number
+      supplierFreightBreakdown: unknown[]
     }
   | {
       ok: false
@@ -138,6 +143,13 @@ export async function calculateOrder(
       status: 400,
     }
   }
+
+  // Live business settings (tax rate, Stripe fees, currency, min order).
+  const settings = await getBusinessSettings(supabase)
+  const GST_RATE = settings.taxRate
+  const STRIPE_FEE_PERCENT = settings.stripeFeePercent
+  const STRIPE_FEE_FIXED = settings.stripeFeeFixed
+  const STRIPE_FEE_GST = settings.stripeFeeGst
 
   // MOQ validation against product_packaging_prices
   const itemsWithSize = items.filter((i) => i.packaging_size_id)
@@ -189,15 +201,87 @@ export async function calculateOrder(
   const { data: warehousesData } = await supabase
     .from("warehouses")
     .select(
-      "id, address_state, address_street, address_city, address_postcode, name, contact_phone, contact_email",
+      "id, address_state, address_street, address_city, address_postcode, name, contact_phone, contact_email, is_supplier_managed",
     )
     .eq("is_active", true)
     .order("sort_order", { ascending: true })
 
-  const selectedWarehouse: WarehouseInfo | null =
-    warehousesData?.find(
-      (w: WarehouseInfo) => w.address_state === delivery_address_state,
-    ) ?? warehousesData?.[0] ?? null
+  // ---------------------------------------------------------------------
+  // Supplier-managed fulfillment: when the cart routes to a supplier
+  // warehouse, we replace the state-proximity warehouse selection AND
+  // the freight number entirely. MacShip is not called.
+  //
+  // Mixed-cart blocking happens at /api/cart and /api/orders before the
+  // calculator runs (component 17), so by the time we get here a cart
+  // is either MacShip-only OR supplier-managed-only.
+  // ---------------------------------------------------------------------
+  const classify = await classifyCart(
+    supabase,
+    items.map((i) => ({
+      product_id: i.product_id,
+      packaging_size_id: i.packaging_size_id ?? null,
+      quantity: i.quantity,
+    })),
+  )
+
+  let supplierFreightAmount = 0
+  let supplierFreightBreakdown: unknown[] = []
+  let selectedWarehouse: WarehouseInfo | null = null
+  const isSupplierManaged =
+    classify.hasSupplierManaged && !classify.hasMacship && !!classify.supplierWarehouseId
+
+  if (isSupplierManaged && classify.supplierWarehouseId) {
+    const supplierWh = (warehousesData ?? []).find(
+      (w: WarehouseInfo & { is_supplier_managed?: boolean }) =>
+        w.id === classify.supplierWarehouseId,
+    ) as (WarehouseInfo & { is_supplier_managed: boolean }) | undefined
+
+    if (supplierWh) {
+      selectedWarehouse = supplierWh
+      const fw: FulfillmentWarehouse = {
+        id: supplierWh.id,
+        name: supplierWh.name,
+        address_street: supplierWh.address_street,
+        address_city: supplierWh.address_city,
+        address_state: supplierWh.address_state,
+        address_postcode: supplierWh.address_postcode,
+        contact_name: null,
+        contact_email: supplierWh.contact_email ?? null,
+        contact_phone: supplierWh.contact_phone ?? null,
+        is_supplier_managed: true,
+      }
+      const quote = await quoteSupplierManagedFreight({
+        supabase,
+        warehouse: fw,
+        cartLines: items.map((i) => ({
+          product_id: i.product_id,
+          packaging_size_id: i.packaging_size_id ?? null,
+          quantity: i.quantity,
+        })),
+        destinationPostcode: body.delivery_address_postcode ?? "",
+      })
+      if (quote.blocker) {
+        return {
+          ok: false,
+          error: `Supplier freight quote failed: ${quote.blocker.message}`,
+          status: 400,
+        }
+      }
+      supplierFreightAmount = quote.freightAmount
+      supplierFreightBreakdown = quote.supplierFreightBreakdown ?? []
+    }
+  } else {
+    selectedWarehouse =
+      warehousesData?.find(
+        (w: WarehouseInfo & { is_supplier_managed?: boolean }) =>
+          !w.is_supplier_managed && w.address_state === delivery_address_state,
+      ) ??
+      warehousesData?.find(
+        (w: WarehouseInfo & { is_supplier_managed?: boolean }) =>
+          !w.is_supplier_managed,
+      ) ??
+      null
+  }
 
   const containerCostMap = new Map<string, number>()
   if (selectedWarehouse) {
@@ -225,6 +309,16 @@ export async function calculateOrder(
     (sum, item) => sum + item.quantity * item.unit_price,
     0,
   )
+
+  // Enforce platform-wide minimum order value (set in admin -> settings).
+  // Skip the check when minOrderValue is 0 (effectively disabled).
+  if (settings.minOrderValue > 0 && subtotal < settings.minOrderValue) {
+    return {
+      ok: false,
+      error: `Order subtotal must be at least $${settings.minOrderValue.toFixed(2)} (currently $${subtotal.toFixed(2)}).`,
+      status: 400,
+    }
+  }
 
   // Bundle discounts (highest-discount-first greedy claim).
   const { data: activeBundles } = await supabase
@@ -297,8 +391,9 @@ export async function calculateOrder(
         0,
       ) * 100,
     ) / 100
-  const shipping =
-    typeof macship_quote_amount === "number" && macship_quote_amount > 0
+  const shipping = isSupplierManaged
+    ? supplierFreightAmount
+    : typeof macship_quote_amount === "number" && macship_quote_amount > 0
       ? Math.round(macship_quote_amount * 100) / 100
       : legacyShipping
 
@@ -558,5 +653,8 @@ export async function calculateOrder(
     containerCostMap,
     selectedWarehouse,
     orderItems,
+    isSupplierManaged,
+    supplierFreightAmount,
+    supplierFreightBreakdown,
   }
 }

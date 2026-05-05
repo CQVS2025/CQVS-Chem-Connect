@@ -59,6 +59,17 @@ interface ProductRow {
   region: string
   image_url: string | null
   badge: string | null
+  // Joined for accurate per-product visibility - the legacy
+  // packaging_sizes text array can drift from the actual available
+  // variants once admin starts toggling is_available.
+  product_packaging_prices?: Array<{
+    is_available: boolean | null
+    packaging_size: {
+      name: string
+      sort_order: number | null
+      is_visible_on_storefront: boolean | null
+    } | null
+  }>
 }
 
 /**
@@ -74,39 +85,65 @@ async function getActiveProducts() {
 
   try {
     const res = await fetch(
-      `${supabaseUrl}/rest/v1/products?is_active=eq.true&select=id,name,slug,price,unit,description,manufacturer,category,classification,cas_number,packaging_sizes,safety_info,delivery_info,in_stock,stock_qty,region,image_url,badge&order=name.asc`,
+      `${supabaseUrl}/rest/v1/products?is_active=eq.true&select=id,name,slug,price,unit,description,manufacturer,category,classification,cas_number,packaging_sizes,safety_info,delivery_info,in_stock,stock_qty,region,image_url,badge,product_packaging_prices(is_available,packaging_size:packaging_sizes(name,sort_order,is_visible_on_storefront))&order=name.asc`,
       {
         headers: {
           apikey: supabaseKey,
           Authorization: `Bearer ${supabaseKey}`,
         },
-        next: { revalidate: 300 },
+        // Short revalidation so admin visibility flips show up on the
+        // catalogue within 30s instead of the previous 5-minute lag.
+        next: { revalidate: 30 },
       },
     )
     if (!res.ok) return []
     const rows = (await res.json()) as ProductRow[]
 
     // Normalise Supabase snake_case + null image into the shape ProductsClient expects.
-    return rows.map((p) => ({
-      id: p.id,
-      name: p.name,
-      slug: p.slug,
-      price: p.price,
-      unit: p.unit,
-      description: p.description,
-      manufacturer: p.manufacturer,
-      category: p.category,
-      classification: p.classification,
-      casNumber: p.cas_number,
-      packagingSizes: p.packaging_sizes ?? [],
-      safetyInfo: p.safety_info,
-      deliveryInfo: p.delivery_info,
-      inStock: p.in_stock,
-      stockQty: p.stock_qty,
-      region: p.region,
-      image: p.image_url || "/images/cqvs-logo.png",
-      badge: p.badge,
-    }))
+    return rows.map((p) => {
+      // Derive the chip list from product_packaging_prices, filtered to
+      // what's actually buyable today. Falls back to the legacy
+      // packaging_sizes text array for products that haven't been
+      // migrated to per-size pricing yet.
+      const visiblePrices = (p.product_packaging_prices ?? []).filter(
+        (pp) =>
+          pp.is_available !== false &&
+          pp.packaging_size?.is_visible_on_storefront !== false &&
+          pp.packaging_size?.name,
+      )
+      const tilePackagingSizes =
+        visiblePrices.length > 0
+          ? visiblePrices
+              .slice()
+              .sort(
+                (a, b) =>
+                  (a.packaging_size?.sort_order ?? 0) -
+                  (b.packaging_size?.sort_order ?? 0),
+              )
+              .map((pp) => pp.packaging_size!.name)
+          : (p.packaging_sizes ?? [])
+
+      return {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        price: p.price,
+        unit: p.unit,
+        description: p.description,
+        manufacturer: p.manufacturer,
+        category: p.category,
+        classification: p.classification,
+        casNumber: p.cas_number,
+        packagingSizes: tilePackagingSizes,
+        safetyInfo: p.safety_info,
+        deliveryInfo: p.delivery_info,
+        inStock: p.in_stock,
+        stockQty: p.stock_qty,
+        region: p.region,
+        image: p.image_url || "/images/cqvs-logo.png",
+        badge: p.badge,
+      }
+    })
   } catch {
     return []
   }

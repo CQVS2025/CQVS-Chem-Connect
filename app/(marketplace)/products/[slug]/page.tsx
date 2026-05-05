@@ -19,7 +19,7 @@ import {
 import { ProductReviews } from "@/components/products/product-reviews"
 import { ProductReviewsSummary } from "@/components/products/product-reviews-summary"
 
-// Global kill-switch — if NEXT_PUBLIC_REVIEWS_VISIBLE === "false" we don't
+// Global kill-switch - if NEXT_PUBLIC_REVIEWS_VISIBLE === "false" we don't
 // emit JSON-LD review data nor render the reviews block, regardless of how
 // many approved reviews exist. Belt + braces alongside the per-product
 // >=3-approved-reviews gate enforced below.
@@ -29,7 +29,7 @@ const REVIEWS_KILL_SWITCH_ON =
 // Minimum approved reviews before AggregateRating + Review[] are spliced
 // into the JSON-LD. Google requires >=3 to render the star result anyway,
 // and a single 1-star review pulls the rating to 1.0 across the entire
-// product — so emitting earlier is the worst of both worlds.
+// product - so emitting earlier is the worst of both worlds.
 const MIN_APPROVED_FOR_AGGREGATE_SCHEMA = 3
 import { JsonLd } from "@/components/seo/json-ld"
 import {
@@ -105,7 +105,12 @@ async function getProduct(slug: string) {
             apikey: supabaseKey,
             Authorization: `Bearer ${supabaseKey}`,
           },
-          next: { revalidate: 60 },
+          // Short cache - long enough to amortise repeat hits within a
+          // page render, short enough that admin visibility changes show
+          // up to buyers within a minute. Was 60s; kept identical here
+          // but the filter logic now runs every revalidation so any
+          // is_available flip is honoured the moment the cache rolls.
+          next: { revalidate: 30 },
         },
       )
 
@@ -113,6 +118,46 @@ async function getProduct(slug: string) {
         const rows = await res.json()
         const data = rows[0]
         if (data) {
+          // Filter out hidden packaging variants:
+          //   - product_packaging_prices.is_available = false → per-product
+          //     opt-out (e.g. AdBlue Phase 1 hides Jerry Can / Drum / IBC for
+          //     AdBlue only, leaves them on every other product)
+          //   - packaging_sizes.is_visible_on_storefront = false → globally
+          //     retired container type
+          // Mirrors the same filter we apply in /api/products[*].
+          const rawPrices = (data.packaging_prices ?? []) as Array<{
+            id: string
+            packaging_size_id: string
+            price_per_litre: number | null
+            fixed_price: number | null
+            minimum_order_quantity: number | null
+            is_available?: boolean | null
+            packaging_size: {
+              id: string
+              name: string
+              volume_litres: number | null
+              container_type?: string | null
+              is_visible_on_storefront?: boolean | null
+            }
+          }>
+          const visiblePrices = rawPrices.filter(
+            (pp) =>
+              pp.is_available !== false &&
+              pp.packaging_size?.is_visible_on_storefront !== false,
+          )
+
+          // Derive packagingSizes from the visible price rows so the
+          // "Pack sizes" facet, FAQ schema, and AddToCart all stay in
+          // sync with what's actually buyable. Falls back to the legacy
+          // text array for products that haven't been migrated to
+          // per-size pricing yet.
+          const derivedPackagingSizes =
+            visiblePrices.length > 0
+              ? visiblePrices
+                  .map((pp) => pp.packaging_size?.name)
+                  .filter((n): n is string => !!n)
+              : ((data.packaging_sizes as string[]) ?? [])
+
           return {
             id: data.id as string,
             name: data.name as string,
@@ -124,7 +169,7 @@ async function getProduct(slug: string) {
             category: data.category as string,
             classification: data.classification as string,
             casNumber: data.cas_number as string,
-            packagingSizes: data.packaging_sizes as string[],
+            packagingSizes: derivedPackagingSizes,
             safetyInfo: data.safety_info as string,
             deliveryInfo: data.delivery_info as string,
             shippingFee: (data.shipping_fee as number) ?? 0,
@@ -134,18 +179,7 @@ async function getProduct(slug: string) {
             image: (data.image_url as string) || "/images/cqvs-logo.png",
             badge: data.badge as string | null,
             priceType: (data.price_type as "per_litre" | "fixed") ?? "per_litre",
-            packagingPrices: (data.packaging_prices ?? []) as Array<{
-              id: string
-              packaging_size_id: string
-              price_per_litre: number | null
-              fixed_price: number | null
-              minimum_order_quantity: number | null
-              packaging_size: {
-                id: string
-                name: string
-                volume_litres: number | null
-              }
-            }>,
+            packagingPrices: visiblePrices,
           }
         }
       }
@@ -166,7 +200,12 @@ async function getProduct(slug: string) {
       price_per_litre: number | null
       fixed_price: number | null
       minimum_order_quantity: number | null
-      packaging_size: { id: string; name: string; volume_litres: number | null }
+      packaging_size: {
+        id: string
+        name: string
+        volume_litres: number | null
+        container_type?: string | null
+      }
     }>,
   }
 }
@@ -313,7 +352,7 @@ export default async function ProductDetailPage({
   // when the product clears the >=3-approved-reviews gate AND the global
   // kill switch is on (NEXT_PUBLIC_REVIEWS_VISIBLE !== "false"). One
   // 1-star review pulls the rating to 1.0 across the product, and Google
-  // generally won't render the star result below 3 reviews — emitting the
+  // generally won't render the star result below 3 reviews - emitting the
   // schema below the threshold is the worst of both worlds.
   const productLd: Record<string, unknown> = productSchema({
     name: product.name,
@@ -546,6 +585,19 @@ export default async function ProductDetailPage({
                   <div className="space-y-1.5">
                     {product.packagingPrices.map((pp) => {
                       const litres = Number(pp.packaging_size?.volume_litres ?? 0)
+                      const ct = (
+                        pp.packaging_size?.container_type ?? ""
+                      ).toLowerCase()
+                      // A bulk / tanker variant is priced per litre but
+                      // there's no fixed "per pack" total to show - the
+                      // line total scales with whatever litres the buyer
+                      // orders. Show the per-litre rate and a hint
+                      // instead of a misleading $1.15 (which would be
+                      // 1L * $1.15/L).
+                      const isBulkVariant =
+                        ct === "tanker" ||
+                        ct === "bulk" ||
+                        litres === 1
                       const total =
                         product.priceType === "per_litre"
                           ? Number(pp.price_per_litre ?? 0) * litres
@@ -564,9 +616,15 @@ export default async function ProductDetailPage({
                                 AUD {Number(pp.price_per_litre ?? 0).toFixed(2)}/L
                               </span>
                             )}
-                            <span className="text-lg font-bold text-primary">
-                              AUD {total.toFixed(2)}
-                            </span>
+                            {isBulkVariant ? (
+                              <span className="text-xs italic text-muted-foreground">
+                                tanker pump-in
+                              </span>
+                            ) : (
+                              <span className="text-lg font-bold text-primary">
+                                AUD {total.toFixed(2)}
+                              </span>
+                            )}
                           </div>
                         </div>
                       )
@@ -754,7 +812,7 @@ export default async function ProductDetailPage({
       {/* Customer reviews - data fetched server-side above; the component
           handles render-only logic (cards, marquee, empty state). When
           aggregate is null OR count is 0, the empty state shows
-          "No reviews yet — be the first". The kill switch is enforced
+          "No reviews yet - be the first". The kill switch is enforced
           here so a runtime flip skips the section without code change.
           The id="reviews" target is what the buy-area summary chip
           anchors to. */}

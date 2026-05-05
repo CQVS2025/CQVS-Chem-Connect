@@ -27,6 +27,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       xero_contact_id: body.xero_contact_id ?? null,
       is_active: body.is_active,
       sort_order: body.sort_order,
+      ...(body.is_supplier_managed !== undefined && {
+        is_supplier_managed: body.is_supplier_managed,
+      }),
     })
     .eq("id", id)
     .select()

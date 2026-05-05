@@ -32,7 +32,7 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Protected routes - redirect to login if not authenticated
-  const protectedPaths = ["/dashboard", "/admin", "/checkout"]
+  const protectedPaths = ["/dashboard", "/admin", "/checkout", "/supplier"]
   const isProtected = protectedPaths.some((path) =>
     pathname.startsWith(path),
   )
@@ -57,7 +57,7 @@ export async function updateSession(request: NextRequest) {
       pathname === "/cart" ||
       pathname === "/checkout"
 
-    if (needsProfile) {
+    if (needsProfile || pathname.startsWith("/supplier")) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("role, status")
@@ -92,27 +92,54 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse
   }
 
+  // Helper: send a user to their role's home page.
+  const homeForRole = (role: string | null): string => {
+    if (role === "admin") return "/admin"
+    if (role === "supplier") return "/supplier"
+    return "/dashboard"
+  }
+
   // Admin routes - only admin role can access
   if (pathname.startsWith("/admin") && user) {
     if (userRole !== "admin") {
       const url = request.nextUrl.clone()
-      url.pathname = "/dashboard"
+      url.pathname = homeForRole(userRole)
       return NextResponse.redirect(url)
     }
   }
 
-  // Admin users cannot access cart/checkout (ordering is customer-only)
-  if ((pathname === "/cart" || pathname === "/checkout") && user && userRole === "admin") {
-    const url = request.nextUrl.clone()
-    url.pathname = "/admin"
-    return NextResponse.redirect(url)
+  // Supplier routes - only supplier (or admin for ops) can access
+  if (pathname.startsWith("/supplier") && user) {
+    if (userRole !== "supplier" && userRole !== "admin") {
+      const url = request.nextUrl.clone()
+      url.pathname = homeForRole(userRole)
+      return NextResponse.redirect(url)
+    }
   }
 
-  // Customer dashboard - admin users should go to /admin instead
-  if (pathname === "/dashboard" && user && userRole === "admin") {
-    const url = request.nextUrl.clone()
-    url.pathname = "/admin"
-    return NextResponse.redirect(url)
+  // Buyer dashboard - only customers should see this. Admins go to /admin,
+  // suppliers go to /supplier (their dashboard).
+  if (pathname.startsWith("/dashboard") && user) {
+    if (userRole === "admin") {
+      const url = request.nextUrl.clone()
+      url.pathname = "/admin"
+      return NextResponse.redirect(url)
+    }
+    if (userRole === "supplier") {
+      const url = request.nextUrl.clone()
+      url.pathname = "/supplier"
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // Cart / checkout - ordering is customer-only. Admins and suppliers
+  // get bounced to their respective home page.
+  if ((pathname === "/cart" || pathname === "/checkout") && user) {
+    if (userRole === "admin" || userRole === "supplier") {
+      const url = request.nextUrl.clone()
+      url.pathname = homeForRole(userRole)
+      return NextResponse.redirect(url)
+    }
   }
 
   // Redirect logged-in users away from auth pages
@@ -121,7 +148,7 @@ export async function updateSession(request: NextRequest) {
 
   if (isAuthPage && user) {
     const url = request.nextUrl.clone()
-    url.pathname = userRole === "admin" ? "/admin" : "/dashboard"
+    url.pathname = homeForRole(userRole)
     return NextResponse.redirect(url)
   }
 

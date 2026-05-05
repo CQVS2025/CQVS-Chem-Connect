@@ -32,6 +32,7 @@ import {
 import { useOrderDocuments } from "@/lib/hooks/use-order-documents"
 import type { Order, OrderStatus } from "@/lib/types/order"
 import { ShippingBreakdown } from "@/components/shared/shipping-breakdown"
+import { SupplierAdminPanel } from "@/components/admin/SupplierAdminPanel"
 
 type AdminOrder = Order & {
   macship_consignment_id?: string | null
@@ -48,6 +49,17 @@ type AdminOrder = Order & {
   xero_invoice_number?: string | null
   xero_po_id?: string | null
   xero_po_number?: string | null
+  // Feature B - Supplier-managed fulfillment
+  supplier_dispatch_date?: string | null
+  supplier_dispatch_notes?: string | null
+  supplier_tracking_url?: string | null
+  supplier_origin_postcode?: string | null
+  supplier_freight_cost?: number | null
+  supplier_variance_flagged?: boolean | null
+  supplier_variance_amount?: number | null
+  supplier_sla_breached?: boolean | null
+  site_access_answers?: Record<string, unknown> | null
+  warehouse?: { is_supplier_managed?: boolean } | null
 }
 import {
   AlertDialog,
@@ -507,7 +519,33 @@ export default function AdminOrdersPage() {
                                   </Button>
                                 </TableCell>
                                 <TableCell className="font-mono text-xs">
-                                  {order.order_number}
+                                  <div className="flex items-center gap-1.5">
+                                    <span>{order.order_number}</span>
+                                    {(order as AdminOrder).warehouse?.is_supplier_managed && (
+                                      <span
+                                        className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400"
+                                        title="Supplier-managed fulfillment"
+                                      >
+                                        SUP
+                                      </span>
+                                    )}
+                                    {(order as AdminOrder).supplier_sla_breached && (
+                                      <span
+                                        className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400"
+                                        title="Supplier SLA breached - no ETA set"
+                                      >
+                                        SLA
+                                      </span>
+                                    )}
+                                    {(order as AdminOrder).supplier_variance_flagged && (
+                                      <span
+                                        className="rounded bg-destructive/15 px-1.5 py-0.5 text-[10px] font-semibold text-destructive"
+                                        title={`Freight variance flagged: $${((order as AdminOrder).supplier_variance_amount ?? 0).toFixed(2)}`}
+                                      >
+                                        VAR
+                                      </span>
+                                    )}
+                                  </div>
                                 </TableCell>
                                 <TableCell>
                                   <div>
@@ -896,11 +934,11 @@ export default function AdminOrdersPage() {
                                         <OrderDocuments orderId={order.id} />
                                       )}
 
-                                      {/* Approve / Reject inline — shown here so admin can review PO docs before acting */}
+                                      {/* Approve / Reject inline - shown here so admin can review PO docs before acting */}
                                       {order.status === "pending_approval" && order.payment_method === "purchase_order" && (
                                         <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
                                           <p className="mb-2.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
-                                            Awaiting your approval — review the PO documents above before proceeding.
+                                            Awaiting your approval - review the PO documents above before proceeding.
                                           </p>
                                           <div className="flex items-center gap-2">
                                             <Button
@@ -1021,6 +1059,9 @@ export default function AdminOrdersPage() {
                                           PO Number: {order.po_number}
                                         </p>
                                       )}
+
+                                      {/* Feature B - Supplier-managed surface */}
+                                      <SupplierAdminPanel order={order as AdminOrder} />
 
                                       {/* MacShip & Xero Info */}
                                       <div className="mt-4 border-t pt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

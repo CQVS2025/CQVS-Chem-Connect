@@ -94,6 +94,15 @@ export interface Order {
   macship_service_name: string | null
   macship_eta_date: string | null
   macship_eta_business_days: number | null
+  // Supplier-managed fulfillment (Feature B)
+  supplier_dispatch_date: string | null
+  supplier_dispatch_notes: string | null
+  supplier_tracking_url: string | null
+  supplier_freight_cost: number | null
+  supplier_variance_flagged: boolean | null
+  supplier_variance_amount: number | null
+  supplier_sla_breached: boolean | null
+  site_access_answers: Record<string, unknown> | null
   created_at: string
   updated_at: string
   items: OrderItem[]

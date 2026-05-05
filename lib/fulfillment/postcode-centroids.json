@@ -1,0 +1,15 @@
+{
+  "_doc": "Sparse AU postcode centroid set used as the offline fallback for distance lookups. Production traffic uses Google Distance Matrix; this is for local dev and tests. Extend by adding more postcode entries as needed.",
+  "2000": { "lat": -33.8688, "lng": 151.2093 },
+  "2114": { "lat": -33.8086, "lng": 151.0850 },
+  "2600": { "lat": -35.3081, "lng": 149.1244 },
+  "3000": { "lat": -37.8136, "lng": 144.9631 },
+  "3175": { "lat": -38.0001, "lng": 145.2150 },
+  "4000": { "lat": -27.4698, "lng": 153.0251 },
+  "4132": { "lat": -27.7000, "lng": 153.1300 },
+  "5000": { "lat": -34.9285, "lng": 138.6007 },
+  "5160": { "lat": -35.1167, "lng": 138.5167 },
+  "6000": { "lat": -31.9505, "lng": 115.8605 },
+  "7000": { "lat": -42.8821, "lng": 147.3272 },
+  "0800": { "lat": -12.4634, "lng": 130.8456 }
+}

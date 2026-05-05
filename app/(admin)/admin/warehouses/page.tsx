@@ -1,6 +1,7 @@
 "use client"
 
 import { Fragment, useMemo, useState } from "react"
+import Link from "next/link"
 import { Loader2, Plus, Pencil, Save, Trash2, Warehouse as WarehouseIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -157,6 +158,7 @@ function WarehousesTab() {
     contact_phone: "",
     xero_contact_id: "",
     is_active: true,
+    is_supplier_managed: false,
     sort_order: 0,
   })
 
@@ -173,6 +175,7 @@ function WarehousesTab() {
       contact_phone: "",
       xero_contact_id: "",
       is_active: true,
+      is_supplier_managed: false,
       sort_order: warehouses.length * 10 + 10,
     })
     setDialogOpen(true)
@@ -191,6 +194,9 @@ function WarehousesTab() {
       contact_phone: w.contact_phone ?? "",
       xero_contact_id: w.xero_contact_id ?? "",
       is_active: w.is_active,
+      is_supplier_managed:
+        (w as Warehouse & { is_supplier_managed?: boolean })
+          .is_supplier_managed ?? false,
       sort_order: w.sort_order,
     })
     setDialogOpen(true)
@@ -250,6 +256,7 @@ function WarehousesTab() {
                 <TableHead>Name</TableHead>
                 <TableHead>Address</TableHead>
                 <TableHead>State</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -257,7 +264,7 @@ function WarehousesTab() {
             <TableBody>
               {warehouses.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                     No warehouses configured.
                   </TableCell>
                 </TableRow>
@@ -272,6 +279,18 @@ function WarehousesTab() {
                   </TableCell>
                   <TableCell>{w.address_state}</TableCell>
                   <TableCell>
+                    {(w as Warehouse & { is_supplier_managed?: boolean })
+                      .is_supplier_managed ? (
+                      <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        Supplier-managed
+                      </span>
+                    ) : (
+                      <span className="rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-slate-600">
+                        MacShip
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     {w.is_active ? (
                       <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-500">
                         Active
@@ -284,6 +303,21 @@ function WarehousesTab() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {(w as Warehouse & { is_supplier_managed?: boolean })
+                        .is_supplier_managed && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          asChild
+                          className="text-amber-700"
+                        >
+                          <Link
+                            href={`/admin/supplier-fulfillment/warehouses/${w.id}`}
+                          >
+                            Configure
+                          </Link>
+                        </Button>
+                      )}
                       <Button variant="ghost" size="icon" onClick={() => openEdit(w)}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
@@ -486,6 +520,32 @@ function WarehousesTab() {
                   </button>
                 </div>
               </div>
+              <div className="grid gap-2">
+                <Label>Fulfillment type</Label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      is_supplier_managed: !form.is_supplier_managed,
+                    })
+                  }
+                  className={`flex h-10 items-center justify-center rounded-md border px-3 text-sm font-medium ${
+                    form.is_supplier_managed
+                      ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
+                      : "border-slate-500/30 bg-slate-500/10 text-slate-700"
+                  }`}
+                >
+                  {form.is_supplier_managed
+                    ? "Supplier-managed (skips MacShip, uses supplier rate sheet)"
+                    : "Standard MacShip warehouse"}
+                </button>
+                <p className="text-xs text-muted-foreground">
+                  Toggle on for AdBlue and other externally-fulfilled
+                  products. Once on, configure rate sheets and supplier
+                  users at <code>/admin/supplier-fulfillment</code>.
+                </p>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
@@ -541,6 +601,7 @@ function PackagingSizesTab() {
     container_type: "drum",
     sort_order: 0,
     is_active: true,
+    is_visible_on_storefront: true,
     units_per_pallet: "",
     unit_weight_kg: "",
   })
@@ -553,6 +614,7 @@ function PackagingSizesTab() {
       container_type: "drum",
       sort_order: (sizes.length + 1) * 10,
       is_active: true,
+      is_visible_on_storefront: true,
       units_per_pallet: "",
       unit_weight_kg: "",
     })
@@ -567,6 +629,9 @@ function PackagingSizesTab() {
       container_type: s.container_type ?? "drum",
       sort_order: s.sort_order,
       is_active: s.is_active,
+      is_visible_on_storefront:
+        (s as PackagingSize & { is_visible_on_storefront?: boolean })
+          .is_visible_on_storefront ?? true,
       units_per_pallet: s.units_per_pallet != null ? String(s.units_per_pallet) : "",
       unit_weight_kg: s.unit_weight_kg != null ? String(s.unit_weight_kg) : "",
     })
@@ -596,6 +661,7 @@ function PackagingSizesTab() {
       container_type: form.container_type,
       sort_order: form.sort_order,
       is_active: form.is_active,
+      is_visible_on_storefront: form.is_visible_on_storefront,
       units_per_pallet: unitsPerPallet,
       unit_weight_kg: unitWeightKg,
     }
@@ -656,13 +722,14 @@ function PackagingSizesTab() {
                 <TableHead>Unit Weight (kg)</TableHead>
                 <TableHead>Sort</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Storefront</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sizes.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
                     No packaging sizes configured.
                   </TableCell>
                 </TableRow>
@@ -699,6 +766,18 @@ function PackagingSizesTab() {
                     ) : (
                       <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                         Inactive
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {(s as PackagingSize & { is_visible_on_storefront?: boolean })
+                      .is_visible_on_storefront === false ? (
+                      <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        Hidden
+                      </span>
+                    ) : (
+                      <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-500">
+                        Visible
                       </span>
                     )}
                   </TableCell>
@@ -848,6 +927,31 @@ function PackagingSizesTab() {
                     {form.is_active ? "Active" : "Inactive"}
                   </button>
                 </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Storefront visibility</Label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      is_visible_on_storefront: !form.is_visible_on_storefront,
+                    })
+                  }
+                  className={`flex h-10 items-center justify-center rounded-md border px-3 text-sm font-medium ${
+                    form.is_visible_on_storefront
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                      : "border-amber-500/30 bg-amber-500/10 text-amber-700"
+                  }`}
+                >
+                  {form.is_visible_on_storefront
+                    ? "Visible on storefront"
+                    : "Hidden from buyers (Phase 1 deferred sizes)"}
+                </button>
+                <p className="text-xs text-muted-foreground">
+                  Toggle off for AdBlue Phase-1 deferred sizes (10L Jerry Can,
+                  200L Drum, 1000L IBC). Re-enable when Pack rate sheets ship.
+                </p>
               </div>
             </div>
             <DialogFooter>
@@ -1067,7 +1171,7 @@ function ProductMappingTab() {
     const keys = new Set<string>()
     for (const m of mappings) {
       if (m.packaging_size_id === null) {
-        // "All sizes" legacy mapping — key as "product_id:null"
+        // "All sizes" legacy mapping - key as "product_id:null"
         keys.add(`${m.product_id}:null`)
       } else {
         keys.add(`${m.product_id}:${m.packaging_size_id}`)
@@ -1204,7 +1308,7 @@ function ProductMappingTab() {
                 )
 
                 if (activeSizes.length === 0) {
-                  // Legacy: no packaging sizes configured — single "all sizes" row
+                  // Legacy: no packaging sizes configured - single "all sizes" row
                   const isMapped = mappedKeys.has(`${product.id}:null`)
                   return (
                     <TableRow key={product.id}>
@@ -1229,7 +1333,7 @@ function ProductMappingTab() {
                   )
                 }
 
-                // Product has packaging sizes — show a group header then per-size rows
+                // Product has packaging sizes - show a group header then per-size rows
                 return (
                   <Fragment key={product.id}>
                     {/* Group header row */}
@@ -1363,7 +1467,7 @@ function WarehousePricingTab() {
     return map
   }, [allProducts])
 
-  // Group mappings by product — deduplicate and collect mapped sizes per product.
+  // Group mappings by product - deduplicate and collect mapped sizes per product.
   // Each product_warehouses row is either a specific size or null (all sizes).
   const productGroups = useMemo(() => {
     const groups = new Map<string, {
@@ -1374,7 +1478,7 @@ function WarehousePricingTab() {
     for (const m of mappings) {
       const existing = groups.get(m.product_id)
       if (m.packaging_size_id === null) {
-        // "all sizes" mapping — use the product's actual configured sizes, not every active size
+        // "all sizes" mapping - use the product's actual configured sizes, not every active size
         const productSizes = productSizeMap.get(m.product_id)
         if (!productSizes || productSizes.length === 0) continue // no per-size pricing, skip
         if (!existing) {

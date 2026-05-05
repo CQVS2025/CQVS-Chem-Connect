@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chem Connect - Supplier-Managed Fulfillment - End-to-End Flow</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 980px; margin: 40px auto; padding: 0 24px; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; font-size: 28px; }
+  h2 { color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 48px; font-size: 22px; }
+  h3 { color: #166534; margin-top: 32px; font-size: 17px; }
+  h4 { color: #374151; margin-top: 22px; font-size: 14px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 14px; }
+  th, td { border: 1px solid #d1d5db; padding: 10px 14px; text-align: left; vertical-align: top; }
+  th { background-color: #f0fdf4; color: #166534; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f9fafb; }
+  .box { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 14px 18px; margin: 16px 0; border-radius: 4px; font-size: 14px; }
+  .box-amber { border-left-color: #f59e0b; background: #fef3c7; }
+  .box-blue { border-left-color: #3b82f6; background: #eff6ff; }
+  .box-red { border-left-color: #ef4444; background: #fef2f2; }
+  .box-grey { border-left-color: #6b7280; background: #f3f4f6; }
+  ul, ol { font-size: 14px; padding-left: 24px; }
+  li { margin: 5px 0; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
+  .p-buyer { background: #dbeafe; color: #1e40af; }
+  .p-supplier { background: #fce7f3; color: #9d174d; }
+  .p-admin { background: #ede9fe; color: #5b21b6; }
+  .p-cqvs { background: #dcfce7; color: #166534; }
+  .step { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin: 12px 0; }
+  .step-num { display: inline-block; background: #16a34a; color: white; width: 26px; height: 26px; border-radius: 50%; text-align: center; line-height: 26px; font-weight: 700; font-size: 12px; margin-right: 10px; }
+  .toc { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 22px; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin: 4px 0; }
+  .toc a { color: #1d4ed8; text-decoration: none; }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; text-align: center; }
+  hr.divider { border: none; border-top: 3px solid #16a34a; margin: 40px 0; }
+  .arrow-flow { background: #f9fafb; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 16px 20px; margin: 14px 0; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; line-height: 2; white-space: pre; overflow-x: auto; }
+  .num-tile { display: inline-block; background: #ecfdf5; color: #166534; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 13px; margin-right: 8px; }
+</style>
+</head>
+<body>
+
+<h1>Supplier-Managed Fulfillment - End-to-End Flow</h1>
+<p style="color: #6b7280; font-size: 14px;">A plain-English walkthrough of how Chem Connect's supplier-managed fulfillment works, from setting up a supplier to placing buyer orders to paying the supplier. This document is for everyone - admin, supplier, finance, and anyone testing the system.</p>
+
+<div class="box-blue">
+  <strong>Who's involved?</strong> Three parties exchange money and information in this flow:
+  <ul>
+    <li><span class="pill p-buyer">Buyer</span> - the customer placing an order on Chem Connect.</li>
+    <li><span class="pill p-cqvs">CQVS / Chem Connect</span> - the marketplace operator. Earns a margin on every order.</li>
+    <li><span class="pill p-supplier">Supplier</span> - the warehouse / carrier that holds the product and arranges delivery.</li>
+    <li><span class="pill p-admin">Admin</span> - CQVS staff member operating the back office (onboards suppliers, reviews variance claims, reconciles billing).</li>
+  </ul>
+</div>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ul>
+    <li><a href="#concept">1. The big picture</a></li>
+    <li><a href="#onboarding">2. Onboarding a new supplier (admin)</a></li>
+    <li><a href="#supplier-setup">3. Supplier sets up their own freight matrix</a></li>
+    <li><a href="#buyer-order">4. Buyer places an order</a></li>
+    <li><a href="#supplier-dispatch">5. Supplier confirms dispatch and delivery</a></li>
+    <li><a href="#variance">6. The variance claim path (the contract exception)</a></li>
+    <li><a href="#xero-billing">7. Xero billing and reconciliation</a></li>
+    <li><a href="#money-flow">8. The money flow, end to end</a></li>
+    <li><a href="#emails">9. Who gets which email, and when</a></li>
+    <li><a href="#testing">10. Testing the whole flow</a></li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ============================== 1. CONCEPT ============================== -->
+<h2 id="concept">1. The big picture</h2>
+
+<p>Some products on Chem Connect are <strong>supplier-managed</strong>. This means the supplier (not CQVS, not MacShip) is responsible for holding stock and arranging delivery. Today this is used for AdBlue Bulk Tanker, but the system is generic - any product can be flagged supplier-managed.</p>
+
+<p>Compared to the standard MacShip flow, the supplier-managed flow has these key differences:</p>
+
+<table>
+  <thead>
+    <tr><th>Step</th><th>Standard (MacShip) flow</th><th>Supplier-managed flow</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Stock</td><td>Held by CQVS at known warehouses</td><td>Held by the supplier at their depot</td></tr>
+    <tr><td>Freight quote at checkout</td><td>MacShip API live-quote</td><td>Calculated from the supplier's own freight matrix</td></tr>
+    <tr><td>Carrier</td><td>MacShip-booked carrier</td><td>Supplier arranges (truck, pickup, scheduling)</td></tr>
+    <tr><td>Tracking</td><td>MacShip consignment ID + carrier link</td><td>Supplier-provided tracking link (optional)</td></tr>
+    <tr><td>Who CQVS pays</td><td>MacShip + product manufacturer</td><td>The supplier directly (single PO)</td></tr>
+  </tbody>
+</table>
+
+<p>The customer experience is intentionally identical. The buyer doesn't need to know which fulfillment path applies - they just see a freight quote, place an order, and get notifications.</p>
+
+<hr class="divider">
+
+<!-- ============================== 2. ONBOARDING ============================== -->
+<h2 id="onboarding">2. Onboarding a new supplier <span class="pill p-admin">Admin</span></h2>
+
+<p>Admin sets up a supplier in three layers: the warehouse record, the supplier user account, and the product mappings.</p>
+
+<h3>2.1 Create / flag a supplier-managed warehouse</h3>
+<ol>
+  <li>Go to <strong>Admin &rarr; Warehouses</strong> and either create a new warehouse or open an existing one.</li>
+  <li>Fill in the warehouse address (this is the <em>origin</em> for freight distance calculation).</li>
+  <li>Tick <strong>"This is a supplier-managed warehouse"</strong>.</li>
+  <li>Set the <strong>contact email</strong> on the warehouse - this is the address Xero sends Purchase Orders to. If this is missing, the supplier won't get the auto-emailed PO.</li>
+  <li>Go to the <strong>Xero Contact ID</strong> field and either link an existing Xero contact or have admin create one in Xero first, then paste the ID here.</li>
+</ol>
+
+<div class="box-amber">
+  <strong>Why this matters:</strong> if the warehouse doesn't have a Xero Contact ID and a contact email, the system can still take buyer orders, but the supplier won't receive a Xero PO. Admin sees a clear error in the Xero integration log.
+</div>
+
+<h3>2.2 Add a supplier user (the human who logs in)</h3>
+<ol>
+  <li>From <strong>Admin &rarr; Supplier Fulfillment &rarr; Warehouse &rarr; Users</strong>, click <strong>Invite supplier user</strong>.</li>
+  <li>Enter the supplier's email and tick the permissions:
+    <ul>
+      <li><strong>Receives PO emails</strong> - gets notified inside the platform every time a buyer places an order.</li>
+      <li><strong>Can update orders</strong> - can confirm dispatch, set ETA, edit the freight matrix, raise variance claims. Read-only suppliers see orders but can't change them.</li>
+    </ul>
+  </li>
+  <li>Click <strong>Send invite</strong>. The supplier receives a Chem Connect-branded invite email with a sign-up link.</li>
+</ol>
+
+<div class="box">
+  <strong>Buyer / supplier separation:</strong> the system rejects the invite if the email already has buyer history (any past order placed by that email). Suppliers and buyers are strictly separate accounts in Chem Connect. If admin needs to give an existing buyer supplier access, the supplier needs to use a different email.
+</div>
+
+<h3>2.3 Map products to this warehouse</h3>
+
+<p>For each product the supplier carries:</p>
+<ol>
+  <li>Open the warehouse settings.</li>
+  <li>Go to <strong>Warehouse Pricing</strong> and enter the <strong>cost price</strong> per packaging size (this is what CQVS will pay the supplier for the product, not what the buyer sees).</li>
+  <li>Optionally add per-product checkout questions (e.g. "is there a forklift on site?", "tank fitting type?").</li>
+</ol>
+
+<h3>2.4 Set up the freight rate sheets</h3>
+
+<p>The supplier's freight cost is calculated from a <strong>distance-based rate matrix</strong>. Admin can seed this initially, but maintaining it is the supplier's responsibility going forward (see §3).</p>
+
+<p>Each rate sheet has:</p>
+<ul>
+  <li><strong>Name</strong> - e.g. "AdBlue Bulk", "Pack Existing", "Pack New"</li>
+  <li><strong>Unit type</strong> - one of: per litre, flat per consignment, per kg, per pallet, per zone</li>
+  <li><strong>Origin postcode</strong> - defaults to the warehouse postcode unless overridden</li>
+  <li><strong>Distance brackets</strong> - e.g. 0-100 km @ $0.07/L, 101-200 km @ $0.08/L, etc.</li>
+</ul>
+
+<p>Admin then maps each (product, packaging size) to one of the rate sheets so the system knows which sheet to use when a buyer orders that combination.</p>
+
+<hr class="divider">
+
+<!-- ============================== 3. SUPPLIER SETUP ============================== -->
+<h2 id="supplier-setup">3. Supplier sets up their freight matrix <span class="pill p-supplier">Supplier</span></h2>
+
+<p>After the supplier accepts the invite and signs in, they land on the <strong>Supplier Portal</strong>. Two main pages: <strong>Orders</strong> and <strong>Freight Matrix</strong>.</p>
+
+<h3>3.1 The Freight Matrix page</h3>
+
+<p>The supplier's freight matrix is theirs to maintain. They can:</p>
+<ul>
+  <li>View all rate sheets attached to their warehouse(s).</li>
+  <li>Edit any bracket's rate inline.</li>
+  <li>Add new brackets or remove old ones.</li>
+  <li>Create a brand-new rate sheet (e.g. for a new product line).</li>
+  <li>Delete a rate sheet.</li>
+  <li>Toggle a sheet's "Active" flag (deactivated sheets aren't used for new quotes).</li>
+</ul>
+
+<h3>3.2 Bulk upload (CSV)</h3>
+
+<p>For large rate updates, suppliers can:</p>
+<ol>
+  <li>Click <strong>Download blank template</strong> on the Freight Matrix page - a CSV opens with the right column headers.</li>
+  <li>Fill in their distance brackets and rates in Excel / Google Sheets.</li>
+  <li>Save and upload back. The system parses it, shows a preview, and lets the supplier tick which columns to import.</li>
+  <li>Click <strong>Import</strong>. All rows are created in one batch (or rolled back if anything fails).</li>
+</ol>
+
+<div class="box-amber">
+  <strong>Important:</strong> updates to the freight matrix only affect <strong>future</strong> orders. Already-placed orders are locked to the rate that was in effect at the moment the buyer paid. So a supplier raising their rates today doesn't retroactively change what they're paid on yesterday's orders.
+</div>
+
+<hr class="divider">
+
+<!-- ============================== 4. BUYER ORDER ============================== -->
+<h2 id="buyer-order">4. Buyer places an order <span class="pill p-buyer">Buyer</span></h2>
+
+<h3>4.1 Browsing and adding to cart</h3>
+<ol>
+  <li>Buyer opens the Chem Connect storefront, browses products, and adds an AdBlue Bulk Tanker (for example) to their cart.</li>
+  <li>For bulk-tanker style products, the buyer enters the number of <strong>litres</strong> they want (presets at 1,000 / 5,000 / 10,000 / 20,000 are offered).</li>
+  <li>They proceed to checkout.</li>
+</ol>
+
+<h3>4.2 Site-access answers</h3>
+<p>Supplier-managed products often need site-access information so the supplier can plan delivery. The buyer answers these per-product questions on the checkout page (e.g. "is there hardstand?", "tank fitting type?", "site induction required?"). Answers are stored on the order and visible to both supplier and admin.</p>
+
+<h3>4.3 Freight quote</h3>
+
+<p>When the buyer enters a delivery address, the system:</p>
+<ol>
+  <li>Identifies that this cart contains a supplier-managed product.</li>
+  <li>Looks up which rate sheet applies (for AdBlue Bulk Tanker - the "Bulk" rate sheet).</li>
+  <li>Calculates the road distance from the supplier's origin postcode to the delivery postcode.</li>
+  <li>Rounds up to the next 100 km bracket and finds the matching row.</li>
+  <li>Applies the formula:
+    <ul>
+      <li><strong>Per litre:</strong> rate &times; litres &times; quantity</li>
+      <li><strong>Flat per consignment:</strong> rate &times; quantity</li>
+      <li><strong>Per kg / pallet:</strong> rate &times; units &times; quantity</li>
+    </ul>
+  </li>
+  <li>Adds any minimum charge if applicable.</li>
+</ol>
+
+<p>The freight is shown on the checkout page as <strong>"Supplier freight quote"</strong> with a note: "Final freight is reconfirmed by the supplier on dispatch. You'll be notified if it differs from this quote."</p>
+
+<h3>4.4 Payment</h3>
+
+<p>The buyer pays via Stripe (credit card) or via Purchase Order. Once paid (or once the PO is approved by admin), the order is finalized and a number of things happen automatically:</p>
+
+<ol>
+  <li>The order's freight quote is <strong>locked</strong>. Even if the supplier later changes the rate matrix, this order stays at the price the buyer was shown.</li>
+  <li>The full breakdown of the freight calculation (which rate sheet, which bracket, what distance, what rate) is saved on the order as an audit trail.</li>
+  <li>A Xero <strong>Purchase Order</strong> is created on the supplier's Xero contact (line items at <em>cost price</em>, plus a freight line equal to the locked freight). Xero auto-emails the PO to the supplier's contact email.</li>
+  <li>An in-platform PO email is also sent to the supplier user(s) with the order details, site-access answers, and a deep link to the supplier portal.</li>
+  <li>The order shows up immediately in the supplier's orders list.</li>
+</ol>
+
+<hr class="divider">
+
+<!-- ============================== 5. SUPPLIER DISPATCH ============================== -->
+<h2 id="supplier-dispatch">5. Supplier confirms dispatch and delivery <span class="pill p-supplier">Supplier</span></h2>
+
+<p>The supplier opens the order in their portal and works through these fields:</p>
+
+<ol>
+  <li><strong>Dispatch date</strong> - when the truck leaves the depot. Confirming this triggers an email to the buyer.</li>
+  <li><strong>Estimated delivery date</strong> - when the buyer should expect it. Triggers another email.</li>
+  <li><strong>Tracking URL</strong> - optional link to the carrier's tracking page. Triggers an email when added (or removed/changed).</li>
+  <li><strong>Dispatch notes</strong> - free-text notes for the buyer (e.g. "driver will call ahead").</li>
+  <li><strong>Origin postcode</strong> - if dispatching from a different depot than the warehouse default.</li>
+  <li><strong>Status</strong> - moved through "Received &rarr; Processing &rarr; In Transit &rarr; Delivered".</li>
+</ol>
+
+<p>Every change is recorded in an <strong>audit log</strong> visible to both supplier and admin (timestamped, with old / new value).</p>
+
+<h3>5.1 Locking the supplier's freight payout</h3>
+
+<p>When the supplier moves the order to <strong>In Transit</strong>, the system locks the supplier's freight payout (<code>supplier_freight_cost</code>) at exactly the amount that was quoted to the buyer at checkout. Default model: <strong>supplier paid quoted freight, no surprises either way</strong>.</p>
+
+<p>The exception is the variance claim path - see §6.</p>
+
+<hr class="divider">
+
+<!-- ============================== 6. VARIANCE ============================== -->
+<h2 id="variance">6. Variance claim path (the contract exception) <span class="pill p-supplier">Supplier</span> <span class="pill p-admin">Admin</span></h2>
+
+<p>If the supplier's actual freight cost ends up <em>higher</em> than what their matrix said, the contract default is "supplier eats it". But the contract also allows for legitimate exceptions where the supplier can <strong>raise a claim</strong> - and admin reviews it.</p>
+
+<h3>6.1 When the supplier can raise a claim</h3>
+
+<p>Only <strong>before dispatch</strong> (while the order is in Received or Processing). Once dispatch begins, the claim window has closed - per contract, late notifications can't be honored.</p>
+
+<h3>6.2 The supplier's claim form</h3>
+
+<p>On the order detail page, the supplier sees a <strong>Freight Variance Claim</strong> card. Clicking <strong>Raise variance claim</strong> opens a form:</p>
+<ul>
+  <li>Claimed amount (in AUD)</li>
+  <li>Notified at - when they originally informed admin</li>
+  <li>Notification evidence - free-text describing how/why they notified (e.g. "emailed admin@chemconnect.com on 4 May with carrier quote")</li>
+</ul>
+
+<p>The supplier can withdraw a pending claim before admin reviews it.</p>
+
+<h3>6.3 Admin reviews the claim</h3>
+
+<p>Admin opens <strong>Admin &rarr; Supplier Fulfillment &rarr; Variance Claims</strong>. They see all pending / approved / rejected claims with full context: order number, warehouse, quoted vs claimed amount, notification timestamp, evidence.</p>
+
+<p>Admin can:</p>
+<ul>
+  <li><strong>Approve</strong> with the full claimed amount, OR with a reduced amount (e.g. partial approval).</li>
+  <li><strong>Reject</strong>, with a decision note explaining why (e.g. "matrix should have been updated in advance").</li>
+</ul>
+
+<p>Both decisions trigger emails (see §9).</p>
+
+<h3>6.4 What happens after approval</h3>
+
+<p>When the supplier next moves the order to <strong>In Transit</strong>, the system reads the latest approved claim and sets <code>supplier_freight_cost</code> to the approved amount instead of the original quoted freight. The audit log records the change.</p>
+
+<div class="box-blue">
+  <strong>Where the variance lands:</strong> the buyer always pays the originally quoted freight (locked at checkout). If admin approves a higher amount for the supplier, the difference comes out of CQVS's product margin. CQVS effectively absorbs the variance to honor the supplier contract.
+</div>
+
+<hr class="divider">
+
+<!-- ============================== 7. XERO BILLING ============================== -->
+<h2 id="xero-billing">7. Xero billing and reconciliation <span class="pill p-admin">Admin</span></h2>
+
+<p>Xero has two key documents for each supplier-managed order:</p>
+
+<table>
+  <thead><tr><th>Document</th><th>What it represents</th><th>When created</th></tr></thead>
+  <tbody>
+    <tr><td>Purchase Order (PO)</td><td>The order commitment. Frozen, emailed to the supplier as a PDF.</td><td>Automatically when the buyer pays.</td></tr>
+    <tr><td>Bill (ACCPAY invoice)</td><td>The actual amount CQVS owes the supplier. This is what gets paid.</td><td>When admin clicks "Mark as billed" in Xero on the PO.</td></tr>
+  </tbody>
+</table>
+
+<h3>7.1 Standard case (no variance claim)</h3>
+
+<ol>
+  <li>Buyer pays. Xero PO is auto-created and emailed to supplier.</li>
+  <li>Supplier dispatches and delivers.</li>
+  <li>Admin opens the PO in Xero, clicks <strong>Mark as billed</strong>. Xero pre-fills a draft Bill from the PO.</li>
+  <li>Admin approves the Bill as-is. Pays the supplier.</li>
+  <li>Admin returns to <strong>Reconciliation</strong> in CQVS and clicks <strong>Mark as billed</strong> on the row to flag the order as fully reconciled.</li>
+</ol>
+
+<h3>7.2 With an approved variance claim</h3>
+
+<p>Same flow but with one extra step. The PO in Xero <em>doesn't change</em> - that document is sacred (the supplier has the original PDF, modifying it after the fact is bad practice). Instead the variance is reflected on the Bill, which is the document admin can edit.</p>
+
+<ol>
+  <li>The reconciliation page in CQVS highlights orders with approved variance claims in <strong>amber</strong>. The "Bill freight" column tells admin exactly what to enter.</li>
+  <li>Admin opens the Xero PO, clicks <strong>Mark as billed</strong>.</li>
+  <li>On the draft Bill, admin <strong>edits the freight line</strong> from the original quoted amount to the approved-claim amount before approving the Bill.</li>
+  <li>Admin returns to CQVS and clicks <strong>Mark as billed</strong> on the row. Highlight clears.</li>
+</ol>
+
+<div class="box">
+  <strong>Reconciliation tabs:</strong> the page has three filter tabs - <em>All</em>, <em>Pending billing</em> (orders with approved claims that admin still needs to bill), and <em>Billed in Xero</em> (already done). Each tab shows a count.
+</div>
+
+<hr class="divider">
+
+<!-- ============================== 8. MONEY FLOW ============================== -->
+<h2 id="money-flow">8. The money flow, end to end</h2>
+
+<p>Here's a worked example with real numbers to make the flow concrete.</p>
+
+<h3>8.1 Example: 700 L of AdBlue Bulk Tanker to Sydney 2000 (paid by card)</h3>
+
+<table>
+  <thead><tr><th>Item</th><th>Amount</th><th>How it's calculated</th></tr></thead>
+  <tbody>
+    <tr><td>Product subtotal</td><td>$805.00</td><td>700 L &times; $1.15 (customer-facing price)</td></tr>
+    <tr><td>Supplier freight</td><td>$49.00</td><td>700 L &times; $0.07/L from the supplier's 0-100 km bracket</td></tr>
+    <tr><td>GST (10%)</td><td>$85.40</td><td>10% on (product + freight) = ($805 + $49) &times; 10%</td></tr>
+    <tr><td>Card processing fee</td><td>$18.41</td><td>Stripe fee passed through to the customer (see breakdown below)</td></tr>
+    <tr><td><strong>Buyer total</strong></td><td><strong>$957.81</strong></td><td>Locked once paid</td></tr>
+  </tbody>
+</table>
+
+<div class="box-blue">
+  <strong>How the card processing fee is calculated</strong> (Chem Connect passes Stripe's actual fee through to the buyer; PO orders pay $0 since they don't go through Stripe):
+  <ol style="margin-top: 8px;">
+    <li>Stripe charges <strong>1.75% &times; (subtotal + freight + GST) + $0.30 fixed</strong>.<br/>
+        For this order: ($805 + $49 + $85.40) &times; 1.75% + $0.30 = $939.40 &times; 1.75% + $0.30 = <strong>$16.74</strong>.</li>
+    <li>10% GST is added on top of the Stripe fee itself: $16.74 &times; 10% = <strong>$1.67</strong>.</li>
+    <li>Card processing fee shown to the buyer: $16.74 + $1.67 = <strong>$18.41</strong>.</li>
+  </ol>
+  <p style="margin: 8px 0 0 0;">Effective rate is ~1.96% on this order (not a flat 3%). The $0.30 fixed component makes very small orders feel more expensive in percentage terms, and very large orders cheaper.</p>
+</div>
+
+<h3>8.2 What CQVS pays the supplier (default - no claim)</h3>
+
+<table>
+  <thead><tr><th>Item</th><th>Amount</th></tr></thead>
+  <tbody>
+    <tr><td>Product cost (700 &times; $0.80)</td><td>$560.00</td></tr>
+    <tr><td>Freight pass-through</td><td>$49.00</td></tr>
+    <tr><td><strong>PO / Bill total</strong></td><td><strong>$609.00 + GST</strong></td></tr>
+  </tbody>
+</table>
+
+<h3>8.3 CQVS gross margin</h3>
+
+<table>
+  <thead><tr><th>Component</th><th>Amount</th></tr></thead>
+  <tbody>
+    <tr><td>Product margin (700 &times; ($1.15 - $0.80))</td><td>$245.00</td></tr>
+    <tr><td>Freight margin ($49 - $49)</td><td>$0.00</td></tr>
+    <tr><td><strong>Total gross margin</strong></td><td><strong>$245.00</strong></td></tr>
+  </tbody>
+</table>
+
+<h3>8.4 With an approved variance claim of $65</h3>
+
+<table>
+  <thead><tr><th>Item</th><th>Amount</th></tr></thead>
+  <tbody>
+    <tr><td>Buyer paid (unchanged)</td><td>$957.81</td></tr>
+    <tr><td>CQVS pays supplier (Bill total)</td><td>$625.00 + GST</td></tr>
+    <tr><td>Product margin</td><td>$245.00</td></tr>
+    <tr><td>Freight margin ($49 - $65)</td><td>-$16.00</td></tr>
+    <tr><td><strong>Total gross margin</strong></td><td><strong>$229.00</strong></td></tr>
+  </tbody>
+</table>
+
+<p>So the $16 difference (between the locked buyer freight and the approved supplier amount) comes out of CQVS's pocket. That's why approval is admin-gated - it has a real cost.</p>
+
+<hr class="divider">
+
+<!-- ============================== 9. EMAILS ============================== -->
+<h2 id="emails">9. Who gets which email, and when</h2>
+
+<table>
+  <thead><tr><th>Trigger</th><th>Recipient(s)</th><th>Subject / purpose</th></tr></thead>
+  <tbody>
+    <tr><td>Supplier user invited</td><td>Invited supplier</td><td>"You're invited to Chem Connect Supplier Portal"</td></tr>
+    <tr><td>Supplier user re-invited (if they didn't sign up)</td><td>Invited supplier</td><td>Same as above (Resend invite button)</td></tr>
+    <tr><td>Buyer order placed (Stripe paid or PO approved)</td><td>Buyer</td><td>Order confirmation + receipt</td></tr>
+    <tr><td>Buyer order placed (supplier-managed)</td><td>All warehouse users with "Receives PO emails"</td><td>"New Purchase Order"</td></tr>
+    <tr><td>Buyer order placed</td><td>Supplier (Xero contact)</td><td>Xero PO PDF auto-emailed</td></tr>
+    <tr><td>Supplier sets / changes dispatch date</td><td>Buyer</td><td>"Dispatch update for your order"</td></tr>
+    <tr><td>Supplier sets / changes ETA</td><td>Buyer</td><td>"Delivery date update"</td></tr>
+    <tr><td>Supplier adds / changes tracking URL</td><td>Buyer</td><td>"Track your shipment"</td></tr>
+    <tr><td>Variance claim approved</td><td>Supplier (claimant + warehouse contact)</td><td>"Variance claim approved"</td></tr>
+    <tr><td>Variance claim approved</td><td>Admin</td><td>"Action: bump Bill freight before approving in Xero"</td></tr>
+    <tr><td>Variance claim rejected</td><td>Supplier (claimant + warehouse contact)</td><td>"Variance claim rejected"</td></tr>
+  </tbody>
+</table>
+
+<p>All emails are Chem Connect-branded (logo, footer, single visual style). No raw Supabase / Mailgun default templates leak through.</p>
+
+<hr class="divider">
+
+<!-- ============================== 10. TESTING ============================== -->
+<h2 id="testing">10. Testing the whole flow</h2>
+
+<p>This is the smoke test that exercises the full happy path plus the variance exception. Run it once after each release that touches supplier-managed code.</p>
+
+<div class="box-blue">
+  <strong>You'll need three accounts:</strong> an admin, a supplier user (with edit permission), and a buyer.
+</div>
+
+<h3>10.1 Onboarding sanity check</h3>
+<div class="step">
+  <span class="step-num">1</span><strong>Admin sees the supplier warehouse</strong> at <em>Admin &rarr; Supplier Fulfillment</em>. Warehouse has Xero Contact ID and contact_email set. Has at least one rate sheet with brackets. At least one product mapped to it with a cost price.
+</div>
+<div class="step">
+  <span class="step-num">2</span><strong>Supplier signs in</strong> at the supplier portal. Sees Orders + Freight Matrix in the nav. Freight Matrix page shows their rate sheets.
+</div>
+
+<h3>10.2 Freight matrix CRUD</h3>
+<div class="step">
+  <span class="step-num">3</span><strong>Supplier edits a bracket rate</strong>, saves, refreshes - change persists. Reverts the change.
+</div>
+<div class="step">
+  <span class="step-num">4</span><strong>Supplier downloads the blank CSV template</strong>, fills in 3-4 brackets, uploads, imports. New rate sheet appears in their list. Deletes it to clean up.
+</div>
+
+<h3>10.3 Order placement</h3>
+<div class="step">
+  <span class="step-num">5</span><strong>Buyer places a Stripe order</strong> for 700 L AdBlue Bulk Tanker to Sydney 2000. Sees a freight quote at checkout (e.g. $49). Pays.
+</div>
+<div class="step">
+  <span class="step-num">6</span><strong>Buyer receives</strong> an order confirmation email. Order shows up in their dashboard with the supplier-managed freight breakdown panel.
+</div>
+<div class="step">
+  <span class="step-num">7</span><strong>Supplier receives</strong> two emails: an in-platform PO email and a Xero PO PDF. The PO has product line at cost ($560) and a freight line ($49).
+</div>
+<div class="step">
+  <span class="step-num">8</span><strong>Supplier sees the order</strong> in their portal. Site-access answers and delivery address are visible.
+</div>
+
+<h3>10.4 Dispatch flow (default - no claim)</h3>
+<div class="step">
+  <span class="step-num">9</span><strong>Supplier sets dispatch date</strong> &rarr; buyer gets email. Sets ETA &rarr; buyer gets email. Adds tracking URL &rarr; buyer gets email.
+</div>
+<div class="step">
+  <span class="step-num">10</span><strong>Supplier moves status to In Transit</strong>. Order shows <code>supplier_freight_cost = $49</code> (matches the quote). Activity log shows the change.
+</div>
+<div class="step">
+  <span class="step-num">11</span><strong>Admin opens Xero</strong>, marks the PO as billed, accepts the draft Bill as-is, approves and pays. Returns to CQVS reconciliation, clicks <strong>Mark as billed</strong> on the row.
+</div>
+
+<h3>10.5 Variance flow (the contract exception)</h3>
+<div class="step">
+  <span class="step-num">12</span>Place a fresh order. <strong>Supplier raises a variance claim</strong> for $75 with notification timestamp + evidence. Sees the pending claim on the order page.
+</div>
+<div class="step">
+  <span class="step-num">13</span><strong>Admin opens the variance claims queue</strong>, sees the pending claim with full context. Approves at $65 (partial). Adds a decision note.
+</div>
+<div class="step">
+  <span class="step-num">14</span><strong>Supplier and admin both receive</strong> approval emails. Supplier email says "you can invoice the approved amount". Admin email says "bump the Bill freight to $65 in Xero".
+</div>
+<div class="step">
+  <span class="step-num">15</span><strong>Supplier moves the order to In Transit</strong>. <code>supplier_freight_cost</code> is now $65 (not $49 - the claim wins).
+</div>
+<div class="step">
+  <span class="step-num">16</span><strong>Admin opens reconciliation in CQVS</strong>. The row is highlighted amber. Bill freight column says $65. Admin opens Xero, marks PO as billed, edits the draft Bill freight line from $49 to $65, approves, pays. Returns to CQVS, clicks <strong>Mark as billed</strong>. Highlight clears, row moves to "Billed in Xero" tab.
+</div>
+
+<h3>10.6 Window enforcement</h3>
+<div class="step">
+  <span class="step-num">17</span>On an order already in <em>In Transit</em>, the supplier sees: "The claim window has closed (order is no longer pre-dispatch). You will be paid the originally quoted freight amount." The Raise variance claim button is hidden.
+</div>
+
+<h3>10.7 Locked snapshot</h3>
+<div class="step">
+  <span class="step-num">18</span>Edit a bracket rate (e.g. raise it). Place a new order - new order quotes the new rate. The order from Step 5 still shows the old rate in its freight breakdown - the change is not retroactive.
+</div>
+
+<hr class="divider">
+
+<div class="box">
+  <strong>Bottom line:</strong> the supplier owns their freight matrix, freight is locked when the buyer pays, the supplier is paid exactly the quote unless they raise an admin-approved variance claim, and the Bill (not the PO) is where any approved variance is reflected. Every change is audited, every actor is notified, and the reconciliation page tells admin exactly what to do in Xero.
+</div>
+
+<div class="footer">
+  <p>Chem Connect &middot; Supplier-Managed Fulfillment &middot; End-to-End Flow</p>
+</div>
+
+</body>
+</html>

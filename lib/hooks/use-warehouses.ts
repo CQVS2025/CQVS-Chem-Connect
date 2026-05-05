@@ -15,6 +15,7 @@ export interface WarehouseInput {
   contact_phone?: string | null
   xero_contact_id?: string | null
   is_active?: boolean
+  is_supplier_managed?: boolean
   sort_order?: number
 }
 

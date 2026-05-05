@@ -85,6 +85,8 @@ export type FinalizePayload = CalculateOrderInput & {
   macship_eta_business_days?: number | null
   macship_quote_shape?: "parcel" | "pallet" | null
   macship_is_dg?: boolean | null
+  // Supplier-managed fulfillment (Feature B):
+  site_access_answers?: Record<string, unknown> | null
 }
 
 export type FinalizeResult =
@@ -214,10 +216,31 @@ export async function finalizeStripeOrder({
       delivery_address_state: payload.delivery_address_state || null,
       delivery_address_postcode: payload.delivery_address_postcode || null,
       delivery_notes: payload.delivery_notes || null,
-      macship_shipping_breakdown: payload.macship_shipping_breakdown ?? null,
-      macship_service_name: payload.macship_service_name ?? null,
-      macship_eta_date: payload.macship_eta_date ?? null,
-      macship_eta_business_days: payload.macship_eta_business_days ?? null,
+      // Supplier-managed flow persists its own freight breakdown + answers.
+      // MacShip-flow fields stay null here for supplier-managed orders so
+      // the buyer order page renders the right tracking surface.
+      macship_shipping_breakdown: calc.isSupplierManaged
+        ? null
+        : payload.macship_shipping_breakdown ?? null,
+      macship_service_name: calc.isSupplierManaged
+        ? null
+        : payload.macship_service_name ?? null,
+      macship_eta_date: calc.isSupplierManaged
+        ? null
+        : payload.macship_eta_date ?? null,
+      macship_eta_business_days: calc.isSupplierManaged
+        ? null
+        : payload.macship_eta_business_days ?? null,
+      site_access_answers: payload.site_access_answers ?? null,
+      freight_quote_snapshot: calc.isSupplierManaged
+        ? {
+            breakdown: calc.supplierFreightBreakdown ?? [],
+            total: calc.calculated.shipping,
+            warehouse_id: calc.selectedWarehouse?.id ?? null,
+            destination_postcode: payload.delivery_address_postcode || null,
+            computed_at: new Date().toISOString(),
+          }
+        : null,
     })
     .select()
     .single()
@@ -284,36 +307,53 @@ export async function finalizeStripeOrder({
       .eq("user_id", userId)
   }
 
-  // --- MacShip consignment (non-blocking but awaited for UI freshness) ----
-  const macshipData = await runMacshipConsignment({
-    supabase,
-    order,
-    payload,
-    orderItems: calc.orderItems,
-    productMap: calc.productMap,
-    selectedWarehouse: calc.selectedWarehouse,
-  })
-
-  if (
-    macshipData.consignment_id ||
-    macshipData.failed ||
-    macshipData.pickup_date ||
-    macshipData.carrier_id
-  ) {
-    await supabase
-      .from("orders")
-      .update({
-        macship_consignment_id: macshipData.consignment_id || null,
-        macship_carrier_id: macshipData.carrier_id || null,
-        macship_tracking_url: macshipData.tracking_url || null,
-        macship_pickup_date: macshipData.pickup_date || null,
-        macship_quote_amount: macshipData.quote_amount || null,
-        macship_governing_product_id:
-          macshipData.governing_product_id || null,
-        macship_consignment_failed: macshipData.failed || false,
-        macship_lead_time_fallback: macshipData.used_fallback || false,
+  // --- MacShip consignment OR supplier PO email --------------------------
+  if (calc.isSupplierManaged) {
+    // Supplier-managed orders skip MacShip entirely. We send the PO email
+    // to every warehouse_users row with receives_po_emails=true and let
+    // the supplier dashboard take it from there (component 8).
+    try {
+      const { sendSupplierPurchaseOrderEmail } = await import(
+        "@/lib/fulfillment/supplier-emails"
+      )
+      await sendSupplierPurchaseOrderEmail({
+        supabase,
+        orderId: order.id,
       })
-      .eq("id", order.id)
+    } catch (err) {
+      console.error("[finalize] Supplier PO email failed:", err)
+    }
+  } else {
+    const macshipData = await runMacshipConsignment({
+      supabase,
+      order,
+      payload,
+      orderItems: calc.orderItems,
+      productMap: calc.productMap,
+      selectedWarehouse: calc.selectedWarehouse,
+    })
+
+    if (
+      macshipData.consignment_id ||
+      macshipData.failed ||
+      macshipData.pickup_date ||
+      macshipData.carrier_id
+    ) {
+      await supabase
+        .from("orders")
+        .update({
+          macship_consignment_id: macshipData.consignment_id || null,
+          macship_carrier_id: macshipData.carrier_id || null,
+          macship_tracking_url: macshipData.tracking_url || null,
+          macship_pickup_date: macshipData.pickup_date || null,
+          macship_quote_amount: macshipData.quote_amount || null,
+          macship_governing_product_id:
+            macshipData.governing_product_id || null,
+          macship_consignment_failed: macshipData.failed || false,
+          macship_lead_time_fallback: macshipData.used_fallback || false,
+        })
+        .eq("id", order.id)
+    }
   }
 
   // --- Clear cart ---------------------------------------------------------

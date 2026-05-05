@@ -28,6 +28,9 @@ export default function AdminSettingsPage() {
   const [currency, setCurrency] = useState("")
   const [taxRate, setTaxRate] = useState("")
   const [minOrderValue, setMinOrderValue] = useState("")
+  const [stripeFeePercent, setStripeFeePercent] = useState("")
+  const [stripeFeeFixed, setStripeFeeFixed] = useState("")
+  const [stripeFeeGst, setStripeFeeGst] = useState("")
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [quotesEnabled, setQuotesEnabled] = useState(true)
   const [earlyAccessLimit, setEarlyAccessLimit] = useState("20")
@@ -41,6 +44,9 @@ export default function AdminSettingsPage() {
       setCurrency(settings.currency || "AUD")
       setTaxRate(settings.tax_rate || "10")
       setMinOrderValue(settings.min_order_value || "100")
+      setStripeFeePercent(settings.stripe_fee_percent || "1.75")
+      setStripeFeeFixed(settings.stripe_fee_fixed || "0.30")
+      setStripeFeeGst(settings.stripe_fee_gst || "10")
       setEmailNotifications(settings.email_notifications_enabled !== "false")
       setQuotesEnabled(settings.quotes_enabled !== "false")
       setEarlyAccessLimit(settings.early_access_limit || "20")
@@ -56,6 +62,9 @@ export default function AdminSettingsPage() {
         currency,
         tax_rate: taxRate,
         min_order_value: minOrderValue,
+        stripe_fee_percent: stripeFeePercent,
+        stripe_fee_fixed: stripeFeeFixed,
+        stripe_fee_gst: stripeFeeGst,
         email_notifications_enabled: emailNotifications ? "true" : "false",
         quotes_enabled: quotesEnabled ? "true" : "false",
         early_access_limit: earlyAccessLimit,
@@ -167,9 +176,13 @@ export default function AdminSettingsPage() {
                 <Input
                   id="tax-rate"
                   type="number"
+                  step="0.01"
                   value={taxRate}
                   onChange={(e) => setTaxRate(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  GST applied to product subtotal + freight on every order. Australia is 10.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="min-order">Minimum Order Value ($)</Label>
@@ -179,6 +192,48 @@ export default function AdminSettingsPage() {
                   value={minOrderValue}
                   onChange={(e) => setMinOrderValue(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Buyers cannot check out below this subtotal. Set to 0 to disable.
+                </p>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="stripe-fee-pct">Stripe Fee (%)</Label>
+                <Input
+                  id="stripe-fee-pct"
+                  type="number"
+                  step="0.01"
+                  value={stripeFeePercent}
+                  onChange={(e) => setStripeFeePercent(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Percentage portion of Stripe&apos;s fee, passed through to the buyer on card orders.
+                </p>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="stripe-fee-fixed">Stripe Fee Fixed ($)</Label>
+                <Input
+                  id="stripe-fee-fixed"
+                  type="number"
+                  step="0.01"
+                  value={stripeFeeFixed}
+                  onChange={(e) => setStripeFeeFixed(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Flat per-transaction fee Stripe charges (e.g. $0.30).
+                </p>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="stripe-fee-gst">GST on Stripe Fee (%)</Label>
+                <Input
+                  id="stripe-fee-gst"
+                  type="number"
+                  step="0.01"
+                  value={stripeFeeGst}
+                  onChange={(e) => setStripeFeeGst(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  GST applied on top of the Stripe fee itself.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="early-access-limit">Early Access Limit</Label>

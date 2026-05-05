@@ -1,9 +1,21 @@
 "use client"
 
-import { useState } from "react"
+// Reset-password page. Handles two flows:
+//
+//   1. Supplier-invite flow (new):
+//      URL has ?token_hash=…&type=recovery&email=…
+//      We call supabase.auth.verifyOtp() on form SUBMIT (not on page
+//      load) so email-link prefetchers can't burn the OTP.
+//
+//   2. Forgot-password / hash-based flow (legacy):
+//      Supabase puts the session in the URL hash (#access_token=…).
+//      The supabase client picks this up automatically on page load.
+//      We just call updateUser() on submit.
+
+import { Suspense, useEffect, useState } from "react"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff, Loader2, CheckCircle } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Eye, EyeOff, Loader2, CheckCircle, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 import { domAnimation, LazyMotion, m } from "framer-motion"
 
@@ -19,15 +31,33 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter()
+  const params = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [hashError, setHashError] = useState<string | null>(null)
+
+  const tokenHash = params.get("token_hash")
+  const type = params.get("type") as "recovery" | "invite" | null
+
+  // Surface any error the URL hash may carry from Supabase (e.g. when
+  // the user clicks a stale link). Only relevant for the legacy flow -
+  // the new token_hash flow doesn't put errors in the hash.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const hash = window.location.hash
+    if (!hash) return
+    const params = new URLSearchParams(hash.slice(1))
+    const err = params.get("error_description")
+    if (err) setHashError(err.replace(/\+/g, " "))
+  }, [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
+    setHashError(null)
 
     const formData = new FormData(e.currentTarget)
     const password = formData.get("password") as string
@@ -38,26 +68,50 @@ export default function ResetPasswordPage() {
       setLoading(false)
       return
     }
-
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters")
       setLoading(false)
       return
     }
 
-    try {
-      const supabase = createClient()
-      const { error } = await supabase.auth.updateUser({ password })
+    const supabase = createClient()
 
-      if (error) {
-        toast.error("Unable to update password. The reset link may have expired. Please request a new one.")
+    try {
+      // Flow 1: token_hash from our supplier-invite email. Verify on
+      // submit so email scanners can't burn the OTP before the human
+      // clicks.
+      if (tokenHash && type) {
+        const { error: verifyErr } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type,
+        })
+        if (verifyErr) {
+          toast.error(
+            `Reset link is invalid or expired: ${verifyErr.message}. Ask your admin to resend the invite.`,
+          )
+          setLoading(false)
+          return
+        }
+      }
+
+      // Both flows: now we have a session - set the password.
+      const { error: updateErr } = await supabase.auth.updateUser({ password })
+      if (updateErr) {
+        toast.error(
+          `Unable to update password: ${updateErr.message}. The reset link may have expired - ask your admin to resend it.`,
+        )
         return
       }
 
-      toast.success("Password updated successfully!")
+      toast.success("Password updated. Redirecting to sign-in…")
+      // Sign out to ensure the next sign-in goes through the role-aware
+      // redirect (suppliers → /supplier, admins → /admin, etc.)
+      await supabase.auth.signOut().catch(() => {})
       router.push("/login")
-    } catch {
-      toast.error("Something went wrong. Please try again.")
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Something went wrong. Please try again.",
+      )
     } finally {
       setLoading(false)
     }
@@ -82,17 +136,29 @@ export default function ResetPasswordPage() {
               />
               <div>
                 <CardTitle className="text-2xl font-bold tracking-tight">
-                  New Password
+                  Set Your Password
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">by CQVS</p>
               </div>
             </div>
             <CardDescription className="text-muted-foreground">
-              Enter your new password below.
+              {tokenHash
+                ? "Enter the password you'd like to use for your supplier account."
+                : "Enter your new password below."}
             </CardDescription>
           </CardHeader>
 
           <CardContent className="px-0">
+            {hashError && (
+              <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>
+                  {hashError}. Ask your admin to resend the invite - the new
+                  link will use a one-time-only token that survives email-client
+                  prefetching.
+                </p>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="password">New Password</Label>
@@ -160,7 +226,7 @@ export default function ResetPasswordPage() {
                 ) : (
                   <>
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    Update Password
+                    {tokenHash ? "Set password & sign in" : "Update Password"}
                   </>
                 )}
               </Button>
@@ -169,5 +235,13 @@ export default function ResetPasswordPage() {
         </Card>
       </m.div>
     </LazyMotion>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }

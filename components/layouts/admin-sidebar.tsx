@@ -22,6 +22,7 @@ import {
   LogOut,
   Truck,
   Activity,
+  Factory,
 } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/client"
@@ -76,6 +77,16 @@ const navItems: NavItem[] = [
   { label: "Rewards", href: "/admin/rewards", icon: Gift },
   { label: "Analytics", href: "/admin/analytics", icon: TrendingUp },
   { label: "Warehouses", href: "/admin/warehouses", icon: Warehouse },
+  {
+    label: "Supplier Fulfillment",
+    href: "/admin/supplier-fulfillment",
+    icon: Factory,
+    subItems: [
+      { label: "Overview", href: "/admin/supplier-fulfillment" },
+      { label: "Per-product setup", href: "/admin/supplier-fulfillment/products" },
+      { label: "Reconciliation", href: "/admin/supplier-fulfillment/reconciliation" },
+    ],
+  },
   { label: "Xero", href: "/admin/xero", icon: LinkIcon },
   { label: "MacShip", href: "/admin/macship", icon: Truck },
   { label: "Integration Logs", href: "/admin/integration-logs", icon: Activity },
@@ -208,8 +219,16 @@ function SidebarContent({
                 {subItemsVisible && (
                   <div className="ml-7 mt-1 flex flex-col space-y-0.5 border-l border-border/60 pl-3">
                     {item.subItems!.map((sub) => {
+                      // When a sub-item points to the parent's URL (e.g.
+                      // "Overview" → /admin/supplier-fulfillment), every
+                      // child path also starts with that prefix, which would
+                      // light up Overview on every sub-tab. Require an exact
+                      // match in that case.
                       const subActive =
-                        pathname === sub.href || pathname.startsWith(sub.href + "/")
+                        sub.href === item.href
+                          ? pathname === sub.href
+                          : pathname === sub.href ||
+                            pathname.startsWith(sub.href + "/")
                       return (
                         <Link
                           key={sub.href}

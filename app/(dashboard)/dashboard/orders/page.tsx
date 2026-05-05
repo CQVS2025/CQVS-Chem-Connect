@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { domAnimation, LazyMotion, m } from "framer-motion"
 import {
   Search,
@@ -136,12 +137,38 @@ function OrderCardSkeleton() {
 
 export default function OrdersPage() {
   const { data: orders, isLoading, error } = useOrders()
+  const params = useSearchParams()
+  // Buyer-notification emails (supplier dispatch / ETA / variance)
+  // deep-link to /dashboard/orders?order=<id>. We auto-expand that
+  // order on first load and scroll it into view, then clear our memory
+  // of it so subsequent renders don't re-trigger.
+  const deepLinkOrderId = params.get("order")
+  const handledDeepLink = useRef(false)
   const [activeStatus, setActiveStatus] = useState<OrderStatus | "all">("all")
   const [paymentFilter, setPaymentFilter] = useState<"all" | "stripe" | "purchase_order">("all")
   const [search, setSearch] = useState("")
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(
+    deepLinkOrderId ?? null,
+  )
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+
+  // Once the orders list has loaded, scroll the deep-linked row into
+  // view. We wait for orders so the target DOM node actually exists.
+  useEffect(() => {
+    if (handledDeepLink.current) return
+    if (!deepLinkOrderId || !orders) return
+    const target = orders.find((o) => o.id === deepLinkOrderId)
+    if (!target) return
+    handledDeepLink.current = true
+    setExpandedOrder(deepLinkOrderId)
+    // Defer until after the re-render so the row is mounted.
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`order-${deepLinkOrderId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" })
+    })
+  }, [deepLinkOrderId, orders])
 
   const filtered = useMemo(() => {
     if (!orders) return []
@@ -281,6 +308,7 @@ export default function OrdersPage() {
               (order: Order, index: number) => (
                 <m.div
                   key={order.id}
+                  id={`order-${order.id}`}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
@@ -288,8 +316,15 @@ export default function OrdersPage() {
                     delay: index * 0.05,
                     ease: "easeOut",
                   }}
+                  className="scroll-mt-24"
                 >
-                  <Card>
+                  <Card
+                    className={
+                      expandedOrder === order.id
+                        ? "ring-2 ring-primary/30"
+                        : undefined
+                    }
+                  >
                     <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -328,30 +363,77 @@ export default function OrdersPage() {
                               {order.items.length}{" "}
                               {order.items.length === 1 ? "item" : "items"}
                             </span>
-                            {order.macship_tracking_url ? (
-                              <a
-                                href={order.macship_tracking_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 text-primary hover:underline"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Truck className="h-4 w-4" />
-                                Track Shipment
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            ) : order.tracking_number ? (
-                              <span className="flex items-center gap-1.5">
-                                <Truck className="h-4 w-4" />
-                                {order.tracking_number}
-                              </span>
-                            ) : order.status !== "cancelled" &&
-                              order.status !== "delivered" ? (
-                              <span className="flex items-center gap-1.5">
-                                <MapPin className="h-4 w-4" />
-                                Tracking not yet available
-                              </span>
-                            ) : null}
+                            {(() => {
+                              // Tracking surface for the collapsed row.
+                              // Three sources, checked in order:
+                              //   1. supplier_tracking_url (Feature B -
+                              //      supplier-managed orders, set by the
+                              //      supplier on their dashboard)
+                              //   2. macship_tracking_url (existing
+                              //      MacShip flow)
+                              //   3. tracking_number (legacy fallback)
+                              // If none of those exist but the supplier
+                              // has set a dispatch_date or ETA, surface
+                              // those instead of "tracking not yet
+                              // available" so the buyer sees progress.
+                              const trackingUrl =
+                                order.supplier_tracking_url ||
+                                order.macship_tracking_url
+                              if (trackingUrl) {
+                                return (
+                                  <a
+                                    href={trackingUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 text-primary hover:underline"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Truck className="h-4 w-4" />
+                                    Track Shipment
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                )
+                              }
+                              if (order.tracking_number) {
+                                return (
+                                  <span className="flex items-center gap-1.5">
+                                    <Truck className="h-4 w-4" />
+                                    {order.tracking_number}
+                                  </span>
+                                )
+                              }
+                              // Supplier-managed orders without a
+                              // tracking URL still surface dispatch
+                              // progress: ETA first, then dispatch date.
+                              if (order.estimated_delivery) {
+                                return (
+                                  <span className="flex items-center gap-1.5">
+                                    <Truck className="h-4 w-4" />
+                                    ETA {formatDate(order.estimated_delivery)}
+                                  </span>
+                                )
+                              }
+                              if (order.supplier_dispatch_date) {
+                                return (
+                                  <span className="flex items-center gap-1.5">
+                                    <Truck className="h-4 w-4" />
+                                    Dispatching {formatDate(order.supplier_dispatch_date)}
+                                  </span>
+                                )
+                              }
+                              if (
+                                order.status !== "cancelled" &&
+                                order.status !== "delivered"
+                              ) {
+                                return (
+                                  <span className="flex items-center gap-1.5">
+                                    <MapPin className="h-4 w-4" />
+                                    Tracking not yet available
+                                  </span>
+                                )
+                              }
+                              return null
+                            })()}
                           </div>
                           <div className="flex items-center gap-3">
                             <p className="text-lg font-semibold">
@@ -515,6 +597,54 @@ export default function OrdersPage() {
                                 </div>
                               </div>
                             )}
+
+                            {/* Supplier-managed fulfillment surface (component 12) */}
+                            {(order.supplier_dispatch_date ||
+                              order.estimated_delivery ||
+                              order.supplier_tracking_url ||
+                              order.supplier_dispatch_notes) &&
+                              !order.macship_tracking_url && (
+                                <div className="rounded-lg border bg-muted/30 p-3">
+                                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                    Supplier Dispatch
+                                  </p>
+                                  <div className="space-y-1 text-sm">
+                                    {order.supplier_dispatch_date && (
+                                      <p className="text-muted-foreground">
+                                        Dispatch date:{" "}
+                                        <span className="font-medium text-foreground">
+                                          {formatDate(order.supplier_dispatch_date)}
+                                        </span>
+                                      </p>
+                                    )}
+                                    {order.estimated_delivery && (
+                                      <p className="text-muted-foreground">
+                                        Estimated delivery:{" "}
+                                        <span className="font-medium text-foreground">
+                                          {formatDate(order.estimated_delivery)}
+                                        </span>
+                                      </p>
+                                    )}
+                                    {order.supplier_dispatch_notes && (
+                                      <p className="text-xs text-muted-foreground">
+                                        {order.supplier_dispatch_notes}
+                                      </p>
+                                    )}
+                                    {order.supplier_tracking_url && (
+                                      <a
+                                        href={order.supplier_tracking_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mt-2 inline-flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+                                      >
+                                        <Truck className="h-4 w-4" />
+                                        Track Shipment
+                                        <ExternalLink className="h-3 w-3" />
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
 
                             {/* Tracking info */}
                             {(order.tracking_number || order.macship_tracking_url) && (

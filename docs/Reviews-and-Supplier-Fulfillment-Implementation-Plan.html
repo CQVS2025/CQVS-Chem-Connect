@@ -661,7 +661,10 @@ create table review_audit_log (
 <div class="item">
   <h4><span class="item-num">18</span> Phase-1 storefront visibility for AdBlue</h4>
   <p>The seeded AdBlue product currently has four packaging sizes: <em>10L Jerry Can</em>, <em>200L Drum</em>, <em>1000L IBC</em>, and Bulk. Phase 1 only wires the Bulk freight path. To avoid a half-broken UX where the buyer can pick a packaging size with no working freight quote, the other three sizes are <strong>hidden from the public product page</strong> in Phase 1.</p>
-  <p>Implementation: a per-packaging-size <code>is_visible_on_storefront boolean</code> flag (default true), set to false for the three non-Bulk AdBlue sizes during the Phase 1 deployment. Phase 2 flips them back on once the Pack Existing / Pack New rate sheets are loaded and forklift / tank-fitting questions are wired.</p>
+  <p>Implementation: a per-packaging-size <code>is_visible_on_storefront boolean</code> flag (default true), set to false for the three non-Bulk AdBlue sizes during the Phase 1 deployment. Phase 2 flips IBC back on once the Pack Existing / Pack New rate sheets are wired up to that variant; Jerry Can and Drum stay hidden (supplier matrix has no rate for those container types).</p>
+  <div class="box-amber" style="margin-top: 10px;">
+    <strong>Decision &mdash; locked for go-live:</strong> hide all three non-Bulk sizes. We rejected the alternative of selling 1000L IBC alongside Bulk in Phase 1 because the Pack Existing vs Pack New choice is a buyer-facing question (do they own the IBC or need one supplied?) and we don't yet have a checkout-time UX for that. Until M14c ships the IBC supply-mode question, leaving IBC visible would either mis-route freight (it would inherit the Bulk per-litre rate) or pick one of the two Pack rates arbitrarily &mdash; both are wrong. The hide-now-unhide-later toggle means zero data migration when Phase 2 lands.
+  </div>
 </div>
 
 <h3>3.4 Site-access questions (configurable per product+packaging)</h3>
@@ -714,14 +717,32 @@ create table review_audit_log (
 
 <table>
   <thead>
-    <tr><th>Rate sheet</th><th>Unit type</th><th>Phase</th></tr>
+    <tr><th>Rate sheet</th><th>Unit type</th><th>Loaded</th><th>Wired to a packaging size</th></tr>
   </thead>
   <tbody>
-    <tr><td>AdBlue Bulk Post-14Jul25</td><td><code>per_litre</code></td><td><span class="badge b-phase1">Phase 1</span></td></tr>
-    <tr><td>AdBlue Pack Existing Post-14Jul25</td><td><code>flat_per_consignment</code></td><td><span class="badge b-phase2">Phase 2 (config only)</span></td></tr>
-    <tr><td>AdBlue Pack New Post-14Jul25</td><td><code>flat_per_consignment</code></td><td><span class="badge b-phase2">Phase 2 (config only)</span></td></tr>
+    <tr>
+      <td>AdBlue Bulk Post-14Jul25</td>
+      <td><code>per_litre</code></td>
+      <td><span class="badge b-phase1">Phase 1</span></td>
+      <td><span class="badge b-phase1">Phase 1</span> mapped to AdBlue (all sizes &mdash; only Bulk is visible)</td>
+    </tr>
+    <tr>
+      <td>AdBlue Pack Existing Post-14Jul25</td>
+      <td><code>flat_per_consignment</code></td>
+      <td><span class="badge b-phase1">Phase 1</span> (loaded via bulk-upload, sits dormant)</td>
+      <td><span class="badge b-phase2">Phase 2 / M14b</span> mapped to AdBlue + 1000L IBC when buyer picks <em>refill existing</em></td>
+    </tr>
+    <tr>
+      <td>AdBlue Pack New Post-14Jul25</td>
+      <td><code>flat_per_consignment</code></td>
+      <td><span class="badge b-phase1">Phase 1</span> (loaded via bulk-upload, sits dormant)</td>
+      <td><span class="badge b-phase2">Phase 2 / M14b–c</span> mapped to AdBlue + 1000L IBC when buyer picks <em>new IBC supplied</em></td>
+    </tr>
   </tbody>
 </table>
+<p style="font-size: 12.5px; color: #4b5563;">
+  <strong>Subtle but important:</strong> the Pack rate sheets can be safely loaded in Phase 1 (the bulk-upload UI is generic) but they have no effect on freight quotes until M14b wires per-size mappings <em>and</em> M14c ships the buyer-side question that distinguishes Pack Existing from Pack New. Loading them early just means Phase 2 is "flip a flag" rather than "import a CSV".
+</p>
 
 <h4>Where it plugs into existing code</h4>
 
@@ -1211,9 +1232,24 @@ create table warehouse_users (
       <td>Phase 1b complete.</td>
     </tr>
     <tr>
-      <td><span class="badge b-phase2">M14</span></td>
-      <td>AdBlue Pack rate sheets</td>
-      <td>Configuration only &mdash; load Pack Existing + Pack New sheets, link to IBC packaging sizes, re-introduce forklift question.</td>
+      <td><span class="badge b-phase2">M14a</span></td>
+      <td>AdBlue Pack rate sheets &mdash; data load</td>
+      <td>Configuration only. Load <em>Pack Existing</em> and <em>Pack New</em> rate sheets via the bulk-upload UI (already shipped in Phase 1a). At the end of M14a both sheets exist in <code>supplier_rate_sheets</code> with active=true but are not yet wired to any product+size mapping.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase2">M14b</span></td>
+      <td>Per-size rate-sheet override UI</td>
+      <td>Extend <code>/admin/supplier-fulfillment/products</code> so admin can map <em>per packaging size</em> in addition to the current "all sizes" row. Specifically: AdBlue + 1000L IBC &rarr; one of the Pack rate sheets. Hidden sizes (10L Jerry Can, 200L Drum) stay hidden. Endpoint already accepts <code>packaging_size_id</code>; the UI is the gap.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase2">M14c</span></td>
+      <td>Pack Existing vs Pack New buyer choice</td>
+      <td>Checkout-time UX: when the buyer picks 1000L IBC, ask <em>"Do you have an existing IBC for refill, or do you need a new one supplied?"</em>. Answer routes the freight quote to Pack Existing vs Pack New. Captured as a new <code>product_checkout_questions</code> row (<code>question_key = ibc_supply_mode</code>, <code>type = select</code>) and consumed by the freight engine via a small per-line override.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-phase2">M14d</span></td>
+      <td>IBC site-access questions + storefront re-enable</td>
+      <td>Add forklift availability + tank fitting questions for IBC at the per-product setup level. Flip <code>packaging_sizes.is_visible_on_storefront = true</code> for 1000L IBC (10L Jerry Can and 200L Drum stay hidden &mdash; the supplier matrix has no rate for those container types and they'd require a separate MacShip-style courier path, out of scope here).</td>
     </tr>
     <tr>
       <td><span class="badge b-phase2">M15</span></td>

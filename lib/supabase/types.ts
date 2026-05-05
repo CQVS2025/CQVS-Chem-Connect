@@ -15,7 +15,7 @@ export interface Database {
         Row: {
           id: string
           email: string
-          role: "customer" | "admin"
+          role: "customer" | "admin" | "supplier"
           status: "active" | "suspended"
           company_name: string | null
           abn: string | null
@@ -36,7 +36,7 @@ export interface Database {
         Insert: {
           id: string
           email: string
-          role?: "customer" | "admin"
+          role?: "customer" | "admin" | "supplier"
           status?: "active" | "suspended"
           company_name?: string | null
           abn?: string | null
@@ -57,7 +57,7 @@ export interface Database {
         Update: {
           id?: string
           email?: string
-          role?: "customer" | "admin"
+          role?: "customer" | "admin" | "supplier"
           status?: "active" | "suspended"
           company_name?: string | null
           abn?: string | null
@@ -372,7 +372,7 @@ export interface Database {
     Views: Record<string, never>
     Functions: Record<string, never>
     Enums: {
-      user_role: "customer" | "admin"
+      user_role: "customer" | "admin" | "supplier"
       product_price_type: ProductPriceType
     }
   }

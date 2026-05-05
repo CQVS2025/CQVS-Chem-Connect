@@ -56,6 +56,39 @@ export default function RegisterPage() {
       return
     }
 
+    // Pre-check: reject emails that already exist as a supplier or admin.
+    // The user must use a different email for their customer account.
+    try {
+      const statusRes = await fetch("/api/auth/email-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      if (statusRes.ok) {
+        const status = (await statusRes.json()) as {
+          exists: boolean
+          role: string | null
+        }
+        if (status.exists && status.role === "supplier") {
+          toast.error(
+            "This email is already registered as a supplier. Please use a different email to create a customer account.",
+          )
+          setLoading(false)
+          return
+        }
+        if (status.exists && status.role === "admin") {
+          toast.error(
+            "This email is already registered as an admin. Please use a different email to create a customer account.",
+          )
+          setLoading(false)
+          return
+        }
+      }
+    } catch {
+      // Pre-check is best-effort - if the lookup fails we still let
+      // signUp proceed and rely on its own duplicate detection.
+    }
+
     const supabase = createClient()
 
     const { data, error } = await supabase.auth.signUp({

@@ -322,7 +322,12 @@ export async function createXeroInvoiceForOrder(
   const GST_TAX_TYPE = process.env.XERO_SALES_TAX_TYPE || "OUTPUT2"
   // Currency code — defaults to AUD. Set XERO_CURRENCY to override, or
   // XERO_CURRENCY=AUTO to omit and let Xero use the org's base currency.
-  const CURRENCY_CODE_RAW = process.env.XERO_CURRENCY || "AUD"
+  // Currency precedence: XERO_CURRENCY env override > admin settings > "AUD".
+  // Use XERO_CURRENCY=AUTO to omit and let Xero use the org's base currency.
+  const { getBusinessSettings } = await import("@/lib/settings/business")
+  const settingsForCurrency = await getBusinessSettings(supabase)
+  const CURRENCY_CODE_RAW =
+    process.env.XERO_CURRENCY || settingsForCurrency.currency || "AUD"
   const CURRENCY_CODE: string | undefined =
     CURRENCY_CODE_RAW === "AUTO" ? undefined : CURRENCY_CODE_RAW
 
@@ -511,6 +516,7 @@ export async function createXeroPurchaseOrderForOrder(
       id,
       order_number,
       warehouse_id,
+      shipping,
       delivery_address_street,
       delivery_address_city,
       delivery_address_state,
@@ -542,7 +548,7 @@ export async function createXeroPurchaseOrderForOrder(
   // Get warehouse with Xero contact ID
   const { data: warehouse } = await supabase
     .from("warehouses")
-    .select("id, name, xero_contact_id, address_street, address_city, address_state, address_postcode")
+    .select("id, name, xero_contact_id, is_supplier_managed, address_street, address_city, address_state, address_postcode")
     .eq("id", order.warehouse_id)
     .single()
 
@@ -596,7 +602,12 @@ export async function createXeroPurchaseOrderForOrder(
   // - For non-AU demo orgs: set XERO_PURCHASE_TAX_TYPE=NONE
   const GST_TAX_TYPE = process.env.XERO_PURCHASE_TAX_TYPE || "INPUT2"
   const PURCHASE_ACCOUNT = process.env.XERO_PURCHASE_ACCOUNT_CODE || "300"
-  const CURRENCY_CODE_RAW = process.env.XERO_CURRENCY || "AUD"
+  // Currency precedence: XERO_CURRENCY env override > admin settings > "AUD".
+  // Use XERO_CURRENCY=AUTO to omit and let Xero use the org's base currency.
+  const { getBusinessSettings } = await import("@/lib/settings/business")
+  const settingsForCurrency = await getBusinessSettings(supabase)
+  const CURRENCY_CODE_RAW =
+    process.env.XERO_CURRENCY || settingsForCurrency.currency || "AUD"
   const CURRENCY_CODE: string | undefined =
     CURRENCY_CODE_RAW === "AUTO" ? undefined : CURRENCY_CODE_RAW
 
@@ -611,6 +622,27 @@ export async function createXeroPurchaseOrderForOrder(
       TaxType: GST_TAX_TYPE,
     }
   })
+
+  // Supplier-managed orders: pass through the buyer-paid freight amount as a
+  // PO line so the supplier is reimbursed exactly what was quoted at checkout.
+  // Per contract, the matrix-calculated freight quote is locked at quote time
+  // and the supplier absorbs any post-dispatch variance unless they raised a
+  // pre-dispatch claim.
+  const FREIGHT_ACCOUNT =
+    process.env.XERO_FREIGHT_PURCHASE_ACCOUNT_CODE || PURCHASE_ACCOUNT
+  if (
+    warehouse.is_supplier_managed &&
+    order.shipping &&
+    Number(order.shipping) > 0
+  ) {
+    lineItems.push({
+      Description: "Freight (supplier-managed, locked at quote)",
+      Quantity: 1,
+      UnitAmount: Number(order.shipping),
+      AccountCode: FREIGHT_ACCOUNT,
+      TaxType: GST_TAX_TYPE,
+    })
+  }
 
   // When using NONE tax type (demo / non-AU orgs), Xero won't auto-calculate
   // GST. Add it as an explicit line item so the PO total includes GST.

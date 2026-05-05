@@ -29,6 +29,8 @@ export function useCreatePackagingSize() {
       volume_litres?: number | null
       container_type?: string
       sort_order?: number
+      is_active?: boolean
+      is_visible_on_storefront?: boolean
       units_per_pallet?: number | null
       unit_weight_kg?: number | null
     }) => post<PackagingSize>("/packaging-sizes", data),
@@ -51,6 +53,7 @@ export function useUpdatePackagingSize() {
       container_type?: string
       sort_order?: number
       is_active?: boolean
+      is_visible_on_storefront?: boolean
       units_per_pallet?: number | null
       unit_weight_kg?: number | null
     }) => put<PackagingSize>(`/packaging-sizes/${id}`, data),

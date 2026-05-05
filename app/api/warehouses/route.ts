@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       xero_contact_id: body.xero_contact_id || null,
       is_active: body.is_active ?? true,
       sort_order: body.sort_order ?? 0,
+      is_supplier_managed: body.is_supplier_managed ?? false,
     })
     .select()
     .single()

@@ -73,8 +73,20 @@ export function MarketplaceNavbar() {
   const { data: cartItems } = useCart()
   const cartCount = cartItems?.reduce((sum, item) => sum + item.quantity, 0) ?? 0
 
-  const isAdmin = profile?.role === "admin"
-  const dashboardHref = isAdmin ? "/admin" : "/dashboard"
+  const role = (profile as { role?: string } | undefined)?.role
+  const isAdmin = role === "admin"
+  const isSupplier = role === "supplier"
+  const isCustomer = !isAdmin && !isSupplier
+  const dashboardHref = isAdmin
+    ? "/admin"
+    : isSupplier
+      ? "/supplier"
+      : "/dashboard"
+  const dashboardLabel = isAdmin
+    ? "Admin Dashboard"
+    : isSupplier
+      ? "Supplier Dashboard"
+      : "Dashboard"
 
   const initials = profile?.contact_name
     ? profile.contact_name
@@ -146,7 +158,7 @@ export function MarketplaceNavbar() {
 
         {/* Right actions */}
         <div className="flex items-center gap-1.5">
-          {!isAdmin && (
+          {isCustomer && (
           <Button variant="ghost" size="icon" className="relative h-9 w-9" asChild>
             <Link href="/cart">
               <ShoppingCart className="size-4" />
@@ -198,15 +210,17 @@ export function MarketplaceNavbar() {
                     <DropdownMenuItem asChild>
                       <Link href={dashboardHref}>
                         <LayoutDashboard className="mr-2 h-4 w-4" />
-                        {isAdmin ? "Admin Dashboard" : "Dashboard"}
+                        {dashboardLabel}
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard/settings">
-                        <User className="mr-2 h-4 w-4" />
-                        Account Settings
-                      </Link>
-                    </DropdownMenuItem>
+                    {isCustomer && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard/settings">
+                          <User className="mr-2 h-4 w-4" />
+                          Account Settings
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="mr-2 h-4 w-4" />
@@ -281,7 +295,7 @@ export function MarketplaceNavbar() {
                       "hover:bg-muted hover:text-foreground",
                     )}
                   >
-                    Dashboard
+                    {dashboardLabel}
                   </Link>
                 )}
               </nav>
@@ -308,7 +322,7 @@ export function MarketplaceNavbar() {
                     </div>
                     <Button variant="outline" className="w-full" asChild>
                       <Link href={dashboardHref} onClick={() => setMobileOpen(false)}>
-                        {isAdmin ? "Admin Dashboard" : "Dashboard"}
+                        {dashboardLabel}
                       </Link>
                     </Button>
                     <Button

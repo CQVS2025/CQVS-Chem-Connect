@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Minus, Plus, ShoppingCart, Trash2, ArrowRight, Package, AlertCircle } from "lucide-react"
@@ -196,7 +196,7 @@ function CartItemRow({
               {belowMoq && (
                 <div className="mt-2 flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
                   <AlertCircle className="size-3.5 shrink-0" />
-                  Minimum order is {moq} units — please increase quantity before checkout.
+                  Minimum order is {moq} units - please increase quantity before checkout.
                 </div>
               )}
             </div>
@@ -308,6 +308,66 @@ export default function CartPage() {
     [items],
   )
   const hasMoqViolation = moqViolations.length > 0
+
+  // Feature B - Mixed-cart pre-flight (component 17). Phase 1 blocks
+  // checkouts that mix MacShip and supplier-managed products. We hit
+  // /api/fulfillment with a stub postcode just to classify; a 409 means
+  // mixed cart. Logs the block event server-side.
+  const [mixedCart, setMixedCart] = useState<{
+    blocked: boolean
+    macshipName?: string | null
+    supplierName?: string | null
+  }>({ blocked: false })
+
+  useEffect(() => {
+    if (items.length === 0) {
+      setMixedCart({ blocked: false })
+      return
+    }
+    const cartLines = items.map((i) => ({
+      product_id: i.product_id,
+      packaging_size_id: i.packaging_size_id ?? null,
+      quantity: i.quantity,
+    }))
+    const ctrl = new AbortController()
+    fetch("/api/fulfillment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: cartLines,
+        // Stub postcode - only classification matters for the blocker.
+        // The real freight quote happens at checkout once the buyer has
+        // entered their delivery address.
+        delivery_postcode: "2000",
+      }),
+      signal: ctrl.signal,
+    })
+      .then(async (r) => ({ status: r.status, json: await r.json().catch(() => ({})) }))
+      .then(({ status, json }) => {
+        if (status === 409 && json?.code === "mixed_cart") {
+          const macId = json.offending_products?.macship
+          const supId = json.offending_products?.supplier
+          const macName =
+            items.find((i) => i.product_id === macId)?.product?.name ?? null
+          const supName =
+            items.find((i) => i.product_id === supId)?.product?.name ?? null
+          setMixedCart({
+            blocked: true,
+            macshipName: macName,
+            supplierName: supName,
+          })
+        } else {
+          setMixedCart({ blocked: false })
+        }
+      })
+      .catch(() => {
+        // Network errors don't block the cart - checkout API will catch
+        // the case on submit anyway.
+        setMixedCart({ blocked: false })
+      })
+    return () => ctrl.abort()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.map((i) => `${i.product_id}:${i.packaging_size_id ?? ""}`).join("|")])
 
   const subtotal = itemsWithPricing.reduce(
     (sum, item) => sum + item.resolvedUnitPrice * item.quantity,
@@ -492,6 +552,23 @@ export default function CartPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex-col gap-3">
+                  {mixedCart.blocked && (
+                    <div className="w-full rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                        <div className="text-xs text-amber-700 dark:text-amber-400">
+                          <p className="font-medium">
+                            Please split this cart into two orders
+                          </p>
+                          <p className="mt-0.5 text-muted-foreground">
+                            {mixedCart.supplierName && mixedCart.macshipName
+                              ? `${mixedCart.supplierName} ships from a supplier and ${mixedCart.macshipName} ships from our warehouses. They use different freight networks and need separate orders.`
+                              : "This cart mixes a supplier-managed product with a regular MacShip product. They use different freight networks and need separate orders."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {hasMoqViolation && (
                     <div className="w-full rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
                       <div className="flex items-start gap-2">
@@ -510,10 +587,10 @@ export default function CartPage() {
                   <Button
                     className="w-full glow-primary"
                     size="lg"
-                    disabled={hasMoqViolation}
-                    asChild={!hasMoqViolation}
+                    disabled={hasMoqViolation || mixedCart.blocked}
+                    asChild={!hasMoqViolation && !mixedCart.blocked}
                   >
-                    {hasMoqViolation ? (
+                    {hasMoqViolation || mixedCart.blocked ? (
                       <>
                         Proceed to Checkout
                         <ArrowRight className="ml-2 size-4" />

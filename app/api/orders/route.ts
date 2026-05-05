@@ -75,7 +75,10 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("orders")
-      .select(`*, order_items (${orderItemsSelect})`)
+      .select(
+        `*, order_items (${orderItemsSelect}),
+         warehouse:warehouses!orders_warehouse_id_fkey (id, name, is_supplier_managed)`,
+      )
 
     if (!isAdmin) {
       query = query.eq("user_id", user.id)
@@ -175,6 +178,25 @@ async function handleCreateOrder(request: NextRequest) {
       )
     }
 
+    // Block admin / supplier accounts from placing orders. Suppliers and
+    // admins must use a separate customer account if they want to buy.
+    const { data: roleProfile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+    const callerRole = (roleProfile as { role?: string } | null)?.role
+    if (callerRole === "admin" || callerRole === "supplier") {
+      return NextResponse.json(
+        {
+          error:
+            "Ordering is for customer accounts only. Sign out and create a separate customer account with a different email.",
+          role: callerRole,
+        },
+        { status: 403 },
+      )
+    }
+
     updateIntegrationContext({
       userId: user.id,
       metadata: { entry: "orders.create" },
@@ -185,6 +207,7 @@ async function handleCreateOrder(request: NextRequest) {
       payment_method: body.payment_method,
       items: body.items,
       delivery_address_state: body.delivery_address_state,
+      delivery_address_postcode: body.delivery_address_postcode,
       first_order_choice: body.first_order_choice,
       first_order_truck_wash: body.first_order_truck_wash,
       macship_quote_amount: body.macship_quote_amount,
@@ -200,9 +223,11 @@ async function handleCreateOrder(request: NextRequest) {
 
     // ---------- Stripe path: create session + PaymentIntent only ---------
     if (body.payment_method === "stripe") {
+      const { getBusinessSettings } = await import("@/lib/settings/business")
+      const settings = await getBusinessSettings(supabase)
       const paymentIntent = await getStripeServer().paymentIntents.create({
         amount: Math.round(calc.calculated.total * 100),
-        currency: "aud",
+        currency: settings.currency.toLowerCase(),
         metadata: {
           user_id: user.id,
         },
@@ -275,10 +300,28 @@ async function handleCreateOrder(request: NextRequest) {
         delivery_address_state: body.delivery_address_state || null,
         delivery_address_postcode: body.delivery_address_postcode || null,
         delivery_notes: body.delivery_notes || null,
-        macship_shipping_breakdown: body.macship_shipping_breakdown ?? null,
-        macship_service_name: body.macship_service_name ?? null,
-        macship_eta_date: body.macship_eta_date ?? null,
-        macship_eta_business_days: body.macship_eta_business_days ?? null,
+        macship_shipping_breakdown: calc.isSupplierManaged
+          ? null
+          : body.macship_shipping_breakdown ?? null,
+        macship_service_name: calc.isSupplierManaged
+          ? null
+          : body.macship_service_name ?? null,
+        macship_eta_date: calc.isSupplierManaged
+          ? null
+          : body.macship_eta_date ?? null,
+        macship_eta_business_days: calc.isSupplierManaged
+          ? null
+          : body.macship_eta_business_days ?? null,
+        site_access_answers: body.site_access_answers ?? null,
+        freight_quote_snapshot: calc.isSupplierManaged
+          ? {
+              breakdown: calc.supplierFreightBreakdown ?? [],
+              total: calc.calculated.shipping,
+              warehouse_id: calc.selectedWarehouse?.id ?? null,
+              destination_postcode: body.delivery_address_postcode || null,
+              computed_at: new Date().toISOString(),
+            }
+          : null,
       })
       .select()
       .single()
@@ -354,7 +397,14 @@ async function handleCreateOrder(request: NextRequest) {
     } = {}
 
     try {
-      if (calc.selectedWarehouse) {
+      if (calc.isSupplierManaged) {
+        // Supplier-managed orders skip MacShip entirely. The PO email
+        // goes to the supplier dashboard contacts (component 8).
+        const { sendSupplierPurchaseOrderEmail } = await import(
+          "@/lib/fulfillment/supplier-emails"
+        )
+        await sendSupplierPurchaseOrderEmail({ supabase, orderId: order.id })
+      } else if (calc.selectedWarehouse) {
         const pickupResult = await getOrderPickupDate(
           calc.orderItems.map((i) => ({
             product_id: i.product_id,

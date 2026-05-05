@@ -40,6 +40,8 @@ interface CreateOrderInput {
   macship_eta_business_days?: number | null
   macship_quote_shape?: "parcel" | "pallet" | null
   macship_is_dg?: boolean | null
+  // Feature B — Supplier-managed fulfillment
+  site_access_answers?: Record<string, unknown> | null
 }
 
 interface FinalizeOrderInput {

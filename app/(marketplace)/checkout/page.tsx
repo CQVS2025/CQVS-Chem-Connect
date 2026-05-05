@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
+import { SiteAccessQuestions } from "@/components/checkout/SiteAccessQuestions"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -230,6 +231,14 @@ interface CheckoutFormProps {
   onDeliveryPostcodeChange: (postcode: string) => void
   onDeliveryCityChange: (city: string) => void
   onDeliveryForkliftChange: (hasForklift: boolean) => void
+  // Supplier-managed cart classification + freight quote (Feature B).
+  isSupplierManagedCart: boolean
+  supplierQuote: {
+    strategy: "supplier_managed" | "macship"
+    freight: number
+    warehouse: { id: string; name: string; state: string; postcode: string } | null
+    blocker: { code: string; message: string } | null
+  } | null
 }
 
 // ----------------------------------------------------------------
@@ -269,6 +278,8 @@ function CheckoutForm({
   onDeliveryPostcodeChange,
   onDeliveryCityChange,
   onDeliveryForkliftChange,
+  isSupplierManagedCart,
+  supplierQuote,
 }: CheckoutFormProps) {
   const router = useRouter()
   const stripe = useStripe()
@@ -298,6 +309,15 @@ function CheckoutForm({
   })
 
   const [invoiceEmail, setInvoiceEmail] = useState("")
+
+  // Feature B - site-access answers (component 6). Gathered from the
+  // SiteAccessQuestions component when the cart contains supplier-managed
+  // products that have configured questions, and submitted with the order
+  // as `site_access_answers jsonb`.
+  const [siteAccessAnswers, setSiteAccessAnswers] = useState<
+    Record<string, unknown>
+  >({})
+  const [siteAccessValid, setSiteAccessValid] = useState(true)
 
   // Pre-fill from profile
   useEffect(() => {
@@ -358,8 +378,9 @@ function CheckoutForm({
       address.postcode.trim() !== "" &&
       address.forkliftAvailable !== "" &&
       macshipQuote?.serviceable !== false &&
-      !quoteLoading,
-    [address, macshipQuote, quoteLoading]
+      !quoteLoading &&
+      siteAccessValid,
+    [address, macshipQuote, quoteLoading, siteAccessValid]
   )
 
   const isPaymentValid = useMemo(() => {
@@ -466,6 +487,10 @@ function CheckoutForm({
           macship_eta_business_days: macshipQuote?.eta_business_days ?? null,
           macship_quote_shape: macshipQuote?.quote_shape ?? null,
           macship_is_dg: macshipQuote?.is_dg ?? null,
+          site_access_answers:
+            Object.keys(siteAccessAnswers).length > 0
+              ? siteAccessAnswers
+              : null,
         })
 
         // PO path always returns a full Order row; narrow the union.
@@ -547,6 +572,10 @@ function CheckoutForm({
           macship_eta_business_days: macshipQuote?.eta_business_days ?? null,
           macship_quote_shape: macshipQuote?.quote_shape ?? null,
           macship_is_dg: macshipQuote?.is_dg ?? null,
+          site_access_answers:
+            Object.keys(siteAccessAnswers).length > 0
+              ? siteAccessAnswers
+              : null,
         })
 
         // The Stripe path returns a StripeCheckoutSession, not a full Order.
@@ -801,6 +830,16 @@ function CheckoutForm({
                         truck which costs more to ship.
                       </p>
                     </div>
+
+                    <SiteAccessQuestions
+                      cartItems={cartItems.map((c) => ({
+                        product_id: c.product_id,
+                        packaging_size_id: c.packaging_size_id,
+                      }))}
+                      value={siteAccessAnswers}
+                      onChange={setSiteAccessAnswers}
+                      onValidityChange={setSiteAccessValid}
+                    />
 
                     <div className="space-y-2">
                       <Label htmlFor="notes">Delivery Notes</Label>
@@ -1193,7 +1232,7 @@ function CheckoutForm({
                           {moqViolations.map((item) => (
                             <li key={item.id} className="text-xs text-destructive/80">
                               <span className="font-medium">{item.product.name}</span>{" "}
-                              ({item.packaging_size}) — requires at least{" "}
+                              ({item.packaging_size}) - requires at least{" "}
                               <span className="font-semibold">{resolveItemMoq(item)} units</span>,
                               you have {item.quantity}.
                             </li>
@@ -1366,8 +1405,28 @@ function CheckoutForm({
                     </span>
                   </div>
                 )}
-                {/* Shipping breakdown - shown when quote is loaded (even with free freight so customer sees what's waived) */}
-                {macshipQuote?.serviceable && macshipQuote.pricing && (
+                {/* Supplier-managed cart: show a simple supplier-freight
+                    breakdown instead of the MacShip details. */}
+                {isSupplierManagedCart && supplierQuote && (
+                  <div className={`ml-3 space-y-1 border-l-2 border-border/50 pl-3 ${freeFreight ? "opacity-50" : ""}`}>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Supplier freight quote</span>
+                      <span>{formatCurrency(supplierQuote.freight)}</span>
+                    </div>
+                    {supplierQuote.warehouse && (
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Fulfilled by</span>
+                        <span>{supplierQuote.warehouse.name}</span>
+                      </div>
+                    )}
+                    <p className="text-[11px] italic text-muted-foreground">
+                      Final freight is reconfirmed by the supplier on dispatch.
+                      You'll be notified if it differs from this quote.
+                    </p>
+                  </div>
+                )}
+                {/* MacShip breakdown - only when the cart isn't supplier-managed */}
+                {!isSupplierManagedCart && macshipQuote?.serviceable && macshipQuote.pricing && (
                   <div className={`ml-3 space-y-1 border-l-2 border-border/50 pl-3 ${freeFreight ? "opacity-50" : ""}`}>
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Base freight</span>
@@ -1399,7 +1458,7 @@ function CheckoutForm({
                     )}
                   </div>
                 )}
-                {macshipQuote?.carrier_name && macshipQuote.serviceable && (
+                {!isSupplierManagedCart && macshipQuote?.carrier_name && macshipQuote.serviceable && (
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">Carrier</span>
                     <span className="text-muted-foreground">
@@ -1408,7 +1467,7 @@ function CheckoutForm({
                     </span>
                   </div>
                 )}
-                {macshipQuote?.pickup_date && macshipQuote.serviceable && (
+                {!isSupplierManagedCart && macshipQuote?.pickup_date && macshipQuote.serviceable && (
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">Est. dispatch</span>
                     <span className="text-muted-foreground">
@@ -1416,7 +1475,7 @@ function CheckoutForm({
                     </span>
                   </div>
                 )}
-                {macshipQuote?.eta_date && macshipQuote.serviceable && (
+                {!isSupplierManagedCart && macshipQuote?.eta_date && macshipQuote.serviceable && (
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">Est. delivery</span>
                     <span className="text-muted-foreground">
@@ -1524,6 +1583,17 @@ export default function CheckoutPage() {
   const [deliveryPostcode, setDeliveryPostcode] = useState("")
   const [deliveryCity, setDeliveryCity] = useState("")
   const [deliveryForklift, setDeliveryForklift] = useState<boolean | null>(null)
+  // Supplier-managed cart classification + freight quote. When the cart
+  // routes through a supplier-managed warehouse, MacShip is bypassed
+  // entirely - we hit /api/fulfillment instead, which runs the supplier
+  // rate-sheet × distance-bracket math.
+  const [supplierQuote, setSupplierQuote] = useState<{
+    strategy: "supplier_managed" | "macship"
+    freight: number
+    warehouse: { id: string; name: string; state: string; postcode: string } | null
+    blocker: { code: string; message: string } | null
+  } | null>(null)
+  const isSupplierManagedCart = supplierQuote?.strategy === "supplier_managed"
 
   const items = cartItems ?? []
 
@@ -1626,12 +1696,16 @@ export default function CheckoutPage() {
     0,
   )
 
-  // Shipping comes from the live Machship quote. We treat the quote as
-  // authoritative - if it's still loading or the postcode isn't serviceable,
-  // shipping is 0 and the "Continue to Payment" button is already gated
-  // elsewhere so the customer can't complete checkout without a valid quote.
-  const rawShipping =
-    macshipQuote?.serviceable && macshipQuote.shipping_amount !== null
+  // Shipping comes from one of two quote sources, picked by cart
+  // classification:
+  //   - supplier-managed cart → /api/fulfillment freight number
+  //     (rate sheet × distance × volume, no MacShip)
+  //   - everything else      → live MacShip quote
+  // Either way we treat the number as authoritative - if neither has
+  // landed yet shipping = 0 and the Continue button stays gated.
+  const rawShipping = isSupplierManagedCart
+    ? supplierQuote?.freight ?? 0
+    : macshipQuote?.serviceable && macshipQuote.shipping_amount !== null
       ? Number(macshipQuote.shipping_amount)
       : 0
 
@@ -1723,18 +1797,74 @@ export default function CheckoutPage() {
     }
   }, [items])
 
+  // Cart classification + supplier-managed freight quote. Always runs
+  // first; if the cart is supplier-managed we DON'T call MacShip.
+  const fetchSupplierQuote = useCallback(async (postcode: string) => {
+    if (!postcode || postcode.length < 4 || items.length === 0) return null
+    try {
+      const res = await fetch("/api/fulfillment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((i) => ({
+            product_id: i.product_id,
+            packaging_size_id: i.packaging_size_id,
+            quantity: i.quantity,
+          })),
+          delivery_postcode: postcode,
+        }),
+      })
+      if (!res.ok) return null
+      const data = await res.json()
+      if (!data.ok) return null
+      const quote = {
+        strategy: data.strategy as "supplier_managed" | "macship",
+        freight: Number(data.freight) || 0,
+        warehouse: data.warehouse,
+        blocker: data.blocker,
+      }
+      setSupplierQuote(quote)
+      return quote
+    } catch {
+      return null
+    }
+  }, [items])
+
   useEffect(() => {
     if (deliveryPostcode.length >= 4 && deliveryState && deliveryCity.trim()) {
-      const timer = setTimeout(() => {
-        fetchMacShipQuote(deliveryPostcode, deliveryState, deliveryCity, deliveryForklift)
+      const timer = setTimeout(async () => {
+        // Step 1 - classify the cart and grab the supplier-managed quote
+        // if applicable. /api/fulfillment is cheap (no MacShip call).
+        const quote = await fetchSupplierQuote(deliveryPostcode)
+        // Step 2 - only call MacShip if the cart is NOT supplier-managed.
+        if (quote?.strategy !== "supplier_managed") {
+          fetchMacShipQuote(
+            deliveryPostcode,
+            deliveryState,
+            deliveryCity,
+            deliveryForklift,
+          )
+        } else {
+          // Clear any stale MacShip data so the order summary doesn't
+          // mix the two breakdowns.
+          setMacshipQuote(null)
+        }
       }, 600) // debounce 600ms
       return () => clearTimeout(timer)
     }
-  }, [deliveryPostcode, deliveryState, deliveryCity, deliveryForklift, fetchMacShipQuote])
+  }, [
+    deliveryPostcode,
+    deliveryState,
+    deliveryCity,
+    deliveryForklift,
+    fetchSupplierQuote,
+    fetchMacShipQuote,
+  ])
 
   const handleDeliveryStateChange = useCallback((state: string) => {
     setDeliveryState(state)
     setMacshipQuote(null)
+    setSupplierQuote(null)
   }, [])
 
   // PO orders return a full Order row; card orders return a
@@ -1865,6 +1995,8 @@ export default function CheckoutPage() {
             onDeliveryPostcodeChange={setDeliveryPostcode}
             onDeliveryCityChange={setDeliveryCity}
             onDeliveryForkliftChange={(v) => setDeliveryForklift(v)}
+            isSupplierManagedCart={isSupplierManagedCart}
+            supplierQuote={supplierQuote}
           />
         </Elements>
       </m.div>
