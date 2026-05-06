@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next"
 
 import { slugify } from "@/lib/seo/helpers"
+import { categories as CATEGORY_LIST } from "@/lib/data/products"
+import { INDUSTRIES } from "@/lib/content/industries"
+import { ARTICLES } from "@/lib/content/knowledge"
+import { SYDNEY_COVERAGE, getActiveWarehouses } from "@/lib/seo/warehouses"
 
 /**
  * Dynamic sitemap.xml - auto-updates as products are added / removed in
@@ -61,11 +65,73 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
     { url: `${SITE_URL}/products`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE_URL}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${SITE_URL}/locations`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${SITE_URL}/industries`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${SITE_URL}/knowledge`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${SITE_URL}/custom-orders`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${SITE_URL}/sds`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE_URL}/support`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
     { url: `${SITE_URL}/rewards`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/compliance`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
     { url: `${SITE_URL}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ]
+
+  // /categories/[slug] - one entry per real category (skip "All", which is
+  // just the unfiltered /products view). Mirrors the generateStaticParams
+  // logic in app/(marketplace)/categories/[slug]/page.tsx.
+  const categoryRoutes: MetadataRoute.Sitemap = CATEGORY_LIST.filter(
+    (c) => c !== "All",
+  ).map((label) => ({
+    url: `${SITE_URL}/categories/${label.toLowerCase().replace(/\s+/g, "-")}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }))
+
+  // /chemicals/[state] - geo-qualified state landing pages.
+  const chemicalsStateRoutes: MetadataRoute.Sitemap = STATE_SLUGS.map(
+    (state) => ({
+      url: `${SITE_URL}/chemicals/${state}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }),
+  )
+
+  // /chemical-supplier/[city] - one per active warehouse plus the Sydney
+  // coverage page (served from Newcastle).
+  const supplierCityRoutes: MetadataRoute.Sitemap = [
+    ...getActiveWarehouses().map((w) => ({
+      url: `${SITE_URL}/chemical-supplier/${w.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+    {
+      url: `${SITE_URL}/chemical-supplier/${SYDNEY_COVERAGE.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
+  ]
+
+  // /industries/[slug] - vertical-specific landing pages.
+  const industryRoutes: MetadataRoute.Sitemap = INDUSTRIES.map((i) => ({
+    url: `${SITE_URL}/industries/${i.slug}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }))
+
+  // /knowledge/[slug] - blog / knowledge-hub articles.
+  const knowledgeRoutes: MetadataRoute.Sitemap = ARTICLES.map((a) => ({
+    url: `${SITE_URL}/knowledge/${a.slug}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }))
 
   const productRoutes: MetadataRoute.Sitemap = products.map((p) => {
     // Build absolute image URL - Supabase storage URLs come back fully
@@ -128,5 +194,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     })
 
-  return [...staticRoutes, ...productRoutes, ...brandRoutes, ...buyRoutes]
+  return [
+    ...staticRoutes,
+    ...categoryRoutes,
+    ...chemicalsStateRoutes,
+    ...supplierCityRoutes,
+    ...industryRoutes,
+    ...knowledgeRoutes,
+    ...productRoutes,
+    ...brandRoutes,
+    ...buyRoutes,
+  ]
 }
